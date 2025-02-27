@@ -44,7 +44,7 @@ vector<int> generateSparseMatrix(int H, int W, int nonZero, bool uniformDistribu
     return y;
 }
 
-void main() {
+int main() {
     int TEST_CASES = 8;
     int M[] = { 1, 16, 64, 256, 1000, 4000, 16000, 64000 };
     int K[] = {  512, 1024, 2048,  4096, 2048, 4096, 8192, 16384 };
