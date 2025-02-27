@@ -2,6 +2,6 @@
 
 A project template for ASL Spring 2025.
 
-## Use -arch arm64 to compile to m1
+### Use `-arch arm64` flag to compile on m1
 
-g++ -arch arm64 -g SparseGEMM.cpp -o SparseGEMM
+`g++ -arch arm64 -g SparseGEMM.cpp -o SparseGEMM`
