@@ -1,4 +1,4 @@
-#include"SparseGEMM.h"
+#include "SparseGEMM.h"
 
 vector<int> generateSparseMatrix(int H, int W, int nonZero, bool uniformDistribution) {
     vector<int> y = vector<int>(H * W, 0);
@@ -47,7 +47,7 @@ vector<int> generateSparseMatrix(int H, int W, int nonZero, bool uniformDistribu
 int main() {
     int TEST_CASES = 8;
     int M[] = { 1, 16, 64, 256, 1000, 4000, 16000, 64000 };
-    int K[] = {  512, 1024, 2048,  4096, 2048, 4096, 8192, 16384 };
+    int K[] = { 512, 1024, 2048,  4096, 2048, 4096, 8192, 16384 };
     int N[] = { 2048, 4096, 8192, 16384,  512, 1024, 2048,  4096 };
     int nonZero[] = { 2, 4, 8, 16 }; // 1/2, 1/4, 1/8, 1/16 non-zero values
 
