@@ -1,6 +1,6 @@
 #pragma once
-#include<Vector>;
-#include<iostream>;
+#include <vector>
+#include <iostream>
 using namespace std;
 
 class SparseFormat {

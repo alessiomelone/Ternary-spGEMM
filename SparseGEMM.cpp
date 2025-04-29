@@ -1,4 +1,4 @@
-#include"SparseGEMM.h"
+#include "SparseGEMM.h"
 
 vector<int> generateSparseMatrix(int H, int W, int nonZero, bool uniformDistribution) {
     vector<int> y = vector<int>(H * W, 0);
