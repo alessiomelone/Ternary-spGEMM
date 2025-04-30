@@ -10,7 +10,9 @@ gcc -O3 c_impl/ref.c -o c_impl/ref.out
 
 #### For ARM systems (e.g., Apple M1/M2)
 
-gcc -arch arm64 -O3 c_impl/ref.c -o c_impl/ref.out
+gcc -DPMU -arch arm64 -O3 c_impl/TestImpl.c -o c_impl/TestImpl.out
+
+sudo ./c_impl/TestImpl.out -M 32 -K 1024 -N 4096 -s 4
 
 ## For C++ Implementation:
 
@@ -22,4 +24,4 @@ g++ -O3 SparseGEMM.cpp -o SparseGEMM.out
 
 g++ -arch arm64 -O3 SparseGEMM.cpp -o SparseGEMM.out -DPMU
 
-./SparseGEMM.out -M 16 -K 1024 -N 4096 -s 16
+sudo ./SparseGEMM.out -M 32 -K 1024 -N 4096 -s 4
