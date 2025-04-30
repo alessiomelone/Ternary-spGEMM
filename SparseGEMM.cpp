@@ -472,7 +472,6 @@ int main(int argc, char **argv) {
                 cout << "│   • Dense GEMM cycles:  " << std::setw(10) << d.cycles << std::string(19, ' ') << "│" << endl;
                 cout << "│   • Speedup:            " << std::fixed << std::setprecision(2) << std::setw(10) << (double)d.cycles / p.cycles << "x" << std::string(18, ' ') << "│" << endl;
 
-                #ifdef __APPLE__
                 // Print detailed performance counters
                 cout << "├─────────────────────────────────────────────────────┤" << endl;
                 cout << "│ Detailed Performance Metrics:                        │" << endl;
@@ -488,7 +487,6 @@ int main(int argc, char **argv) {
                 cout << "│   • Branches:      " << std::setw(12) << (d.branches) << std::string(19, ' ') << "│" << endl;
                 cout << "│   • Branch misses: " << std::setw(12) << (d.branch_misses) << std::string(19, ' ') << "│" << endl;
                 cout << "│   • IPC:           " << std::fixed << std::setprecision(2) << std::setw(12) << (d.instructions / d.cycles) << std::string(19, ' ') << "│" << endl;
-                #endif
                 cout << "└─────────────────────────────────────────────────────┘" << endl;
 #endif
 
