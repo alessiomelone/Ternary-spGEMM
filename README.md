@@ -21,4 +21,5 @@ g++ -O3 SparseGEMM.cpp -o SparseGEMM.out
 #### For ARM systems (e.g., Apple M1/M2)
 
 g++ -arch arm64 -O3 SparseGEMM.cpp -o SparseGEMM.out -DPMU
+
 ./SparseGEMM.out -M 16 -K 1024 -N 4096 -s 16
