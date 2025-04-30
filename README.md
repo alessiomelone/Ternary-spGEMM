@@ -2,6 +2,22 @@
 
 A project template for ASL Spring 2025.
 
-### Use `-arch arm64` flag to compile on M1
+For C Implementation:
 
-`g++ -arch arm64 -g SparseGEMM.cpp -o SparseGEMM`
+# For x86 systems
+
+gcc -O3 c_impl/ref.c -o c_impl/ref.out
+
+# For ARM systems (e.g., Apple M1/M2)
+
+gcc -arch arm64 -O3 c_impl/ref.c -o c_impl/ref.out
+
+For C++ Implementation:
+
+# For x86 systems
+
+g++ -O3 SparseGEMM.cpp -o SparseGEMM.out
+
+# For ARM systems (e.g., Apple M1/M2)
+
+g++ -arch arm64 -O3 SparseGEMM.cpp -o SparseGEMM.out
