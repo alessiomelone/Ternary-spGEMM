@@ -1,6 +1,11 @@
 #pragma once
-#include<Vector>;
-#include<iostream>;
+#include<Vector>
+#include<iostream>
+#include <iostream>
+#include <vector>
+#include <cstdlib>
+#include <chrono>
+#include <random>;
 using namespace std;
 
 class SparseFormat {
@@ -33,15 +38,78 @@ public:
 };
 
 template <typename T>
-void sparseGEMM(T* X, SparseFormat W, T* b, T* Y, int M, int N, int K) {
+vector<T> initX(int LEN, int Range) {
+	vector<T> X(LEN, 0);
+	mt19937 generator(static_cast<unsigned int>(time(0)));
+	uniform_int_distribution<int> range(-Range, Range);
+	for (int i = 0; i < LEN; i++) {
+		X[i] = range(generator);
+	}
+	return X;
+};
+
+template <typename T>
+vector<T> generateSparseMatrix(int H, int W, int nonZero, bool uniformDistribution) {
+    vector<T> y = vector<T>(H * W, 0);
+    if (uniformDistribution) {
+        for (int h = 0; h < H; h++) {
+            for (int w = 0; w < W; w += nonZero * 2) {
+                // Assign +1, -1 to each 2 x nonZero slots
+                int randomA = rand() % nonZero * 2;
+                int randomB = rand() % nonZero * 2;
+                y[h * W + w + randomA] = 1;
+                while (randomA == randomB) {
+                    randomB = rand() % nonZero * 2;
+                }
+                y[h * W + w + randomB] = -1;
+            }
+        }
+    }
+    else {
+        mt19937 generator(static_cast<unsigned int>(time(0)));
+        uniform_int_distribution<int> range(0, W - 1);
+        uniform_int_distribution<int> variRange(0, int(W / nonZero / 20 + 1)); // The variation among different columns
+        for (int h = 0; h < H; h++) {
+            int posVari = variRange(generator);
+            int limitPos = (W / nonZero) / 2 + posVari;
+            int limitNeg = (W / nonZero) / 2 - posVari;
+
+            // Assign +1 to W / nonZero / 2 places
+            int count = 0;        
+            while (count < limitPos) {
+                int randomA = range(generator);
+                if (y[h * W + randomA] == 0) {
+                    y[h * W + randomA] = 1;
+                    count++;
+                }
+            }
+
+            // Assign -1 to W / nonZero / 2 places
+            count = 0;
+            while (count < limitNeg) {
+                int randomA = range(generator);
+                if (y[h * W + randomA] == 0) {
+                    y[h * W + randomA] = -1;
+                    count++;
+                }
+            }
+        }
+    }
+
+    return y;
+}
+
+template <typename T>
+void sparseGEMM(T* X, int * col_start_pos, int * col_start_neg, int * row_index_pos, int * row_index_neg, T* b, T* Y, int M, int N, int K) {
+#pragma omp parallel for
 	for (int m = 0; m < M; m++) {
 		for (int n = 0; n < N; n++) {
 			T y = 0;
-			for (int k = W.col_start_pos[n]; k < W.col_start_pos[n + 1]; k++) {
-				y += X[m * K + W.row_index_pos[k]];
+			for (int k = col_start_pos[n]; k < col_start_pos[n + 1]; k++) {
+				y += X[m * K + row_index_pos[k]];
 			}
-			for (int k = W.col_start_neg[n]; k < W.col_start_neg[n + 1]; k++) {
-				y -= X[m * K + W.row_index_neg[k]];
+			for (int k = col_start_neg[n]; k < col_start_neg[n + 1]; k++) {
+				y -= X[m * K + row_index_neg[k]];
 			}
 			Y[m * N + n] = y + b[n];
 		}
@@ -50,6 +118,7 @@ void sparseGEMM(T* X, SparseFormat W, T* b, T* Y, int M, int N, int K) {
 
 template <typename T>
 void GEMM(T* X, T* W, T* b, T* Y, int M, int N, int K) {
+#pragma omp parallel for
 	for (int m = 0; m < M; m++) {
 		for (int n = 0; n < N; n++) {
 			T y = 0;
