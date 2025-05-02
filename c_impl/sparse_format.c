@@ -51,6 +51,51 @@ ternarySparseFormat *convertTernaryToSparseFormat(int* matrix, int K, int N, int
     return tsf;
 }
 
+int *generateSparseMatrix(int H, int W, int nonZero, bool uniformDistribution) {
+    // TODO : Free y
+    int *y = malloc(sizeof(int) * H * W);
+    if (uniformDistribution) {
+        for (int h = 0; h < H; h++) {
+            for (int w = 0; w < W; w += nonZero * 2) {
+                // Assign +1, -1 to each 2 x nonZero slots
+                int randomA = rand() % nonZero * 2;
+                int randomB = rand() % nonZero * 2;
+                y[w + randomA] = 1;
+                while (randomA==randomB) {
+                    randomB = rand() % nonZero * 2;
+                }
+                y[w + randomB] = 1;
+            }
+        }
+    }
+    else {
+        for (int h = 0; h < H; h++) {
+            // Assign +1 to W / nonZero / 2 places
+            int count = 0;
+            int limit = (W / nonZero) / 2 - 1;
+            while (count < limit) {
+                int randomA = rand() % W;
+                if (y[randomA] == 0) {
+                    y[randomA] = 1;
+                    count++;
+                }
+            }
+
+            // Assign -1 to W / nonZero / 2 places
+            count = 0;
+            while (count < (W / nonZero / 2 - 1)) {
+                int randomA = rand() % W;
+                if (y[randomA] == 0) {
+                    y[randomA] = -1;
+                    count++;
+                }
+            }
+        }
+    }
+
+    return y;
+}
+
 // Free memory from malloc()
 void destroyTernarySparceFormat(ternarySparseFormat *tsf) {
     free(tsf->col_start_pos);

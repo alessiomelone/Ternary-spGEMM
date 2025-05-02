@@ -18,6 +18,8 @@ ternarySparseFormat *convertTernaryToSparseFormat(int* matrix, int K, int N, int
 // Do Sparse GEMM, store results in parameter Y
 void sparseGEMM(int* X, ternarySparseFormat *W, int* b, int* Y, int M, int N, int K);
 
+int *generateSparseMatrix(int H, int W, int nonZero, bool uniformDistribution);
+
 // Free memory from malloc()
 void destroyTernarySparceFormat(ternarySparseFormat *tsf);
 
