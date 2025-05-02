@@ -297,46 +297,6 @@ struct performance_counters rdpmu(int* X, ternarySparseFormat* sparse_W, int* B,
 
     return result;
 }
-struct performance_counters rdpmu_for_dense(int* X, int* W, int* B, int* Y, int M, int N, int K) {
-    kperf_init();
-    int i, num_runs;
-    struct performance_counters startperf, endperf, result;
-    num_runs = NUM_RUNS;
-
-    /*
-     * The CPUID instruction serializes the pipeline.
-     * Using it, we can create execution barriers around the code we want to time.
-     * The calibrate section is used to make the computation large enough so as to
-     * avoid measurements bias due to the timing overhead.
-     */
-#ifdef CALIBRATE
-    while(num_runs < (1 << 14)) {
-        startperf = kperf_get_counters();
-        for (i = 0; i < num_runs; ++i) {
-            GEMM(X, W, B, Y, M, N, K);
-
-        }
-        endperf = kperf_get_counters();
-        double cycles = endperf.cycles - startperf.cycles;
-        if(cycles >= CYCLES_REQUIRED) break;
-
-        num_runs *= 2;
-    }
-#endif
-
-    startperf = kperf_get_counters();
-    for (i = 0; i < num_runs; ++i) {
-        GEMM(X, W, B, Y, M, N, K);
-    }
-
-    endperf = kperf_get_counters();
-    result.cycles = (endperf.cycles - startperf.cycles)/num_runs;
-    result.instructions = (endperf.instructions - startperf.instructions)/num_runs;
-    result.branches = (endperf.branches - startperf.branches)/num_runs;
-    result.branch_misses = (endperf.branch_misses - startperf.branch_misses)/num_runs;
-
-    return result;
-}
 #endif
 
 #endif
@@ -514,10 +474,7 @@ int main(int argc, char **argv) {
     }
     
     int* X = generateSparseMatrix(M, K, 4, true);
-    printf("X initialized.\n");
-    
     int* W = generateSparseMatrix(K, N, nonZero, true);
-    printf("W initialized.\n");
     
     // Initialize output and reference matrices
     int *Y = (int *)calloc(M * N, sizeof(int));
@@ -543,69 +500,54 @@ int main(int argc, char **argv) {
         return 0;
     }
     
-#ifdef __x86_64__
+    #ifdef __x86_64__
     double r = rdtsc(X, sparse_W, B, Y, M, N, K);
-    printf("RDTSC instruction:\n %lf cycles measured => %lf seconds, assuming frequency is %lf MHz. (change in source file if different)\n\n", r, r/(FREQUENCY), (FREQUENCY)/1e6);
+    printf("# RDTSC instruction\n");
+    printf("rdtsc_cycles=%.0lf\n", r);
+    printf("rdtsc_seconds=%.8lf\n", r/(FREQUENCY));
+    printf("rdtsc_freq_mhz=%.2lf\n", (FREQUENCY)/1e6);
 #endif
 
     double c = c_clock(X, sparse_W, B, Y, M, N, K, nonZero);
-    printf("C clock() function:\n %lf cycles measured. On some systems, this number seems to be actually computed from a timer in seconds then transformed into clock ticks using the variable CLOCKS_PER_SEC. Unfortunately, it appears that CLOCKS_PER_SEC is sometimes set improperly. (According to this variable, your computer should be running at %lf MHz). In any case, dividing by this value should give a correct timing: %lf seconds. \n\n",c, (double) CLOCKS_PER_SEC/1e6, c/CLOCKS_PER_SEC);
+    printf("# C clock() function\n");
+    printf("clock_cycles=%.0lf\n", c);
+    printf("clock_freq_mhz=%.2lf\n", (double) CLOCKS_PER_SEC/1e6);
+    printf("clock_seconds=%.8lf\n", c/CLOCKS_PER_SEC);
 
 #ifndef WIN32
     double t = timeofday(X, sparse_W, B, Y, M, N, K, nonZero);
-    printf("C gettimeofday() function:\n %lf seconds measured\n\n",t);
+    printf("# C gettimeofday() function\n");
+    printf("timeofday_seconds=%.8lf\n", t);
 #else
     LARGE_INTEGER f;
     double t = gettickcount(X, sparse_W, B, Y, M, N, K, nonZero);
-    printf("Windows getTickCount() function:\n %lf milliseconds measured\n\n",t);
+    printf("# Windows getTickCount() function\n");
+    printf("gettickcount_milliseconds=%.3lf\n", t);
     QueryPerformanceFrequency(&f);
     double p = queryperfcounter(X, sparse_W, B, Y, M, N, K, nonZero, f);
-    printf("Windows QueryPerformanceCounter() function:\n %lf cycles measured => %lf seconds, with reported CPU frequency %lf MHz\n\n",p,p/f.QuadPart,(double)f.QuadPart/1000);
+    printf("# Windows QueryPerformanceCounter() function\n");
+    printf("queryperfcounter_cycles=%.0lf\n", p);
+    printf("queryperfcounter_seconds=%.8lf\n", p/(double)f.QuadPart);
+    printf("queryperfcounter_freq_mhz=%.2lf\n", (double)f.QuadPart/1000);
 #endif
 
 #ifdef __aarch64__
     double v = rdvct(X, sparse_W, B, Y, M, N, K, nonZero);
-    printf("VCT instruction:\n %lf cycles measured => %lf seconds, assuming frequency of the VCT clock is %lf MHz. \n\n", v, v/(get_vct_freq()), (get_vct_freq())/1e6);
-    
-#ifdef PMU
-    // This requires sudo on macOS
-    struct performance_counters p = rdpmu(X, sparse_W, B, Y, M, N, K);
-    printf("PMU instruction:\n %lf cycles measured => %lf seconds, assuming frequency is %lf MHz. (change in source file if different)\n\n", p.cycles, p.cycles/(FREQUENCY), (FREQUENCY)/1e6);
-    struct performance_counters d = rdpmu_for_dense(X, W, B, Y, M, N, K);
-    
-    printf("\n┌─────────────────────────────────────────────────────┐\n");
-    printf("│                  TEST CASE RESULTS                   │\n");
-    printf("├─────────────────────────────────────────────────────┤\n");
-    printf("│ Status: ✅ PASSED                                    │\n");
-    
-    char dim_str[100];
-    sprintf(dim_str, "│ Matrix Dimensions: M=%d, N=%d, K=%d", M, N, K);
-    int padding = 51 - strlen(dim_str);
-    printf("%s%*s│\n", dim_str, padding, "");
-    
-    printf("├─────────────────────────────────────────────────────┤\n");
-    printf("│ Performance Comparison:                              │\n");
-    printf("│   • Sparse GEMM cycles: %10.0f                     │\n", p.cycles);
-    printf("│   • Dense GEMM cycles:  %10.0f                     │\n", d.cycles);
-    printf("│   • Speedup:            %10.2f%s                    │\n", 
-           (double)d.cycles / p.cycles, "x");
-    
-    printf("├─────────────────────────────────────────────────────┤\n");
-    printf("│ Detailed Performance Metrics:                        │\n");
-    printf("│                                                     │\n");
-    printf("│ Sparse GEMM:                                        │\n");
-    printf("│   • Instructions:  %12.0f                     │\n", p.instructions);
-    printf("│   • Branches:      %12.0f                     │\n", p.branches);
-    printf("│   • Branch misses: %12.0f                     │\n", p.branch_misses);
-    printf("│   • IPC:           %12.2f                     │\n", p.instructions / p.cycles);
-    printf("│                                                     │\n");
-    printf("│ Dense GEMM:                                         │\n");
-    printf("│   • Instructions:  %12.0f                     │\n", d.instructions);
-    printf("│   • Branches:      %12.0f                     │\n", d.branches);
-    printf("│   • Branch misses: %12.0f                     │\n", d.branch_misses);
-    printf("│   • IPC:           %12.2f                     │\n", d.instructions / d.cycles);
-    printf("├─────────────────────────────────────────────────────┤\n");
+    printf("# VCT instruction\n");
+    printf("vct_cycles=%.0lf\n", v);
+    printf("vct_seconds=%.8lf\n", v/(get_vct_freq()));
+    printf("vct_freq_mhz=%.2lf\n", (get_vct_freq())/1e6);
 
+#ifdef PMU
+    struct performance_counters p = rdpmu(X, sparse_W, B, Y, M, N, K);
+    printf("# PMU instruction\n");
+    printf("pmu_cycles=%.0lf\n", p.cycles);
+    printf("pmu_seconds=%.8lf\n", p.cycles/(FREQUENCY));
+    printf("pmu_freq_mhz=%.2lf\n", (FREQUENCY)/1e6);
+    printf("pmu_instructions=%.0lf\n", p.instructions);
+    printf("pmu_branches=%.0lf\n", p.branches);
+    printf("pmu_branch_misses=%.0lf\n", p.branch_misses);
+    printf("pmu_ipc=%.2lf\n", p.instructions / p.cycles);
 #endif
 
 #endif
