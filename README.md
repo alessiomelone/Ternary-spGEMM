@@ -6,7 +6,7 @@ A project template for ASL Spring 2025.
 
 #### For x86 systems
 
-gcc -O3 c_impl/ref.c -o c_impl/ref.out
+gcc -O3 ./c_impl/sparse_format.c ./c_impl/TestImpl.c -o ./c_impl/TestImpl.out
 
 #### For ARM systems (e.g., Apple M1/M2)
 
