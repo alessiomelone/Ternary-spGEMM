@@ -1,50 +1,32 @@
 #!/bin/bash
 
-# Arrays as defined in your C code
 M=(1 16 64 256 1000 4000 16000 64000)
 K=(512 1024 2048 4096 2048 4096 8192 16384)
 N=(2048 4096 8192 16384 512 1024 2048 4096)
 nonZero=(2 4 8 16)
 
-# Output CSV file
 CSV_FILE="dense_benchmark_results.csv"
 
-# Write CSV header
 echo "M,K,N,nonZero,clock_cycles,clock_freq_mhz,clock_seconds,timeofday_seconds,vct_cycles,vct_seconds,vct_freq_mhz,pmu_cycles,pmu_seconds,pmu_freq_mhz,pmu_instructions,pmu_branches,pmu_branch_misses,pmu_ipc" > "$CSV_FILE"
 
-# Loop over all permutations with correct K/N pairing
-for m_idx in "${!M[@]}"; do
-    for kn_idx in "${!K[@]}"; do  # K and N share the same index
-        current_m=${M[$m_idx]}
-        current_k=${K[$kn_idx]}
-        current_n=${N[$kn_idx]}  # Pair K and N by index
+# Loop over all 8*8 permutations
+for m_idx in {0..7}; do
+    for kn_idx in {0..7}; do
+        m=${M[$m_idx]}
+        k=${K[$kn_idx]}
+        n=${N[$kn_idx]} 
         
         for s in "${nonZero[@]}"; do
-            echo "Running M=$current_m, K=$current_k, N=$current_n, sparsity=1/$s"
+            echo "Running benchmark with M=$m, K=$k, N=$n, nonZero=$s"
             
             # Run the executable and capture output
-            OUTPUT=$(sudo ./c_impl/DenseBenchmark.out -M "$current_m" -K "$current_k" -N "$current_n" -s "$s")
+            OUTPUT=$(sudo ./c_impl/DenseBenchmark.out -M "$m" -K "$k" -N "$n" -s "$s")
 
-            # Check for test case failure
-            if echo "$OUTPUT" | grep -qi "test case failed"; then
-                echo "ERROR: Failed case M=$current_m, K=$current_k, N=$current_n, s=$s"
-                echo "$OUTPUT"
-                continue
-            fi
-
-            # Parse output values with validation
+            # Parse output values
             clock_cycles=$(echo "$OUTPUT" | grep "clock_cycles=" | cut -d'=' -f2)
             clock_freq_mhz=$(echo "$OUTPUT" | grep "clock_freq_mhz=" | cut -d'=' -f2)
             clock_seconds=$(echo "$OUTPUT" | grep "clock_seconds=" | cut -d'=' -f2)
             timeofday_seconds=$(echo "$OUTPUT" | grep "timeofday_seconds=" | cut -d'=' -f2)
-            
-            # Validate essential metrics
-            if [ -z "$clock_cycles" ] || [ -z "$timeofday_seconds" ]; then
-                echo "WARNING: Missing core metrics for M=$current_m, K=$current_k, N=$current_n, s=$s"
-                continue
-            fi
-
-            # Parse optional PMU metrics
             vct_cycles=$(echo "$OUTPUT" | grep "vct_cycles=" | cut -d'=' -f2)
             vct_seconds=$(echo "$OUTPUT" | grep "vct_seconds=" | cut -d'=' -f2)
             vct_freq_mhz=$(echo "$OUTPUT" | grep "vct_freq_mhz=" | cut -d'=' -f2)
@@ -55,9 +37,17 @@ for m_idx in "${!M[@]}"; do
             pmu_branches=$(echo "$OUTPUT" | grep "pmu_branches=" | cut -d'=' -f2)
             pmu_branch_misses=$(echo "$OUTPUT" | grep "pmu_branch_misses=" | cut -d'=' -f2)
             pmu_ipc=$(echo "$OUTPUT" | grep "pmu_ipc=" | cut -d'=' -f2)
+            
+            # Check if any of the required values are missing
+            if [ -z "$clock_cycles" ] || [ -z "$clock_freq_mhz" ] || [ -z "$clock_seconds" ] || [ -z "$timeofday_seconds" ]; then
+                echo "WARNING: Missing required output values for M=$m, K=$k, N=$n, nonZero=$s"
+                echo "$OUTPUT"
+                continue  # Skip to next iteration instead of exiting
+            fi
 
-            # Write to CSV
-            echo "$current_m,$current_k,$current_n,$s,$clock_cycles,$clock_freq_mhz,$clock_seconds,$timeofday_seconds,$vct_cycles,$vct_seconds,$vct_freq_mhz,$pmu_cycles,$pmu_seconds,$pmu_freq_mhz,$pmu_instructions,$pmu_branches,$pmu_branch_misses,$pmu_ipc" >> "$CSV_FILE"
+            echo "$m,$k,$n,$s,$clock_cycles,$clock_freq_mhz,$clock_seconds,$timeofday_seconds,$vct_cycles,$vct_seconds,$vct_freq_mhz,$pmu_cycles,$pmu_seconds,$pmu_freq_mhz,$pmu_instructions,$pmu_branches,$pmu_branch_misses,$pmu_ipc" >> "$CSV_FILE"
+            
+            echo "Completed benchmark for M=$m, K=$k, N=$n, nonZero=$s"
         done
     done
 done

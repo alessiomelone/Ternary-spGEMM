@@ -1,6 +1,5 @@
 #!/bin/bash
 
-# Arrays as defined in your C code
 M=(1 16 64 256 1000 4000 16000 64000)
 K=(512 1024 2048 4096 2048 4096 8192 16384)
 N=(2048 4096 8192 16384 512 1024 2048 4096)
@@ -15,12 +14,12 @@ mkdir -p results
 # Write CSV header
 echo "M,K,N,nonZero,clock_cycles,clock_freq_mhz,clock_seconds,timeofday_seconds,vct_cycles,vct_seconds,vct_freq_mhz,pmu_cycles,pmu_seconds,pmu_freq_mhz,pmu_instructions,pmu_branches,pmu_branch_misses,pmu_ipc" > "$CSV_FILE"
 
-# Loop over all permutations, ensuring K and N use the same index
+# Loop over all 8*8 permutations
 for m_idx in {0..7}; do
     kn_idx=0
         m=${M[$m_idx]}
         k=${K[$kn_idx]}
-        n=${N[$kn_idx]}  # Use the same index for K and N
+        n=${N[$kn_idx]} 
         
         for s in "${nonZero[@]}"; do
             echo "Running benchmark with M=$m, K=$k, N=$n, nonZero=$s"
@@ -58,7 +57,6 @@ for m_idx in {0..7}; do
                 continue  # Skip to next iteration instead of exiting
             fi
 
-            # Write to CSV
             echo "$m,$k,$n,$s,$clock_cycles,$clock_freq_mhz,$clock_seconds,$timeofday_seconds,$vct_cycles,$vct_seconds,$vct_freq_mhz,$pmu_cycles,$pmu_seconds,$pmu_freq_mhz,$pmu_instructions,$pmu_branches,$pmu_branch_misses,$pmu_ipc" >> "$CSV_FILE"
             
             echo "Completed benchmark for M=$m, K=$k, N=$n, nonZero=$s"
