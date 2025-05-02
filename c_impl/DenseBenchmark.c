@@ -388,10 +388,7 @@ int main(int argc, char **argv) {
     }
     
     int* X = generateSparseMatrix(M, K, 4, true);
-    printf("X initialized.\n");
-    
     int* W = generateSparseMatrix(K, N, nonZero, true);
-    printf("W initialized.\n");
     
     // Initialize output and reference matrices
     int *Y = (int *)calloc(M * N, sizeof(int));
@@ -399,52 +396,58 @@ int main(int argc, char **argv) {
     
     GEMM(X, W, B, Y, M, N, K);
     
-    
-#ifdef __x86_64__
+    #ifdef __x86_64__
     double r = rdtsc(X, W, B, Y, M, N, K);
-    printf("RDTSC instruction:\n %lf cycles measured => %lf seconds, assuming frequency is %lf MHz. (change in source file if different)\n\n", r, r/(FREQUENCY), (FREQUENCY)/1e6);
+    printf("# RDTSC instruction\n");
+    printf("rdtsc_cycles=%.0lf\n", r);
+    printf("rdtsc_seconds=%.8lf\n", r/(FREQUENCY));
+    printf("rdtsc_freq_mhz=%.2lf\n", (FREQUENCY)/1e6);
 #endif
 
     double c = c_clock(X, W, B, Y, M, N, K, nonZero);
-    printf("C clock() function:\n %lf cycles measured. On some systems, this number seems to be actually computed from a timer in seconds then transformed into clock ticks using the variable CLOCKS_PER_SEC. Unfortunately, it appears that CLOCKS_PER_SEC is sometimes set improperly. (According to this variable, your computer should be running at %lf MHz). In any case, dividing by this value should give a correct timing: %lf seconds. \n\n",c, (double) CLOCKS_PER_SEC/1e6, c/CLOCKS_PER_SEC);
+    printf("# C clock() function\n");
+    printf("clock_cycles=%.0lf\n", c);
+    printf("clock_freq_mhz=%.2lf\n", (double) CLOCKS_PER_SEC/1e6);
+    printf("clock_seconds=%.8lf\n", c/CLOCKS_PER_SEC);
 
 #ifndef WIN32
     double t = timeofday(X, W, B, Y, M, N, K, nonZero);
-    printf("C gettimeofday() function:\n %lf seconds measured\n\n",t);
+    printf("# C gettimeofday() function\n");
+    printf("timeofday_seconds=%.8lf\n", t);
 #else
     LARGE_INTEGER f;
     double t = gettickcount(X, W, B, Y, M, N, K, nonZero);
-    printf("Windows getTickCount() function:\n %lf milliseconds measured\n\n",t);
+    printf("# Windows getTickCount() function\n");
+    printf("gettickcount_milliseconds=%.3lf\n", t);
     QueryPerformanceFrequency(&f);
     double p = queryperfcounter(X, W, B, Y, M, N, K, nonZero, f);
-    printf("Windows QueryPerformanceCounter() function:\n %lf cycles measured => %lf seconds, with reported CPU frequency %lf MHz\n\n",p,p/f.QuadPart,(double)f.QuadPart/1000);
+    printf("# Windows QueryPerformanceCounter() function\n");
+    printf("queryperfcounter_cycles=%.0lf\n", p);
+    printf("queryperfcounter_seconds=%.8lf\n", p/(double)f.QuadPart);
+    printf("queryperfcounter_freq_mhz=%.2lf\n", (double)f.QuadPart/1000);
 #endif
 
 #ifdef __aarch64__
     double v = rdvct(X, W, B, Y, M, N, K, nonZero);
-    printf("VCT instruction:\n %lf cycles measured => %lf seconds, assuming frequency of the VCT clock is %lf MHz. \n\n", v, v/(get_vct_freq()), (get_vct_freq())/1e6);
-    
-#ifdef PMU
-    // This requires sudo on macOS
-    struct performance_counters p = rdpmu(X, W, B, Y, M, N, K);
-    printf("PMU instruction:\n %lf cycles measured => %lf seconds, assuming frequency is %lf MHz. (change in source file if different)\n\n", p.cycles, p.cycles/(FREQUENCY), (FREQUENCY)/1e6);
-    
-    printf("|───────────────────────────────────────────────|\n");
-    printf("│                  TEST CASE RESULTS            │\n");
-    printf("├───────────────────────────────────────────────┤\n");
-    printf("│ Detailed Performance Metrics:                 │\n");
-    printf("│                                               │\n");
-    printf("│ Dense GEMM:                                   │\n");
-    printf("│   • Cycles:        %10.0f                     │\n", p.cycles);
-    printf("│   • Instructions:  %12.0f                     │\n", p.instructions);
-    printf("│   • Branches:      %12.0f                     │\n", p.branches);
-    printf("│   • Branch misses: %12.0f                     │\n", p.branch_misses);
-    printf("│   • IPC:           %12.2f                     │\n", p.instructions / p.cycles);
-    printf("├───────────────────────────────────────────────┤\n");
+    printf("# VCT instruction\n");
+    printf("vct_cycles=%.0lf\n", v);
+    printf("vct_seconds=%.8lf\n", v/(get_vct_freq()));
+    printf("vct_freq_mhz=%.2lf\n", (get_vct_freq())/1e6);
 
+#ifdef PMU
+    struct performance_counters p = rdpmu(X, W, B, Y, M, N, K);
+    printf("# PMU instruction\n");
+    printf("pmu_cycles=%.0lf\n", p.cycles);
+    printf("pmu_seconds=%.8lf\n", p.cycles/(FREQUENCY));
+    printf("pmu_freq_mhz=%.2lf\n", (FREQUENCY)/1e6);
+    printf("pmu_instructions=%.0lf\n", p.instructions);
+    printf("pmu_branches=%.0lf\n", p.branches);
+    printf("pmu_branch_misses=%.0lf\n", p.branch_misses);
+    printf("pmu_ipc=%.2lf\n", p.instructions / p.cycles);
 #endif
 
 #endif
     return 0;
 }
+
 

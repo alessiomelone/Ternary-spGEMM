@@ -47,3 +47,5 @@ ipch/
 # Project specific
 c_impl/*.out
 
+*.csv
+*/*.csv
