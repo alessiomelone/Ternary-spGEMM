@@ -31,6 +31,9 @@
 #define FREQUENCY 3.22e9
 #define CALIBRATE
 
+#define RED "\033[0;31m"
+#define GREEN "\033[0;32m"
+#define RESET "\033[0m"
 typedef struct ternarySparseFormat_t {
 	int *col_start_pos;
 	int *col_start_neg;
@@ -488,9 +491,9 @@ int main(int argc, char **argv) {
     
     // Compare results
     if (compare_results(Y, refY, M, N)) {
-        printf("Test case passed!\n");
+        printf("%sTest case passed!%s\n", GREEN, RESET);
     } else {
-        printf("Test case failed!\n");
+        printf("%sTest case failed!%s\n", RED, RESET);
         destroyTernarySparceFormat(sparse_W);
         free(refY);
         free(B);
