@@ -7,14 +7,17 @@ N=(2048 4096 8192 16384 512 1024 2048 4096)
 nonZero=(2 4 8 16)
 
 # Output CSV file
-CSV_FILE="sparse_benchmark_results.csv"
+CSV_FILE="results/sparse_fixed_$(date +%Y-%m-%d).csv"
+
+# Ensure the results directory exists
+mkdir -p results
 
 # Write CSV header
 echo "M,K,N,nonZero,clock_cycles,clock_freq_mhz,clock_seconds,timeofday_seconds,vct_cycles,vct_seconds,vct_freq_mhz,pmu_cycles,pmu_seconds,pmu_freq_mhz,pmu_instructions,pmu_branches,pmu_branch_misses,pmu_ipc" > "$CSV_FILE"
 
 # Loop over all permutations, ensuring K and N use the same index
 for m_idx in {0..7}; do
-    for kn_idx in {0..7}; do
+    kn_idx=0
         m=${M[$m_idx]}
         k=${K[$kn_idx]}
         n=${N[$kn_idx]}  # Use the same index for K and N
@@ -60,7 +63,7 @@ for m_idx in {0..7}; do
             
             echo "Completed benchmark for M=$m, K=$k, N=$n, nonZero=$s"
         done
-    done
+    # done
 done
 
 echo "Benchmarking complete. Results saved to $CSV_FILE."

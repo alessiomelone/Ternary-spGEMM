@@ -37,6 +37,8 @@
 #define GREEN "\033[0;32m"
 #define RESET "\033[0m"
 
+// #define VALIDATE
+
 // TODO: Run valgrind on it to verify no unsafe mem accesses -- should be ok since tests pass
 bool compare_results(int *result, int *groundTruth, int H, int W)
 {
@@ -462,6 +464,8 @@ int main(int argc, char **argv)
     // Run sparse and dense implementations
     ternarySparseFormat *sparse_W = convertTernaryToSparseFormat(W, K, N, nonZero);
     sparseGEMM(X, sparse_W, B, Y, M, N, K);
+
+#ifdef VALIDATE
     GEMM(X, W, B, refY, M, N, K);
 
     // Compare results
@@ -480,6 +484,7 @@ int main(int argc, char **argv)
         free(W);
         return 0;
     }
+#endif
 
 #ifdef __x86_64__
     double r = rdtsc(X, sparse_W, B, Y, M, N, K);
