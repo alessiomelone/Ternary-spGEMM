@@ -8,7 +8,6 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <time.h>
-#include <unistd.h>
 #include <math.h>
 #include <stdbool.h>
 #include <string.h>
@@ -327,30 +326,17 @@ double queryperfcounter(float *X, ternarySparseFormat *sparse_W, float *B, float
 int main(int argc, char **argv)
 {
     int M = 0, K = 0, N = 0, nonZero = 0;
-    int opt;
-
-    // The colons after each letter mean the option requires an argument
-    while ((opt = getopt(argc, argv, "M:K:N:s:")) != -1)
-    {
-        switch (opt)
-        {
-        case 'M':
-            M = atoi(optarg);
-            break;
-        case 'K':
-            K = atoi(optarg);
-            break;
-        case 'N':
-            N = atoi(optarg);
-            break;
-        case 's':
-            nonZero = atoi(optarg);
-            break;
-        default:
-            fprintf(stderr, "Usage: %s -M <int> -K <int> -N <int> -z <int>\n", argv[0]);
-            return 1;
-        }
+    
+    // Check all arguments passed
+    if (argc < 9) {
+        fprintf(stderr, "Usage: %s -M <int> -K <int> -N <int> -s <int>\n", argv[0]);
+        return 1;
     }
+    
+    M = atoi(argv[2]);
+    K = atoi(argv[4]);
+    N = atoi(argv[6]);
+    nonZero = atoi(argv[8]);
 
     // Check for valid parameters
     if (M <= 0 || K <= 0 || N <= 0 || nonZero <= 0)
