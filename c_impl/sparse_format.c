@@ -168,7 +168,7 @@ float *generateSparseMatrix(int H, int W, int nonZero, bool uniformDistribution)
 }
 
 // Free memory for TSF
-void destroyTernarySparcseFormat(ternarySparseFormat *tsf)
+void destroyTernarySparseFormat(ternarySparseFormat *tsf)
 {
     free(tsf->col_start_pos);
     free(tsf->col_start_neg);
