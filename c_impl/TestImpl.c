@@ -360,7 +360,7 @@ int main(int argc, char **argv)
         return 1;
     }
 
-    int *X = generateSparseMatrix(M, K, 4, true);
+    int *X = initX(M * K, 512);
     int *W = generateSparseMatrix(K, N, nonZero, true);
 
     // Initialize output and reference matrices
