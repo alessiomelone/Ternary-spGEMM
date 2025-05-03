@@ -1,0 +1,52 @@
+
+# Build outputs
+*.out
+*.o
+*.a
+*.so
+*.exe
+*.dll
+*.dylib
+
+# Visual Studio files
+.vs/
+*.user
+*.userosscache
+*.suo
+*.sdf
+*.opensdf
+*.dbmdl
+*.dbproj.schemaview
+*.pfx
+*.publishsettings
+x64/
+x86/
+[Bb]in/
+[Oo]bj/
+[Dd]ebug/
+[Rr]elease/
+ipch/
+.vscode/
+
+# macOS specific
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# Editor backup files
+*~
+*.swp
+*.swo
+*.bak
+
+# Temporary files
+*.tmp
+*.temp
+*.log
+
+# Project specific
+c_impl/*.out
+
+*.csv
+*/*.csv
