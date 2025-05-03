@@ -48,7 +48,7 @@ float *initX(int LEN, int Range) {
 };
 
 // Convert ternary matrix to Ternary Sparse Format
-ternarySparseFormat *convertTernaryToSparseFormat(int *matrix, int K, int N, int nonZeroPercentage)
+ternarySparseFormat *convertTernaryToSparseFormat(float *matrix, int K, int N, int nonZeroPercentage)
 {
     // TODO: Verify sizes of each sub array
     int nonZeroVals = (K * N) / (double)(nonZeroPercentage) + 1;
@@ -88,16 +88,16 @@ ternarySparseFormat *convertTernaryToSparseFormat(int *matrix, int K, int N, int
 }
 
 // TODO: Run valgrind on it to verify no unsafe mem accesses -- should be ok since tests pass
-bool compare_results(int *result, int *groundTruth, int H, int W)
+bool compare_results(float *result, float *groundTruth, int H, int W)
 {
     for (int h = 0; h < H; h++)
     {
         for (int w = 0; w < W; w++)
         {
             int i = h * W + w;
-            if (abs(result[i] - groundTruth[i]) > 10e-6)
+            if (fabsf(result[i] - groundTruth[i]) > 10e-6)
             {
-                printf("Error at: H=%d, W=%d, result=%d, groundTruth=%d\n", h, w, result[i], groundTruth[i]);
+                printf("Error at: H=%d, W=%d, result=%.2f, groundTruth=%.2f\n", h, w, result[i], groundTruth[i]);
                 return false;
             }
         }
@@ -110,10 +110,7 @@ bool compare_results(int *result, int *groundTruth, int H, int W)
 float *generateSparseMatrix(int H, int W, int nonZero, bool uniformDistribution)
 {
     long long totalElements = (long long)H * W;
-    float *y = (float *)malloc(sizeof(float) * totalElements);
-    memset(y, 0, sizeof(float) * totalElements);
-
-    // Assuming nonZero > 0
+    float *y = (float *)calloc(sizeof(float), totalElements);
     long long numNonZeroTarget = totalElements / nonZero;
 
     if (uniformDistribution)

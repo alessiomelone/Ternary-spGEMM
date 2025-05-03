@@ -42,7 +42,7 @@
  * Timing function based on the TimeStep Counter of the CPU.
  */
 #ifdef __x86_64__
-double rdtsc(int *X, ternarySparseFormat *sparse_W, int *B, int *Y, int M, int N, int K)
+double rdtsc(float *X, ternarySparseFormat *sparse_W, float *B, float *Y, int M, int N, int K)
 {
 
     int i, num_runs;
@@ -85,7 +85,7 @@ double rdtsc(int *X, ternarySparseFormat *sparse_W, int *B, int *Y, int M, int N
 #endif
 
 #ifdef __aarch64__
-double rdvct(int *X, ternarySparseFormat *sparse_W, int *B, int *Y, int M, int N, int K, int nonZero)
+double rdvct(float *X, ternarySparseFormat *sparse_W, float *B, float *Y, int M, int N, int K, int nonZero)
 {
     int i, num_runs;
     TIMESTAMP cycles;
@@ -126,7 +126,7 @@ double rdvct(int *X, ternarySparseFormat *sparse_W, int *B, int *Y, int M, int N
 }
 
 #ifdef PMU
-struct performance_counters rdpmu(int *X, ternarySparseFormat *sparse_W, int *B, int *Y, int M, int N, int K)
+struct performance_counters rdpmu(float *X, ternarySparseFormat *sparse_W, float *B, float *Y, int M, int N, int K)
 {
     kperf_init();
     int i, num_runs;
@@ -174,7 +174,7 @@ struct performance_counters rdpmu(int *X, ternarySparseFormat *sparse_W, int *B,
 
 #endif
 
-double c_clock(int *X, ternarySparseFormat *sparse_W, int *B, int *Y, int M, int N, int K, int nonZero)
+double c_clock(float *X, ternarySparseFormat *sparse_W, float *B, float *Y, int M, int N, int K, int nonZero)
 {
     int i, num_runs;
     double cycles;
@@ -212,7 +212,7 @@ double c_clock(int *X, ternarySparseFormat *sparse_W, int *B, int *Y, int M, int
 }
 
 #ifndef WIN32
-double timeofday(int *X, ternarySparseFormat *sparse_W, int *B, int *Y, int M, int N, int K, int nonZero)
+double timeofday(float *X, ternarySparseFormat *sparse_W, float *B, float *Y, int M, int N, int K, int nonZero)
 {
     int i, num_runs;
     double cycles;
@@ -250,7 +250,7 @@ double timeofday(int *X, ternarySparseFormat *sparse_W, int *B, int *Y, int M, i
 
 #else
 
-double gettickcount(int *X, ternarySparseFormat *sparse_W, int *B, int *Y, int M, int N, int K, int nonZero)
+double gettickcount(float *X, ternarySparseFormat *sparse_W, float *B, float *Y, int M, int N, int K, int nonZero)
 {
     int i, num_runs;
     double cycles, start, end;
@@ -285,7 +285,7 @@ double gettickcount(int *X, ternarySparseFormat *sparse_W, int *B, int *Y, int M
     return (end - start) / num_runs;
 }
 
-double queryperfcounter(int *X, ternarySparseFormat *sparse_W, int *B, int *Y, int M, int N, int K, int nonZero, LARGE_INTEGER f)
+double queryperfcounter(float *X, ternarySparseFormat *sparse_W, float *B, float *Y, int M, int N, int K, int nonZero, LARGE_INTEGER f)
 {
     int i, num_runs;
     double cycles;
@@ -364,9 +364,9 @@ int main(int argc, char **argv)
     float *W = generateSparseMatrix(K, N, nonZero, true);
 
     // Initialize output and reference matrices
-    float *Y = (int *)calloc(M * N, sizeof(int));
-    float *B = (int *)calloc(N, sizeof(int)); // Initialize bias to zeros
-    float *refY = (int *)calloc(M * N, sizeof(int));
+    float *Y = (float *)calloc(M * N, sizeof(float));
+    float *B = (float *)calloc(N, sizeof(float)); // Initialize bias to zeros
+    float *refY = (float *)calloc(M * N, sizeof(float));
 
     // Run sparse and dense implementations
     ternarySparseFormat *sparse_W = convertTernaryToSparseFormat(W, K, N, nonZero);
