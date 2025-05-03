@@ -360,13 +360,13 @@ int main(int argc, char **argv)
         return 1;
     }
 
-    int *X = initX(M * K, 512);
-    int *W = generateSparseMatrix(K, N, nonZero, true);
+    float *X = initX(M * K, 512);
+    float *W = generateSparseMatrix(K, N, nonZero, true);
 
     // Initialize output and reference matrices
-    int *Y = (int *)calloc(M * N, sizeof(int));
-    int *B = (int *)calloc(N, sizeof(int)); // Initialize bias to zeros
-    int *refY = (int *)calloc(M * N, sizeof(int));
+    float *Y = (int *)calloc(M * N, sizeof(int));
+    float *B = (int *)calloc(N, sizeof(int)); // Initialize bias to zeros
+    float *refY = (int *)calloc(M * N, sizeof(int));
 
     // Run sparse and dense implementations
     ternarySparseFormat *sparse_W = convertTernaryToSparseFormat(W, K, N, nonZero);

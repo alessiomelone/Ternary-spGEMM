@@ -1,7 +1,7 @@
 #include "sparse_format.h"
 
 // Do Sparse GEMM, store results in parameter Y
-void sparseGEMM(int *X, ternarySparseFormat *W, int *b, int *Y, int M, int N, int K)
+void sparseGEMM(float *X, ternarySparseFormat *W, float *b, float *Y, int M, int N, int K)
 {
     for (int m = 0; m < M; m++)
     {
@@ -21,7 +21,7 @@ void sparseGEMM(int *X, ternarySparseFormat *W, int *b, int *Y, int M, int N, in
     }
 }
 
-void GEMM(int *X, int *W, int *b, int *Y, int M, int N, int K)
+void GEMM(float *X, float *W, float *b, float *Y, int M, int N, int K)
 {
     for (int m = 0; m < M; m++)
     {

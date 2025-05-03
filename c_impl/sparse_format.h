@@ -16,16 +16,15 @@ typedef struct ternarySparseFormat_t {
 // Convert ternary matrix to Ternary Sparse Format
 ternarySparseFormat *convertTernaryToSparseFormat(int* matrix, int K, int N, int nonZeroPercentage);
 
-bool compare_results(int *result, int *groundTruth, int H, int W);
+bool compare_results(float *result, float *groundTruth, int H, int W);
 
-void GEMM(int *X, int *W, int *b, int *Y, int M, int N, int K);
-
+void GEMM(float *X, float *W, float *b, float *Y, int M, int N, int K);
 
 
 float *initX(int LEN, int Range);
 
 // Do Sparse GEMM, store results in parameter Y
-void sparseGEMM(int* X, ternarySparseFormat *W, int* b, int* Y, int M, int N, int K);
+void sparseGEMM(int* X, ternarySparseFormat *W, float* b, float* Y, int M, int N, int K);
 
 float *generateSparseMatrix(int H, int W, int nonZero, bool uniformDistribution);
 
