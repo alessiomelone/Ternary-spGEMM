@@ -8,6 +8,8 @@
 *.dll
 *.dylib
 
+build/
+
 # Visual Studio files
 .vs/
 *.user
