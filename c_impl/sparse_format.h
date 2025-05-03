@@ -21,6 +21,9 @@ bool compare_results(int *result, int *groundTruth, int H, int W);
 void GEMM(int *X, int *W, int *b, int *Y, int M, int N, int K);
 
 
+
+float *initX(int LEN, int Range);
+
 // Do Sparse GEMM, store results in parameter Y
 void sparseGEMM(int* X, ternarySparseFormat *W, int* b, int* Y, int M, int N, int K);
 
