@@ -3,6 +3,7 @@
 
 #include <stdlib.h>
 #include <stdbool.h>
+#include <stdio.h>
 
 typedef struct ternarySparseFormat_t {
     int *col_start_pos;
@@ -14,6 +15,11 @@ typedef struct ternarySparseFormat_t {
 
 // Convert ternary matrix to Ternary Sparse Format
 ternarySparseFormat *convertTernaryToSparseFormat(int* matrix, int K, int N, int nonZeroPercentage);
+
+bool compare_results(int *result, int *groundTruth, int H, int W);
+
+void GEMM(int *X, int *W, int *b, int *Y, int M, int N, int K);
+
 
 // Do Sparse GEMM, store results in parameter Y
 void sparseGEMM(int* X, ternarySparseFormat *W, int* b, int* Y, int M, int N, int K);

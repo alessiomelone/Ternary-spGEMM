@@ -16,6 +16,22 @@ void sparseGEMM(int* X, ternarySparseFormat *W, int* b, int* Y, int M, int N, in
     }
 }
 
+void GEMM(int *X, int *W, int *b, int *Y, int M, int N, int K)
+{
+    for (int m = 0; m < M; m++)
+    {
+        for (int n = 0; n < N; n++)
+        {
+            int y = 0;
+            for (int k = 0; k < K; k++)
+            {
+                y += X[m * K + k] * W[k * N + n];
+            }
+            Y[m * N + n] = y + b[n];
+        }
+    }
+}
+
 // Convert ternary matrix to Ternary Sparse Format
 ternarySparseFormat *convertTernaryToSparseFormat(int* matrix, int K, int N, int nonZeroPercentage) {
     // TODO: Verify sizes of each sub array
@@ -49,6 +65,24 @@ ternarySparseFormat *convertTernaryToSparseFormat(int* matrix, int K, int N, int
     tsf->col_start_pos[n] = column_start_pos;
     tsf->col_start_neg[n] = column_start_neg;
     return tsf;
+}
+
+// TODO: Run valgrind on it to verify no unsafe mem accesses -- should be ok since tests pass
+bool compare_results(int *result, int *groundTruth, int H, int W){
+    for (int h = 0; h < H; h++)
+{
+        for (int w = 0; w < W; w++)
+        {
+            int i = h * W + w;
+            if (abs(result[i] - groundTruth[i]) > 10e-6)
+            {
+                printf("Error at: H=%d, W=%d, result=%d, groundTruth=%d\n", h, w, result[i], groundTruth[i]);
+                return false;
+            }
+        }
+    }
+
+    return true;
 }
 
 int *generateSparseMatrix(int H, int W, int nonZero, bool uniformDistribution) {
@@ -91,6 +125,13 @@ int *generateSparseMatrix(int H, int W, int nonZero, bool uniformDistribution) {
                 }
             }
         }
+    }
+
+    for(int i=0;i<H;++i){
+        for(int j=0;j<W;j++){
+            printf("%d " , y[i*W+j]);
+        }
+        printf("\n");
     }
 
     return y;

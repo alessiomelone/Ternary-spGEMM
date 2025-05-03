@@ -32,48 +32,12 @@
 #define CYCLES_REQUIRED 1e8
 #define FREQUENCY 3.22e9
 #define CALIBRATE
+// #define VALIDATE
 
 #define RED "\033[0;31m"
 #define GREEN "\033[0;32m"
 #define RESET "\033[0m"
 
-// #define VALIDATE
-
-// TODO: Run valgrind on it to verify no unsafe mem accesses -- should be ok since tests pass
-bool compare_results(int *result, int *groundTruth, int H, int W)
-{
-    for (int h = 0; h < H; h++)
-    {
-        for (int w = 0; w < W; w++)
-        {
-            int i = h * W + w;
-            if (abs(result[i] - groundTruth[i]) > 10e-6)
-            {
-                printf("Error at: H=%d, W=%d, result=%d, groundTruth=%d\n", h, w, result[i], groundTruth[i]);
-                return false;
-            }
-        }
-    }
-
-    return true;
-}
-
-// Do basic GEMM (3-fold loop)
-void GEMM(int *X, int *W, int *b, int *Y, int M, int N, int K)
-{
-    for (int m = 0; m < M; m++)
-    {
-        for (int n = 0; n < N; n++)
-        {
-            int y = 0;
-            for (int k = 0; k < K; k++)
-            {
-                y += X[m * K + k] * W[k * N + n];
-            }
-            Y[m * N + n] = y + b[n];
-        }
-    }
-}
 
 /*
  * Timing function based on the TimeStep Counter of the CPU.
@@ -439,14 +403,14 @@ int main(int argc, char **argv)
 #endif
 
     double c = c_clock(X, sparse_W, B, Y, M, N, K, nonZero);
-    printf("# C clock() function\n");
+    printf("\n# C clock() function\n");
     printf("clock_cycles=%.0lf\n", c);
     printf("clock_freq_mhz=%.2lf\n", (double)CLOCKS_PER_SEC / 1e6);
     printf("clock_seconds=%.8lf\n", c / CLOCKS_PER_SEC);
 
 #ifndef WIN32
     double t = timeofday(X, sparse_W, B, Y, M, N, K, nonZero);
-    printf("# C gettimeofday() function\n");
+    printf("\n# C gettimeofday() function\n");
     printf("timeofday_seconds=%.8lf\n", t);
 #else
     LARGE_INTEGER f;
@@ -455,7 +419,7 @@ int main(int argc, char **argv)
     printf("gettickcount_milliseconds=%.3lf\n", t);
     QueryPerformanceFrequency(&f);
     double p = queryperfcounter(X, sparse_W, B, Y, M, N, K, nonZero, f);
-    printf("# Windows QueryPerformanceCounter() function\n");
+    printf("\n# Windows QueryPerformanceCounter() function\n");
     printf("queryperfcounter_cycles=%.0lf\n", p);
     printf("queryperfcounter_seconds=%.8lf\n", p / (double)f.QuadPart);
     printf("queryperfcounter_freq_mhz=%.2lf\n", (double)f.QuadPart / 1000);
@@ -463,14 +427,14 @@ int main(int argc, char **argv)
 
 #ifdef __aarch64__
     double v = rdvct(X, sparse_W, B, Y, M, N, K, nonZero);
-    printf("# VCT instruction\n");
+    printf("\n# VCT instruction\n");
     printf("vct_cycles=%.0lf\n", v);
     printf("vct_seconds=%.8lf\n", v / (get_vct_freq()));
     printf("vct_freq_mhz=%.2lf\n", (get_vct_freq()) / 1e6);
 
 #ifdef PMU
     struct performance_counters p = rdpmu(X, sparse_W, B, Y, M, N, K);
-    printf("# PMU instruction\n");
+    printf("\n# PMU instruction\n");
     printf("pmu_cycles=%.0lf\n", p.cycles);
     printf("pmu_seconds=%.8lf\n", p.cycles / (FREQUENCY));
     printf("pmu_freq_mhz=%.2lf\n", (FREQUENCY) / 1e6);
