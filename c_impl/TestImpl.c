@@ -32,7 +32,7 @@
 #define CYCLES_REQUIRED 1e8
 #define FREQUENCY 3.22e9
 #define CALIBRATE
-// #define VALIDATE
+#define VALIDATE
 
 #define RED "\033[0;31m"
 #define GREEN "\033[0;32m"
