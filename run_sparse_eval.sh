@@ -5,7 +5,6 @@ K=(512 1024 2048 4096 2048 4096 8192 16384)
 N=(2048 4096 8192 16384 512 1024 2048 4096)
 nonZero=(2 4 8 16)
 
-# Output CSV file
 CSV_FILE="results/sparse_fixed_$(date +%Y-%m-%d).csv"
 
 mkdir -p results
@@ -58,7 +57,6 @@ for m_idx in {0..7}; do
         echo "$m,$k,$n,$s,$clock_cycles,$clock_freq_mhz,$clock_seconds,$timeofday_seconds,$vct_cycles,$vct_seconds,$vct_freq_mhz,$pmu_cycles,$pmu_seconds,$pmu_freq_mhz,$pmu_instructions,$pmu_branches,$pmu_branch_misses,$pmu_ipc" >> "$CSV_FILE"
         
         echo "Completed benchmark for M=$m, K=$k, N=$n, nonZero=$s"
-        done
     done
 done
 
