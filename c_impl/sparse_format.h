@@ -24,9 +24,9 @@ void GEMM(int *X, int *W, int *b, int *Y, int M, int N, int K);
 // Do Sparse GEMM, store results in parameter Y
 void sparseGEMM(int* X, ternarySparseFormat *W, int* b, int* Y, int M, int N, int K);
 
-int *generateSparseMatrix(int H, int W, int nonZero, bool uniformDistribution);
+float *generateSparseMatrix(int H, int W, int nonZero, bool uniformDistribution);
 
 // Free memory from malloc()
-void destroyTernarySparceFormat(ternarySparseFormat *tsf);
+void destroyTernarySparseFormat(ternarySparseFormat *tsf);
 
 #endif // SPARSE_FORMAT_H

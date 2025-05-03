@@ -1,14 +1,19 @@
 #include "sparse_format.h"
 
 // Do Sparse GEMM, store results in parameter Y
-void sparseGEMM(int* X, ternarySparseFormat *W, int* b, int* Y, int M, int N, int K) {
-    for (int m = 0; m < M; m++) {
-        for (int n = 0; n < N; n++) {
+void sparseGEMM(int *X, ternarySparseFormat *W, int *b, int *Y, int M, int N, int K)
+{
+    for (int m = 0; m < M; m++)
+    {
+        for (int n = 0; n < N; n++)
+        {
             int y = 0;
-            for (int k = W->col_start_pos[n]; k < W->col_start_pos[n + 1]; k++) {
+            for (int k = W->col_start_pos[n]; k < W->col_start_pos[n + 1]; k++)
+            {
                 y += X[m * K + W->row_index_pos[k]];
             }
-            for (int k = W->col_start_neg[n]; k < W->col_start_neg[n + 1]; k++) {
+            for (int k = W->col_start_neg[n]; k < W->col_start_neg[n + 1]; k++)
+            {
                 y -= X[m * K + W->row_index_neg[k]];
             }
             Y[m * N + n] = y + b[n];
@@ -33,11 +38,12 @@ void GEMM(int *X, int *W, int *b, int *Y, int M, int N, int K)
 }
 
 // Convert ternary matrix to Ternary Sparse Format
-ternarySparseFormat *convertTernaryToSparseFormat(int* matrix, int K, int N, int nonZeroPercentage) {
+ternarySparseFormat *convertTernaryToSparseFormat(int *matrix, int K, int N, int nonZeroPercentage)
+{
     // TODO: Verify sizes of each sub array
-    int nonZeroVals = (K * N) / (double) (nonZeroPercentage) + 1;
+    int nonZeroVals = (K * N) / (double)(nonZeroPercentage) + 1;
     ternarySparseFormat *tsf = malloc(sizeof(ternarySparseFormat));
-    tsf->size = N+1;
+    tsf->size = N + 1;
     tsf->col_start_pos = malloc(tsf->size * sizeof(int));
     tsf->col_start_neg = malloc(tsf->size * sizeof(int));
     tsf->row_index_pos = malloc(nonZeroVals * sizeof(int));
@@ -48,15 +54,19 @@ ternarySparseFormat *convertTernaryToSparseFormat(int* matrix, int K, int N, int
     int row_index_pos_ind = 0;
     int row_index_neg_ind = 0;
     int n;
-    for (n = 0; n < N; n++) {
+    for (n = 0; n < N; n++)
+    {
         tsf->col_start_pos[n] = column_start_pos;
         tsf->col_start_neg[n] = column_start_neg;
-        for (int k = 0; k < K; k++) {
-            if (matrix[k * N + n] >= 1) {
+        for (int k = 0; k < K; k++)
+        {
+            if (matrix[k * N + n] >= 1)
+            {
                 column_start_pos++;
                 tsf->row_index_pos[row_index_pos_ind++] = k;
             }
-            else if (matrix[k * N + n] <= -1) {
+            else if (matrix[k * N + n] <= -1)
+            {
                 column_start_neg++;
                 tsf->row_index_neg[row_index_neg_ind++] = k;
             }
@@ -68,9 +78,10 @@ ternarySparseFormat *convertTernaryToSparseFormat(int* matrix, int K, int N, int
 }
 
 // TODO: Run valgrind on it to verify no unsafe mem accesses -- should be ok since tests pass
-bool compare_results(int *result, int *groundTruth, int H, int W){
-    for (int h = 0; h < H; h++)
+bool compare_results(int *result, int *groundTruth, int H, int W)
 {
+    for (int h = 0; h < H; h++)
+    {
         for (int w = 0; w < W; w++)
         {
             int i = h * W + w;
@@ -85,60 +96,73 @@ bool compare_results(int *result, int *groundTruth, int H, int W){
     return true;
 }
 
-int *generateSparseMatrix(int H, int W, int nonZero, bool uniformDistribution) {
-    // TODO : Free y
-    int *y = malloc(sizeof(int) * H * W);
-    if (uniformDistribution) {
-        for (int h = 0; h < H; h++) {
-            for (int w = 0; w < W; w += nonZero * 2) {
-                // Assign +1, -1 to each 2 x nonZero slots
-                int randomA = rand() % nonZero * 2;
-                int randomB = rand() % nonZero * 2;
-                y[w + randomA] = 1;
-                while (randomA==randomB) {
-                    randomB = rand() % nonZero * 2;
-                }
-                y[w + randomB] = 1;
+
+float *generateSparseMatrix(int H, int W, int nonZero, bool uniformDistribution)
+{
+    long long totalElements = (long long)H * W;
+    float *y = (float *)malloc(sizeof(float) * totalElements);
+    memset(y, 0, sizeof(float) * totalElements);
+
+    // Assuming nonZero > 0
+    long long numNonZeroTarget = totalElements / nonZero;
+
+    if (uniformDistribution)
+    {
+        long long numPos = numNonZeroTarget / 2;
+        long long numNeg = numNonZeroTarget - numPos;
+        long long count = 0;
+
+        while (count < numPos) {
+            long long index = rand() % totalElements;
+            if (y[index] == 0.0f) {
+                y[index] = 1.0f;
+                count++;
+            }
+        }
+        count = 0;
+        while (count < numNeg) {
+            long long index = rand() % totalElements;
+            if (y[index] == 0.0f) {
+                y[index] = -1.0f;
+                count++;
             }
         }
     }
-    else {
-        for (int h = 0; h < H; h++) {
-            // Assign +1 to W / nonZero / 2 places
+    else
+    {
+        for (int h = 0; h < H; ++h) {
+            int numNonZeroForRow = W / nonZero;
+             if (numNonZeroForRow > W) numNonZeroForRow = W;
+
+            int numPosForRow = numNonZeroForRow / 2;
+            int numNegForRow = numNonZeroForRow - numPosForRow;
             int count = 0;
-            int limit = (W / nonZero) / 2 - 1;
-            while (count < limit) {
-                int randomA = rand() % W;
-                if (y[randomA] == 0) {
-                    y[randomA] = 1;
+
+            while (count < numPosForRow) {
+                int randomCol = rand() % W;
+                long long index = (long long)h * W + randomCol;
+                if (y[index] == 0.0f) {
+                    y[index] = 1.0f;
                     count++;
                 }
             }
-
-            // Assign -1 to W / nonZero / 2 places
             count = 0;
-            while (count < (W / nonZero / 2 - 1)) {
-                int randomA = rand() % W;
-                if (y[randomA] == 0) {
-                    y[randomA] = -1;
+             while (count < numNegForRow) {
+                int randomCol = rand() % W;
+                 long long index = (long long)h * W + randomCol;
+                if (y[index] == 0.0f) {
+                    y[index] = -1.0f;
                     count++;
                 }
             }
         }
     }
-
-    for(int i=0;i<H;++i){
-        for(int j=0;j<W;j++){
-            printf("%d " , y[i*W+j]);
-        }
-        printf("\n");
-    }
-
-    return y;
+    return y; // Remember caller must free this memory.
 }
 
-// Free memory from malloc()
-void destroyTernarySparceFormat(ternarySparseFormat *tsf) {
+// Free memory for TSF
+void destroyTernarySparcseFormat(ternarySparseFormat *tsf)
+{
     free(tsf->col_start_pos);
     free(tsf->col_start_neg);
     free(tsf->row_index_pos);

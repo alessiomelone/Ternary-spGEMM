@@ -38,7 +38,6 @@
 #define GREEN "\033[0;32m"
 #define RESET "\033[0m"
 
-
 /*
  * Timing function based on the TimeStep Counter of the CPU.
  */
@@ -384,7 +383,7 @@ int main(int argc, char **argv)
     else
     {
         printf("%sTest case failed!%s\n", RED, RESET);
-        destroyTernarySparceFormat(sparse_W);
+        destroyTernarySparseFormat(sparse_W);
         free(refY);
         free(B);
         free(Y);
