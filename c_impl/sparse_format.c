@@ -70,12 +70,12 @@ ternarySparseFormat *convertTernaryToSparseFormat(int *matrix, int K, int N, int
         tsf->col_start_neg[n] = column_start_neg;
         for (int k = 0; k < K; k++)
         {
-            if (matrix[k * N + n] >= 1)
+            if (matrix[k * N + n] == 1)
             {
                 column_start_pos++;
                 tsf->row_index_pos[row_index_pos_ind++] = k;
             }
-            else if (matrix[k * N + n] <= -1)
+            else if (matrix[k * N + n] == -1)
             {
                 column_start_neg++;
                 tsf->row_index_neg[row_index_neg_ind++] = k;
@@ -130,7 +130,7 @@ int *generateSparseMatrix(int H, int W, int nonZero, bool uniformDistribution)
         while (count < numNeg) {
             int index = rand() % totalElements;
             if (y[index] == 0) {
-                y[index] = -1.0;
+                y[index] = -1;
                 count++;
             }
         }
