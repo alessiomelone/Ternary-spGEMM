@@ -361,7 +361,7 @@ int main(int argc, char **argv)
     }
 
     float *X = initX(M * K, 512);
-    float *W = generateSparseMatrix(K, N, nonZero, true);
+    int *W = generateSparseMatrix(K, N, nonZero, true);
 
     // Initialize output and reference matrices
     float *Y = (float *)calloc(M * N, sizeof(float));

@@ -6,6 +6,8 @@
 #include <stdio.h>
 #include <math.h>
 
+#define ERROR_TOLERANCE ((float) (10e-2))
+
 typedef struct ternarySparseFormat_t {
     int *col_start_pos;
     int *col_start_neg;
@@ -15,11 +17,11 @@ typedef struct ternarySparseFormat_t {
 } ternarySparseFormat;
 
 // Convert ternary matrix to Ternary Sparse Format
-ternarySparseFormat *convertTernaryToSparseFormat(float* matrix, int K, int N, int nonZeroPercentage);
+ternarySparseFormat *convertTernaryToSparseFormat(int* matrix, int K, int N, int nonZeroPercentage);
 
 bool compare_results(float *result, float *groundTruth, int H, int W);
 
-void GEMM(float *X, float *W, float *b, float *Y, int M, int N, int K);
+void GEMM(float *X, int *W, float *b, float *Y, int M, int N, int K);
 
 
 float *initX(int LEN, int Range);
@@ -27,7 +29,7 @@ float *initX(int LEN, int Range);
 // Do Sparse GEMM, store results in parameter Y
 void sparseGEMM(float* X, ternarySparseFormat *W, float* b, float* Y, int M, int N, int K);
 
-float *generateSparseMatrix(int H, int W, int nonZero, bool uniformDistribution);
+int *generateSparseMatrix(int H, int W, int nonZero, bool uniformDistribution);
 
 // Free memory from malloc()
 void destroyTernarySparseFormat(ternarySparseFormat *tsf);

@@ -7,7 +7,7 @@ void sparseGEMM(float *X, ternarySparseFormat *W, float *b, float *Y, int M, int
     {
         for (int n = 0; n < N; n++)
         {
-            int y = 0;
+            float y = 0;
             for (int k = W->col_start_pos[n]; k < W->col_start_pos[n + 1]; k++)
             {
                 y += X[m * K + W->row_index_pos[k]];
@@ -21,13 +21,13 @@ void sparseGEMM(float *X, ternarySparseFormat *W, float *b, float *Y, int M, int
     }
 }
 
-void GEMM(float *X, float *W, float *b, float *Y, int M, int N, int K)
+void GEMM(float *X, int *W, float *b, float *Y, int M, int N, int K)
 {
     for (int m = 0; m < M; m++)
     {
         for (int n = 0; n < N; n++)
         {
-            int y = 0;
+            float y = 0;
             for (int k = 0; k < K; k++)
             {
                 y += X[m * K + k] * W[k * N + n];
@@ -39,7 +39,7 @@ void GEMM(float *X, float *W, float *b, float *Y, int M, int N, int K)
 
 
 float *initX(int LEN, int Range) {
-	float *X = (float *)malloc(LEN * sizeof(float));
+	float *X = malloc(LEN * sizeof(float));
 	for (int i = 0; i < LEN; i++) {
         float random_value = ((float)rand() / (float)RAND_MAX) * (2.0f * Range) - Range;
 		X[i] = random_value;
@@ -48,7 +48,7 @@ float *initX(int LEN, int Range) {
 };
 
 // Convert ternary matrix to Ternary Sparse Format
-ternarySparseFormat *convertTernaryToSparseFormat(float *matrix, int K, int N, int nonZeroPercentage)
+ternarySparseFormat *convertTernaryToSparseFormat(int *matrix, int K, int N, int nonZeroPercentage)
 {
     // TODO: Verify sizes of each sub array
     int nonZeroVals = (K * N) / (double)(nonZeroPercentage) + 1;
@@ -95,9 +95,9 @@ bool compare_results(float *result, float *groundTruth, int H, int W)
         for (int w = 0; w < W; w++)
         {
             int i = h * W + w;
-            if (fabsf(result[i] - groundTruth[i]) > 10e-6)
+            if (fabsf(result[i] - groundTruth[i]) > (float) ERROR_TOLERANCE)
             {
-                printf("Error at: H=%d, W=%d, result=%.2f, groundTruth=%.2f\n", h, w, result[i], groundTruth[i]);
+                printf("Error at: H=%d, W=%d, result=%f, groundTruth=%f\n", h, w, result[i], groundTruth[i]);
                 return false;
             }
         }
@@ -107,30 +107,30 @@ bool compare_results(float *result, float *groundTruth, int H, int W)
 }
 
 
-float *generateSparseMatrix(int H, int W, int nonZero, bool uniformDistribution)
+int *generateSparseMatrix(int H, int W, int nonZero, bool uniformDistribution)
 {
-    long long totalElements = (long long)H * W;
-    float *y = (float *)calloc(sizeof(float), totalElements);
+    int totalElements = H * W;
+    int *y = calloc(sizeof(int), totalElements);
     long long numNonZeroTarget = totalElements / nonZero;
 
     if (uniformDistribution)
     {
-        long long numPos = numNonZeroTarget / 2;
-        long long numNeg = numNonZeroTarget - numPos;
-        long long count = 0;
+        int numPos = numNonZeroTarget / 2;
+        int numNeg = numNonZeroTarget - numPos;
+        int count = 0;
 
         while (count < numPos) {
-            long long index = rand() % totalElements;
-            if (y[index] == 0.0f) {
-                y[index] = 1.0f;
+            int index = rand() % totalElements;
+            if (y[index] == 0) {
+                y[index] = 1;
                 count++;
             }
         }
         count = 0;
         while (count < numNeg) {
-            long long index = rand() % totalElements;
-            if (y[index] == 0.0f) {
-                y[index] = -1.0f;
+            int index = rand() % totalElements;
+            if (y[index] == 0) {
+                y[index] = -1.0;
                 count++;
             }
         }
@@ -147,18 +147,18 @@ float *generateSparseMatrix(int H, int W, int nonZero, bool uniformDistribution)
 
             while (count < numPosForRow) {
                 int randomCol = rand() % W;
-                long long index = (long long)h * W + randomCol;
-                if (y[index] == 0.0f) {
-                    y[index] = 1.0f;
+                int index = (int)h * W + randomCol;
+                if (y[index] == 0) {
+                    y[index] = 1;
                     count++;
                 }
             }
             count = 0;
              while (count < numNegForRow) {
                 int randomCol = rand() % W;
-                 long long index = (long long)h * W + randomCol;
-                if (y[index] == 0.0f) {
-                    y[index] = -1.0f;
+                 int index = (int)h * W + randomCol;
+                if (y[index] == 0) {
+                    y[index] = -1;
                     count++;
                 }
             }
