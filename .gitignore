@@ -26,6 +26,7 @@ x86/
 [Dd]ebug/
 [Rr]elease/
 ipch/
+.vscode/
 
 # macOS specific
 .DS_Store
