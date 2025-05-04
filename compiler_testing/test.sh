@@ -27,18 +27,27 @@ DEFINE_FLAGS="-DPMU"
 # Format: "Title" "Compiler Command Base"
 # The script will add source files, -o target, and defines automatically.
 declare -a configs=(
-    "Clang O0"              "clang++ -O0 -fopenmp"
-    "Clang O2 Native"       "clang++ -O2 -march=native -fopenmp"
-    "Clang O3 Native"       "clang++ -O3 -march=native -fopenmp"
-    "Clang Ofast Native"    "clang++ -Ofast -march=native -fopenmp" # Verify correctness
-    "Clang O3 Native LTO"   "clang++ -O3 -march=native -fopenmp -flto"
-    # --- GCC Section ---
-    # Check your GCC version (e.g., g++-13, g++-14) and update command if needed
-    "GCC O0"                "g++-14 -O0 -fopenmp"
-    "GCC O2 Native"         "g++-14 -O2 -march=native -fopenmp"
-    "GCC O3 Native"         "g++-14 -O3 -march=native -fopenmp"
-    "GCC Ofast Native"      "g++-14 -Ofast -march=native -fopenmp" # Verify correctness
-    "GCC O3 Native LTO"     "g++-14 -O3 -march=native -fopenmp -flto"
+    # Apple’s system Clang (no OpenMP support by default)
+    "AppleClang O3 M2"               "clang++ -O3 -mcpu=apple-m2 -mtune=apple-m2 -fstrict-aliasing -DNDEBUG"
+    "AppleClang Ofast M2"            "clang++ -Ofast -mcpu=apple-m2 -mtune=apple-m2 -ffast-math -fstrict-aliasing -DNDEBUG"
+    "AppleClang O3 M2 LTO"           "clang++ -O3 -mcpu=apple-m2 -mtune=apple-m2 -flto=thin -fstrict-aliasing -DNDEBUG"
+
+    # Homebrew LLVM (to get OpenMP support)
+    "LLVM Clang-15 O2 M2 OpenMP"     "clang++-15 -O2 -mcpu=apple-m2 -mtune=apple-m2 -fopenmp -fstrict-aliasing -DNDEBUG"
+    "LLVM Clang-15 O3 M2 OpenMP"     "clang++-15 -O3 -mcpu=apple-m2 -mtune=apple-m2 -fopenmp -flto=thin -ffast-math"
+    "LLVM Clang-15 Ofast M2 OpenMP"  "clang++-15 -Ofast -mcpu=apple-m2 -mtune=apple-m2 -fopenmp -ffast-math"
+
+    # Homebrew GCC (GCC on Apple Silicon still lacks perfect codegen vs. Clang)
+    "GCC-14 O3 M2 OpenMP"            "g++-14 -O3 -march=armv8.4-a -fopenmp -flto=auto -fstrict-aliasing -DNDEBUG"
+    "GCC-14 Ofast M2 OpenMP"         "g++-14 -Ofast -march=armv8.4-a -fopenmp -funroll-loops -ffast-math"
+
+    # Profile-Guided Optimization (PGO) workflow
+    "LLVM Clang-15 PGO Generate"     "clang++-15 -O2 -mcpu=apple-m2 -mtune=apple-m2 -fopenmp -fprofile-generate"
+    "LLVM Clang-15 PGO Use"          "clang++-15 -O2 -mcpu=apple-m2 -mtune=apple-m2 -fopenmp -fprofile-use"
+
+    # Debug / sanitizer builds
+    "Clang AddressSanitizer"         "clang++ -O1 -g -fsanitize=address -fno-omit-frame-pointer"
+    "Clang UndefinedSanitizer"       "clang++ -O1 -g -fsanitize=undefined -fno-omit-frame-pointer"
 )
 
 # --- Script Logic ---
