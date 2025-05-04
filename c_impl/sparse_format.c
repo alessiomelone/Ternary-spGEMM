@@ -48,10 +48,10 @@ float *initX(int LEN, int Range) {
 };
 
 // Convert ternary matrix to Ternary Sparse Format
-ternarySparseFormat *convertTernaryToSparseFormat(int *matrix, int K, int N, int nonZeroPercentage)
+ternarySparseFormat *convertTernaryToSparseFormat(int *matrix, int K, int N, int nonZero)
 {
     // TODO: Verify sizes of each sub array
-    int nonZeroVals = (K * N) / (double)(nonZeroPercentage) + 1;
+    int nonZeroVals = (K * N) / (double)(nonZero) + 1;
     ternarySparseFormat *tsf = malloc(sizeof(ternarySparseFormat));
     tsf->size = N + 1;
     tsf->col_start_pos = malloc(tsf->size * sizeof(int));
@@ -107,64 +107,61 @@ bool compare_results(float *result, float *groundTruth, int H, int W)
 }
 
 
-int *generateSparseMatrix(int H, int W, int nonZero, bool uniformDistribution)
-{
-    int totalElements = H * W;
-    int *y = calloc(sizeof(int), totalElements);
-    long long numNonZeroTarget = totalElements / nonZero;
+int *generateSparseMatrix(int H, int W, int nonZero, bool uniformDistribution) {
+    int *y = calloc(H * W, sizeof(int));
+    if (!y) return NULL;
 
-    if (uniformDistribution)
-    {
-        int numPos = numNonZeroTarget / 2;
-        int numNeg = numNonZeroTarget - numPos;
-        int count = 0;
-
-        while (count < numPos) {
-            int index = rand() % totalElements;
-            if (y[index] == 0) {
-                y[index] = 1;
-                count++;
-            }
-        }
-        count = 0;
-        while (count < numNeg) {
-            int index = rand() % totalElements;
-            if (y[index] == 0) {
-                y[index] = -1;
-                count++;
-            }
-        }
-    }
-    else
-    {
+    /* Uniform distribution: process each row in blocks of size 2*nonZero */
+    if (uniformDistribution) {
         for (int h = 0; h < H; ++h) {
-            int numNonZeroForRow = W / nonZero;
-             if (numNonZeroForRow > W) numNonZeroForRow = W;
+            for (int w = 0; w < W; w += nonZero * 2) {
+                int segmentSize = nonZero * 2;
+                if (w + segmentSize > W)  /* last partial segment if any */
+                    segmentSize = W - w;
 
-            int numPosForRow = numNonZeroForRow / 2;
-            int numNegForRow = numNonZeroForRow - numPosForRow;
-            int count = 0;
+                int a = rand() % segmentSize;
+                int b = rand() % segmentSize;
+                while (b == a)
+                    b = rand() % segmentSize;
 
-            while (count < numPosForRow) {
-                int randomCol = rand() % W;
-                int index = (int)h * W + randomCol;
-                if (y[index] == 0) {
-                    y[index] = 1;
-                    count++;
+                y[h * W + w + a] = 1;
+                y[h * W + w + b] = -1;
+            }
+        }
+    }
+    /* Non-uniform: random +/- per row with a small variation */
+    else {
+        int basePerRow = W / nonZero;
+        int variMax    = basePerRow / 20 + 1;
+
+        for (int h = 0; h < H; ++h) {
+            int posVari   = rand() % (variMax + 1);
+            int limitPos  = basePerRow / 2 + posVari;
+            int limitNeg  = basePerRow / 2 - posVari;
+            int count;
+
+            /* place +1 */
+            count = 0;
+            while (count < limitPos) {
+                int idx = rand() % W;
+                if (y[h * W + idx] == 0) {
+                    y[h * W + idx] = 1;
+                    ++count;
                 }
             }
+            /* place -1 */
             count = 0;
-             while (count < numNegForRow) {
-                int randomCol = rand() % W;
-                 int index = (int)h * W + randomCol;
-                if (y[index] == 0) {
-                    y[index] = -1;
-                    count++;
+            while (count < limitNeg) {
+                int idx = rand() % W;
+                if (y[h * W + idx] == 0) {
+                    y[h * W + idx] = -1;
+                    ++count;
                 }
             }
         }
     }
-    return y; // Remember caller must free this memory.
+
+    return y;
 }
 
 // Free memory for TSF

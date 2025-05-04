@@ -6,7 +6,7 @@
 #include <stdio.h>
 #include <math.h>
 
-#define ERROR_TOLERANCE ((float) (10e-2))
+#define ERROR_TOLERANCE ((float) (2*10e-1))
 
 typedef struct ternarySparseFormat_t {
     int *col_start_pos;

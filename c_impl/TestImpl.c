@@ -324,6 +324,8 @@ double queryperfcounter(float *X, ternarySparseFormat *sparse_W, float *B, float
 
 int main(int argc, char **argv)
 {
+    srand((unsigned)time(NULL));
+
     int M = 0, K = 0, N = 0, nonZero = 0;
     
     // Check all arguments passed
