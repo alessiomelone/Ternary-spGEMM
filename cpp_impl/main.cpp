@@ -121,6 +121,7 @@ int main(int argc, char **argv)
         cout << endl
              << "Running: " << funcNames[i] << endl;
         cout << perf << " cycles" << endl;
+        cout << "Performance: " << (M * N)*(1+K/nonZero) / perf << " flops/cycle" << endl;
     }
 
     return 0;
