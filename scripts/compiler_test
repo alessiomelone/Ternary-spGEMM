@@ -1,0 +1,51 @@
+#!/usr/bin/env bash
+set -e
+
+# Directory for test outputs
+OUTDIR="compiler_testing"
+mkdir -p "${OUTDIR}"
+
+# Common run arguments
+RUN_ARGS="-M 32 -K 1024 -N 4096 -s 4"
+
+# 1. Baseline “native” tuning
+gcc cpp_impl/main.cpp -O3 -march=native -mtune=native -pipe \
+    -funroll-loops -fomit-frame-pointer \
+    -o SparseGEMM_native.out
+
+sudo ./SparseGEMM_native.out ${RUN_ARGS} > "${OUTDIR}/native.txt"
+
+# 2. Aggressive math + vectorization
+gcc cpp_impl/main.cpp -Ofast -march=native -flto \
+    -ftree-vectorize -funsafe-math-optimizations \
+    -o SparseGEMM_mathvec.out
+
+sudo ./SparseGEMM_mathvec.out ${RUN_ARGS} > "${OUTDIR}/mathvec.txt"
+
+# 3. Profile-Guided Optimization (PGO)
+# 3a. Instrumented build
+gcc cpp_impl/main.cpp -O2 -fprofile-generate -march=native \
+    -o SparseGEMM_pgo_gen.out
+
+sudo ./SparseGEMM_pgo_gen.out ${RUN_ARGS} > "${OUTDIR}/pgo_gen.txt"
+
+# 3b. Optimized build
+gcc cpp_impl/main.cpp -O2 -fprofile-use -flto -march=native \
+    -o SparseGEMM_pgo_opt.out
+
+sudo ./SparseGEMM_pgo_opt.out ${RUN_ARGS} > "${OUTDIR}/pgo_opt.txt"
+
+# 4. Loop/function alignment & prefetch
+gcc cpp_impl/main.cpp -O3 -march=native \
+    -falign-functions=32 -falign-loops=32 -falign-labels=32 \
+    -fprefetch-loop-arrays \
+    -o SparseGEMM_alignpref.out
+
+sudo ./SparseGEMM_alignpref.out ${RUN_ARGS} > "${OUTDIR}/alignpref.txt"
+
+# 5. OpenMP-parallelized
+gcc cpp_impl/main.cpp -O3 -march=native -fopenmp -flto \
+    -funroll-loops \
+    -o SparseGEMM_openmp.out
+
+sudo ./SparseGEMM_openmp.out ${RUN_ARGS} > "${OUTDIR}/openmp.txt"
