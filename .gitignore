@@ -1,6 +1,6 @@
 *.plist
 *.yml
-
+/cpp_impl/SparseGEMM.out.dSYM
 
 # Build outputs
 *.out
