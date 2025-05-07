@@ -161,6 +161,11 @@ struct performance_counters rdpmu(comp_func func_to_test, float *X, SparseFormat
     result.instructions = (endperf.instructions - startperf.instructions) / num_runs;
     result.branches = (endperf.branches - startperf.branches) / num_runs;
     result.branch_misses = (endperf.branch_misses - startperf.branch_misses) / num_runs;
+    result.retired_uops = (endperf.retired_uops - startperf.retired_uops) / num_runs;
+    result.int_uops = (endperf.int_uops - startperf.int_uops) / num_runs;
+    result.simdfp_uops = (endperf.simdfp_uops - startperf.simdfp_uops) / num_runs;
+    result.loadstore_uops = (endperf.loadstore_uops - startperf.loadstore_uops) / num_runs;
+
 
     return result;
 }
@@ -355,6 +360,21 @@ double perf_test(comp_func f, int M, int K, int N, int nonZero)
 #elif defined(__aarch64__) && defined(PMU)
     // Su ARM64 con PMU: usa i cicli hardware
     struct performance_counters p = rdpmu(f, X.data(), &sf, B.data(), Y.data(), M, N, K);
+printf("\n"
+       "Instructions     : %.3e\n"
+       "Branches         : %.3e\n"
+       "Branch Misses    : %.3e\n"
+       "Retired Uops     : %.3e\n"
+       "Int Uops         : %.3e\n"
+       "SIMD FP Uops     : %.3e\n"
+       "Load/Store Uops  : %.3e",
+       p.instructions,
+       p.branches,
+       p.branch_misses,
+       p.retired_uops,
+       p.int_uops,
+       p.simdfp_uops,
+       p.loadstore_uops);
     return p.cycles;
 #elif defined(__aarch64__)
     // Su ARM64 senza PMU: assume che rdvct restituisca cicli (se fosse in Hz, va adattato)
