@@ -1,3 +1,7 @@
-typedef void (*comp_func)(float *X, int *col_start_pos, int *col_start_neg, int *row_index_pos, int *row_index_neg, float *b, float *Y, int M, int N, int K);
+#include <functional> // <-- Add this
 
+using comp_func = std::function<void(float *X, float *B, float *Y, int M, int N, int K)>;
+
+// perf_test still generates data based on M, K, N, nonZero,
+// but the comp_func 'f' it receives already has its specific sparse matrix data captured.
 double perf_test(comp_func f, int M, int K, int N, int nonZero);
