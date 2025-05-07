@@ -11,22 +11,6 @@ g++ -O2 -march=native -mtune=native -fstrict-aliasing -DNDEBUG cpp_impl/main.cpp
 sudo ./cpp_impl/SparseGEMM.out -M 32 -K 1024 -N 4096 -s 4
 ```
 
-## C Implementation
-
-### For x86 systems
-
-```bash
-gcc -O3 ./c_impl/sparse_format.c ./c_impl/TestImpl.c -o ./c_impl/TestImpl.out
-```
-
-### For ARM systems (e.g., Apple M1/M2)
-
-```bash
-gcc -DPMU -arch arm64 -O3 ./c_impl/sparse_format.c ./c_impl/TestImpl.c -o ./c_impl/TestImpl.out
-sudo ./c_impl/TestImpl.out -M 32 -K 1024 -N 4096 -s 4
-```
-
----
 
 ## Considerations
 
