@@ -14,15 +14,12 @@ OUTPUT_EXEC="$CPP_SRC_DIR/SparseGEMM.out"
 RESULTS_FILE="compiler_testing/compiler_results.txt"
 DEFINE_FLAGS="-DPMU"
 
-# Define compilers and flag combinations to test
 COMPILERS=("g++")
 FLAG_SETS=(
-    # Baseline levels
     "-O2 -march=native -mtune=native -fstrict-aliasing -DNDEBUG"
     "-O3 -march=native -mtune=native -fstrict-aliasing -DNDEBUG"
     "-Ofast -march=native -mtune=native -ffast-math -funroll-loops -fstrict-aliasing -DNDEBUG"
 
-    # Link‑time optimization variants
     "-O3 -march=native -mtune=native -flto=auto -fstrict-aliasing -DNDEBUG"
     "-O3 -march=native -mtune=native -flto=auto -funroll-loops -fstrict-aliasing -DNDEBUG"
     "-Ofast -march=native -mtune=native -flto=auto -ffast-math -funroll-loops -fstrict-aliasing -DNDEBUG"
@@ -32,7 +29,6 @@ echo "Starting compiler tests..."
 > "$RESULTS_FILE"
 echo "Results will be saved to: $RESULTS_FILE"
 
-# Initialize best result tracking
 best_cycles=""
 best_title=""
 
@@ -78,7 +74,6 @@ for compiler in "${COMPILERS[@]}"; do
             continue
         fi
 
-        # Extract cycle counts and choose the minimum of the two runs
         vals=( $(grep 'cycles' "$TEMP_OUT" | awk '{print $1}') )
         if [[ ${#vals[@]} -lt 2 ]]; then
             cycles="${vals[0]}"
@@ -93,7 +88,7 @@ for compiler in "${COMPILERS[@]}"; do
         else
             echo "Cycles: $cycles"
             echo -e "$title:\n$cycles" >> "$RESULTS_FILE"
-            # Track fastest cycle count
+
             if [[ -z "$best_cycles" ]]; then
                 best_cycles="$cycles"
                 best_title="$title"
@@ -111,7 +106,6 @@ for compiler in "${COMPILERS[@]}"; do
     done
 done
 
-# Summarize fastest result
 echo
 echo -e "Fastest configuration:\n$best_title with $best_cycles cycles"
 echo -e "Fastest configuration:\n$best_title with $best_cycles cycles" >> "$RESULTS_FILE"

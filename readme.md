@@ -4,7 +4,7 @@ A project template for ASL Spring 2025.
 
 ## For C++ Implementation, only edit comp.cpp:
 
-g++ -O3 cpp_impl/main.cpp cpp_impl/comp.cpp cpp_impl/perf.cpp -o cpp_impl/SparseGEMM.out -DPMU
+g++ -O2 -march=native -mtune=native -fstrict-aliasing -DNDEBUG cpp_impl/main.cpp cpp_impl/comp.cpp cpp_impl/perf.cpp -o cpp_impl/SparseGEMM.out -DPMU
 
 sudo ./cpp_impl/SparseGEMM.out -M 32 -K 1024 -N 4096 -s 4
 
