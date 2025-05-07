@@ -1,39 +1,20 @@
-AppleClang O3 M2:
-2.66856e+07
+g++ -O2_-march=native_-mtune=native_-fstrict-aliasing_-DNDEBUG:
+2.34147e+07
 -----------------------
-AppleClang Ofast M2:
-2.64823e+07
+g++ -O3_-march=native_-mtune=native_-fstrict-aliasing_-DNDEBUG:
+2.33874e+07
 -----------------------
-AppleClang O3 M2 LTO:
-2.64092e+07
+g++ -Ofast_-march=native_-mtune=native_-ffast-math_-funroll-loops_-fstrict-aliasing_-DNDEBUG:
+2.40054e+07
 -----------------------
-Clang AddressSanitizer:
-EXECUTION FAILED
+g++ -O3_-march=native_-mtune=native_-flto=auto_-fstrict-aliasing_-DNDEBUG:
+2.36885e+07
 -----------------------
-Clang UndefinedSanitizer:
-3.87461e+08
+g++ -O3_-march=native_-mtune=native_-flto=auto_-funroll-loops_-fstrict-aliasing_-DNDEBUG:
+2.34441e+07
 -----------------------
-AppleClang O3 apple-m2:
-2.66663e+07
------------------------
-AppleClang Ofast apple-m2 Unroll:
-2.63825e+07
------------------------
-AppleClang Bolt-prep: COMPILE FAILED
-Compiler output for AppleClang Bolt-prep:
-clang-15: error: unsupported argument 'apple-m2' to option '-mcpu='
-clang-15: error: unsupported argument 'apple-m2' to option '-mcpu='
-clang-15: error: unsupported argument 'apple-m2' to option '-mcpu='
------------------------
-AppleClang Bolt-optimised: COMPILE FAILED
-Compiler output for AppleClang Bolt-optimised:
-./compiler_testing/test.sh: line 74: llvm-bolt: command not found
------------------------
-Clang ASan apple-m2 FastDebug:
-EXECUTION FAILED
------------------------
-Clang UBSan apple-m2:
-3.89954e+08
+g++ -Ofast_-march=native_-mtune=native_-flto=auto_-ffast-math_-funroll-loops_-fstrict-aliasing_-DNDEBUG:
+2.40692e+07
 -----------------------
 Fastest configuration:
-AppleClang Ofast apple-m2 Unroll with 2.63825e+07 cycles
+g++ -O3_-march=native_-mtune=native_-fstrict-aliasing_-DNDEBUG with 2.33874e+07 cycles
