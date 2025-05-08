@@ -89,55 +89,10 @@ void sparseGEMM_csr_unrolled_impl(
     }
 }
 
-/*
- * Called by the driver to register your functions
- * Use add_function(func, description) to add your own functions
- */
-// void register_functions() // <-- REMOVE THIS FUNCTION
-// {
-//     add_function(&sparseGEMM_base, "base_implementation");
-//     add_function(&sparseGEMM_unrolled, "unrolled");
-// }
-
-/*
-// Example for a new data structure (you'll need to define CustomMixedTypeFormat in SparseGEMM.h or similar)
-// struct CustomMixedTypeFormat {
-//     std::vector<int> main_indices;
-//     std::vector<int8_t> value_types;
-//     // constructor, etc.
-// };
-
-template <typename T>
-void sparseGEMM_custom_mixed_impl(T *X, const CustomMixedTypeFormat& W_custom, T *b, T *Y, int M, int N, int K)
-{
-    const std::vector<int>& indices = W_custom.main_indices;
-    const std::vector<int8_t>& types = W_custom.value_types;
-
-    // ... your algorithm for this custom format ...
-    // For example:
-    for (int m = 0; m < M; ++m) {
-        for (int n = 0; n < N; ++n) { // Assuming CustomMixedTypeFormat is per N column for simplicity
-            T result_val = 0;
-            // Hypothetical loop structure based on how CustomMixedTypeFormat might work for a column
-            // This is just an illustration; your actual logic will depend on the format.
-            // size_t num_elements_in_col_n = ...; // Get this from W_custom based on 'n'
-            // for (size_t i_el = 0; i_el < num_elements_in_col_n; ++i_el) {
-            //     int K_idx = indices[/* some offset based on n */// + i_el];
-            //     int8_t type_val = types[/* some offset based on n */ + i_el];
-            //     if (K_idx < K) {
-            //         if (type_val == 1) result_val += X[m * K + K_idx];
-            //         else if (type_val == -1) result_val -= X[m * K + K_idx];
-            //     }
-            // }
-//             Y[m * N + n] = result_val + b[n];
-//         }
-//     }
-// }
-// */
-
 
 // --- Explicit Instantiations ---
 // This tells the compiler to generate code for these specific versions in comp.o
 template void sparseGEMM_csr_base_impl<float>(float*, const SparseFormat&, float*, float*, int, int, int);
-template void sparseGEMM_csr_unrolled_impl<float, 16>(float*, const SparseFormat&, float*, float*, int, int, int);
+template void sparseGEMM_csr_unrolled_impl<float, 2>(float*, const SparseFormat&, float*, float*, int, int, int);
 // If you use other unroll factors or other types for T, you'd add them here.
+template void sparseGEMM_csr_unrolled_impl<float, 12>(float*, const SparseFormat&, float*, float*, int, int, int);

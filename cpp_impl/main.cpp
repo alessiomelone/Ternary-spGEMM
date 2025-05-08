@@ -3,9 +3,8 @@
 #include <string>
 #include <iostream>
 #include <algorithm>
-#include <functional> // <-- Add this
-#include <memory>     // <-- Add this
-
+#include <functional> 
+#include <memory>    
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
@@ -14,7 +13,7 @@
 
 #include "perf.h"
 #include "common.h"
-#include "SparseGEMM.h" // Make sure this includes SparseFormat and any new format definitions
+#include "SparseGEMM.h" 
 
 
 // --- Prototypes for implementations in comp.cpp ---
@@ -40,13 +39,6 @@ void add_function(comp_func f, string name) // Signature of add_function itself 
     funcNames.emplace_back(name);
     numFuncs++;
 }
-
-// --- Prototypes for implementations in comp.cpp ---
-// (Or create a comp.h and include it)
-template <typename T>
-void sparseGEMM_csr_base_impl(T *X, const SparseFormat& W_csr, T *b, T *Y, int M, int N, int K);
-template <typename T, int UNROLL_FACTOR>
-void sparseGEMM_csr_unrolled_impl(T *X, const SparseFormat& W_csr, T *b, T *Y, int M, int N, int K);
 
 // Example for a new format (ensure CustomMixedTypeFormat is defined and this prototype matches comp.cpp)
 /*
@@ -102,7 +94,7 @@ int main(int argc, char **argv)
 
     add_function(
         [sf_csr_data](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg) {
-            sparseGEMM_csr_unrolled_impl<float, 16>(X_arg, *sf_csr_data, B_arg, Y_arg, M_arg, N_arg, K_arg);
+            sparseGEMM_csr_unrolled_impl<float, 2>(X_arg, *sf_csr_data, B_arg, Y_arg, M_arg, N_arg, K_arg);
             // Note: You can vary UNROLL_FACTOR here or make it part of the name if you test multiple unroll factors
         },
         "sparseGEMM_csr_unrolled_16"
