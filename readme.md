@@ -15,11 +15,21 @@ To add a new data structure:
 2. Include this new header in `cpp_impl/common.h` to make it accessible throughout the project.
 3. You can then use this data structure within your algorithm definitions in `cpp_impl/comp.h`.
 
+To build the C++ implementation, navigate to the `cpp_impl` directory and run `make`:
 ```bash
-`g++ -O2 -march=native -mtune=native -fstrict-aliasing -DNDEBUG cpp_impl/main.cpp cpp_impl/perf.cpp -o cpp_impl/SparseGEMM.out -DPMU
-sudo ./cpp_impl/SparseGEMM.out -M 32 -K 1024 -N 4096 -s 4
+cd cpp_impl
+make
 ```
 
+To run the compiled program (example):
+```bash
+sudo ./SparseGEMM.out -M 32 -K 1024 -N 4096 -s 4
+```
+
+To clean the build (remove the executable):
+```bash
+make clean
+```
 
 ## Considerations
 
