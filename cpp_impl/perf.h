@@ -1,5 +1,5 @@
 #pragma once
-#include <functional> 
+#include <functional>
 
 using comp_func = std::function<void(float *X, float *B, float *Y, int M, int N, int K)>;
 

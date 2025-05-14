@@ -12,8 +12,8 @@ public:
 	SparseFormatCSC(int *matrix, int K, int N)
 	{
 		// ... (existing constructor logic is fine) ...
-		int column_start_pos_val = 0; // Renamed for clarity
-		int column_start_neg_val = 0; // Renamed for clarity
+		int column_start_pos_val = 0;			// Renamed for clarity
+		int column_start_neg_val = 0;			// Renamed for clarity
 		for (int n_idx = 0; n_idx < N; n_idx++) // Renamed n
 		{
 			this->col_start_pos.push_back(column_start_pos_val);

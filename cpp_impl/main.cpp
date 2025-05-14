@@ -3,13 +3,11 @@
 #include "sparseUtils.h"
 #include "comp.h"
 
-
 // --- End Prototypes ---
 
-std::vector<comp_func> userFuncs; 
+std::vector<comp_func> userFuncs;
 std::vector<std::string> funcNames;
 int numFuncs = 0;
-
 
 void add_function(comp_func f, std::string name)
 {
@@ -18,12 +16,11 @@ void add_function(comp_func f, std::string name)
     numFuncs++;
 }
 
-
 int main(int argc, char **argv)
 {
     std::cout << "Starting program. ";
-    double perf_val; 
-    int i_loop;      
+    double perf_val;
+    int i_loop;
 
     int M = 0, K = 0, N = 0, nonZero = 0;
 
@@ -38,29 +35,37 @@ int main(int argc, char **argv)
     N = atoi(argv[6]);
     nonZero = atoi(argv[8]);
 
+    // CHANGE THIS TO ADD THE SPARSE FORMAT YOU WANT TO TEST
 
-    //Generate sparse matrix to be converted
+    // Generate sparse matrix to be converted
     std::vector<int> W_raw = generateSparseMatrix<int>(K, N, nonZero, false);
 
-    //SpraseFormatCSC
+    // SparseFormatCSC
     auto sf_csc_data = std::make_shared<SparseFormatCSC>(W_raw.data(), K, N);
+    // INSERT NEW SPARSE FORMAT HERE, COPY LINE ABOVE AND CHANGE THE NAME
 
     add_function(
-        [sf_csc_data](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg) {
-            sparseGEMM_csr_base_impl<float>(X_arg, *sf_csc_data, B_arg, Y_arg, M_arg, N_arg, K_arg);
+        [sf_csc_data](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
+        {
+            sparseGEMM_csc_base_impl<float>(X_arg, *sf_csc_data, B_arg, Y_arg, M_arg, N_arg, K_arg);
         },
-        "sparseGEMM_csr_base"
-    );
+        "sparseGEMM_csc_base");
 
     add_function(
-        [sf_csc_data](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg) {
-            sparseGEMM_csr_unrolled_impl<float, 16>(X_arg, *sf_csc_data, B_arg, Y_arg, M_arg, N_arg, K_arg);
-            // Note: You can vary UNROLL_FACTOR here or make it part of the name if you test multiple unroll factors
+        [sf_csc_data](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
+        {
+            sparseGEMM_csc_unrolled_impl<float, 16>(X_arg, *sf_csc_data, B_arg, Y_arg, M_arg, N_arg, K_arg);
         },
-        "sparseGEMM_csr_unrolled_16"
-    );
+        "sparseGEMM_csc_unrolled_16");
 
+    add_function(
+        [sf_csc_data](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
+        {
+            sparseGEMM_csc_unrolled_impl<float, 2>(X_arg, *sf_csc_data, B_arg, Y_arg, M_arg, N_arg, K_arg);
+        },
+        "sparseGEMM_csc_unrolled_2");
 
+    // INSERT NEW FUNCTIONS HERE, instead of [sf_csc_data] INSERT THE NEW SPARSE FORMAT
 
     if (numFuncs == 0)
     {
@@ -72,18 +77,18 @@ int main(int argc, char **argv)
     }
     std::cout << numFuncs << " functions registered." << std::endl;
 
-    std::vector<float> X_main = initX<float>(M * K, 512); 
-    std::vector<float> W_FP32_main(W_raw.begin(), W_raw.end()); 
-    std::vector<float> B_main(N, 2); 
-    std::vector<float> Y_main(M * N, 0); 
-    std::vector<float> refY_main(M * N, 0); 
+    std::vector<float> X_main = initX<float>(M * K, 512);
+    std::vector<float> W_FP32_main(W_raw.begin(), W_raw.end());
+    std::vector<float> B_main(N, 2);
+    std::vector<float> Y_main(M * N, 0);
+    std::vector<float> refY_main(M * N, 0);
 
     GEMM(X_main.data(), W_FP32_main.data(), B_main.data(), refY_main.data(), M, N, K);
 
     for (i_loop = 0; i_loop < numFuncs; i_loop++)
     {
         fill(Y_main.begin(), Y_main.end(), 0);
-        comp_func func = userFuncs[i_loop]; 
+        comp_func func = userFuncs[i_loop];
 
         func(X_main.data(), B_main.data(), Y_main.data(), M, N, K);
 
@@ -97,16 +102,14 @@ int main(int argc, char **argv)
         }
     }
 
-    
     for (i_loop = 0; i_loop < numFuncs; i_loop++)
     {
         perf_val = perf_test(userFuncs[i_loop], M, K, N, nonZero);
         std::cout << std::endl
-             << "Running: " << funcNames[i_loop] << std::endl;
+                  << "Running: " << funcNames[i_loop] << std::endl;
         std::cout << perf_val << " cycles" << std::endl;
         std::cout << "Performance: " << static_cast<double>(M * N) * (1.0 + static_cast<double>(K) / nonZero) / perf_val << " flops/cycle" << std::endl;
     }
 
     return 0;
 }
-
