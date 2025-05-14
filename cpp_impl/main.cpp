@@ -1,12 +1,7 @@
 #include "perf.h"
 #include "common.h"
 #include "sparseUtils.h"
-
-template <typename T>
-void sparseGEMM_csr_base_impl(T *X, const SparseFormatCSC& W_csr, T *b, T *Y, int M, int N, int K);
-
-template <typename T, int UNROLL_FACTOR> 
-void sparseGEMM_csr_unrolled_impl(T *X, const SparseFormatCSC& W_csr, T *b, T *Y, int M, int N, int K);
+#include "comp.h"
 
 
 // --- End Prototypes ---

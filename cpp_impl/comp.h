@@ -1,4 +1,7 @@
-#include "common.h"
+#ifndef COMP_H
+#define COMP_H
+
+#include "common.h" 
 
 template <typename T>
 void sparseGEMM_csr_base_impl(T *X, const SparseFormatCSC& W_csr, T *b, T *Y, int M, int N, int K)
@@ -86,8 +89,4 @@ void sparseGEMM_csr_unrolled_impl(
     }
 }
 
-
-// --- Explicit Instantiations ---
-// This tells the compiler to generate code for these specific versions in comp.o
-template void sparseGEMM_csr_base_impl<float>(float*, const SparseFormatCSC&, float*, float*, int, int, int);
-template void sparseGEMM_csr_unrolled_impl<float, 16>(float*, const SparseFormatCSC&, float*, float*, int, int, int);
+#endif 

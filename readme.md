@@ -4,10 +4,19 @@ A project template for ASL Spring 2025.
 
 ## C++ Implementation
 
-Edit only `comp.cpp`:
+To register a new computational function:
+1.  Define your templated function in `cpp_impl/comp.h`. This header is where all templated computational kernels should reside.
+2.  In `cpp_impl/main.cpp`, register your function with the driver. This involves:
+    *   Creating a lambda function that calls your templated function with the specific template arguments (e.g., `float`, specific unroll factors).
+    *   Passing this lambda and a descriptive name string to the `add_function` utility.
+
+To add a new data structure:
+1. Create a `.h` file for your data structure (e.g., `my_data_structure.h`).
+2. Include this new header in `cpp_impl/common.h` to make it accessible throughout the project.
+3. You can then use this data structure within your algorithm definitions in `cpp_impl/comp.h`.
 
 ```bash
-g++ -O2 -march=native -mtune=native -fstrict-aliasing -DNDEBUG cpp_impl/main.cpp cpp_impl/comp.cpp cpp_impl/perf.cpp -o cpp_impl/SparseGEMM.out -DPMU
+`g++ -O2 -march=native -mtune=native -fstrict-aliasing -DNDEBUG cpp_impl/main.cpp cpp_impl/perf.cpp -o cpp_impl/SparseGEMM.out -DPMU
 sudo ./cpp_impl/SparseGEMM.out -M 32 -K 1024 -N 4096 -s 4
 ```
 
