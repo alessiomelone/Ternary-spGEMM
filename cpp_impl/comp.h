@@ -1,6 +1,3 @@
-#ifndef COMP_H
-#define COMP_H
-
 #include "common.h"
 
 template <typename T>
@@ -51,7 +48,6 @@ void sparseGEMM_csc_unrolled_impl(
 
             for (; k_pos_loop + UNROLL_FACTOR <= end_pos; k_pos_loop += UNROLL_FACTOR)
             {
-#pragma unroll
                 for (int u = 0; u < UNROLL_FACTOR; u++)
                 {
                     y_pos[u] += X[m * K + row_index_pos[k_pos_loop + u]];
@@ -75,7 +71,6 @@ void sparseGEMM_csc_unrolled_impl(
 
             for (; k_neg_loop + UNROLL_FACTOR <= end_neg; k_neg_loop += UNROLL_FACTOR)
             {
-#pragma unroll
                 for (int u = 0; u < UNROLL_FACTOR; u++)
                 {
                     y_neg[u] += X[m * K + row_index_neg[k_neg_loop + u]];
@@ -99,4 +94,3 @@ void sparseGEMM_csc_unrolled_impl(
     }
 }
 
-#endif

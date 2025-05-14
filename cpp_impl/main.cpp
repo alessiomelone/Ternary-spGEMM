@@ -58,12 +58,6 @@ int main(int argc, char **argv)
         },
         "sparseGEMM_csc_unrolled_16");
 
-    add_function(
-        [sf_csc_data](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
-        {
-            sparseGEMM_csc_unrolled_impl<float, 2>(X_arg, *sf_csc_data, B_arg, Y_arg, M_arg, N_arg, K_arg);
-        },
-        "sparseGEMM_csc_unrolled_2");
 
     // INSERT NEW FUNCTIONS HERE, instead of [sf_csc_data] INSERT THE NEW SPARSE FORMAT
 
