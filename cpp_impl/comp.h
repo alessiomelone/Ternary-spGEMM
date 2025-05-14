@@ -1,3 +1,6 @@
+#ifndef COMP_H
+#define COMP_H
+
 #include "common.h"
 
 template <typename T>
@@ -93,4 +96,98 @@ void sparseGEMM_csc_unrolled_impl(
         }
     }
 }
+
+// New sparse GEMM implementation using CSR format for W
+template <typename T>
+void sparseGEMM_csr_format_impl(T *X, const SparseFormatCSR& W_csr, T *b, T *Y, int M, int N, int K)
+{
+    // Y is M x N
+    // X is M x K
+    // W is K x N (num_rows = K, num_cols = N for W_csr)
+
+    // Initialize Y with B values. Y_mn = B_n
+    // This needs to be done carefully: Y is M x N, B is N x 1 (or 1 x N, applied to each row of Y)
+    for (int m = 0; m < M; ++m) {
+        for (int n_col = 0; n_col < N; ++n_col) {
+            Y[m * N + n_col] = b[n_col];
+        }
+    }
+
+    for (int m = 0; m < M; ++m) { // Iterate over rows of X and Y
+        for (int k_row = 0; k_row < W_csr.num_rows; ++k_row) { // Iterate over rows of W (which is K)
+            T x_val = X[m * K + k_row];
+
+            // Positive contributions from W
+            for (int j = W_csr.row_start_pos[k_row]; j < W_csr.row_start_pos[k_row + 1]; ++j) {
+                int n_col = W_csr.col_index_pos[j];
+                Y[m * N + n_col] += x_val; // W_val is +1
+            }
+
+            // Negative contributions from W
+            for (int j = W_csr.row_start_neg[k_row]; j < W_csr.row_start_neg[k_row + 1]; ++j) {
+                int n_col = W_csr.col_index_neg[j];
+                Y[m * N + n_col] -= x_val; // W_val is -1
+            }
+        }
+    }
+}
+
+template <typename T, int UNROLL_FACTOR>
+void sparseGEMM_csr_unrolled_impl(
+    T *X, const SparseFormatCSR& W_csr, T *b, T *Y,
+    int M, int N, int K)
+{
+    // Y is M x N
+    // X is M x K
+    // W is K x N (num_rows = K, num_cols = N for W_csr)
+
+    // Initialize Y with B values.
+    for (int m = 0; m < M; ++m) {
+        for (int n_col = 0; n_col < N; ++n_col) {
+            Y[m * N + n_col] = b[n_col];
+        }
+    }
+
+    for (int m = 0; m < M; ++m) { // Iterate over rows of X and Y
+        for (int k_row = 0; k_row < W_csr.num_rows; ++k_row) { // Iterate over rows of W (which is K)
+            T x_val = X[m * K + k_row];
+
+            // Positive contributions from W
+            int j_pos = W_csr.row_start_pos[k_row];
+            const int end_pos = W_csr.row_start_pos[k_row + 1];
+
+            // Unrolled loop for positive contributions
+            for (; j_pos + UNROLL_FACTOR <= end_pos; j_pos += UNROLL_FACTOR) {
+                for (int u = 0; u < UNROLL_FACTOR; ++u) {
+                    int n_col = W_csr.col_index_pos[j_pos + u];
+                    Y[m * N + n_col] += x_val; // W_val is +1
+                }
+            }
+            // Remainder loop for positive contributions
+            for (; j_pos < end_pos; ++j_pos) {
+                int n_col = W_csr.col_index_pos[j_pos];
+                Y[m * N + n_col] += x_val; // W_val is +1
+            }
+
+            // Negative contributions from W
+            int j_neg = W_csr.row_start_neg[k_row];
+            const int end_neg = W_csr.row_start_neg[k_row + 1];
+
+            // Unrolled loop for negative contributions
+            for (; j_neg + UNROLL_FACTOR <= end_neg; j_neg += UNROLL_FACTOR) {
+                for (int u = 0; u < UNROLL_FACTOR; ++u) {
+                    int n_col = W_csr.col_index_neg[j_neg + u];
+                    Y[m * N + n_col] -= x_val; // W_val is -1
+                }
+            }
+            // Remainder loop for negative contributions
+            for (; j_neg < end_neg; ++j_neg) {
+                int n_col = W_csr.col_index_neg[j_neg];
+                Y[m * N + n_col] -= x_val; // W_val is -1
+            }
+        }
+    }
+}
+
+#endif // COMP_H
 

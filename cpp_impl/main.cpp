@@ -40,26 +40,39 @@ int main(int argc, char **argv)
     // Generate sparse matrix to be converted
     std::vector<int> W_raw = generateSparseMatrix<int>(K, N, nonZero, false);
 
-    // SparseFormatCSC
+    // SpraseFormatCSC
     auto sf_csc_data = std::make_shared<SparseFormatCSC>(W_raw.data(), K, N);
-    // INSERT NEW SPARSE FORMAT HERE, COPY LINE ABOVE AND CHANGE THE NAME
+
+    // SparseFormatCSR
+    auto sf_csr_data = std::make_shared<SparseFormatCSR>(W_raw.data(), K, N);
 
     add_function(
-        [sf_csc_data](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
-        {
+        [sf_csc_data](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg) {
             sparseGEMM_csc_base_impl<float>(X_arg, *sf_csc_data, B_arg, Y_arg, M_arg, N_arg, K_arg);
         },
-        "sparseGEMM_csc_base");
+        "sparseGEMM_csc_base"
+    );
 
     add_function(
-        [sf_csc_data](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
-        {
+        [sf_csc_data](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg) {
             sparseGEMM_csc_unrolled_impl<float, 16>(X_arg, *sf_csc_data, B_arg, Y_arg, M_arg, N_arg, K_arg);
         },
-        "sparseGEMM_csc_unrolled_16");
+        "sparseGEMM_csc_unrolled_16"
+    );
 
+    add_function(
+        [sf_csr_data](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg) {
+            sparseGEMM_csr_format_impl<float>(X_arg, *sf_csr_data, B_arg, Y_arg, M_arg, N_arg, K_arg);
+        },
+        "sparseGEMM_csr_format_base"
+    );
 
-    // INSERT NEW FUNCTIONS HERE, instead of [sf_csc_data] INSERT THE NEW SPARSE FORMAT
+    add_function(
+        [sf_csr_data](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg) {
+            sparseGEMM_csr_unrolled_impl<float, 16>(X_arg, *sf_csr_data, B_arg, Y_arg, M_arg, N_arg, K_arg);
+        },
+        "sparseGEMM_csr_unrolled_16"
+    );
 
     if (numFuncs == 0)
     {
