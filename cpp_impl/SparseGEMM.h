@@ -65,14 +65,18 @@ struct CustomMixedTypeFormat {
 */
 
 template <typename T>
-vector<T> initX(int LEN, int Range)
+vector<T> initX(int LEN, int Range, bool uniformDistribution = false)
 {
 	vector<T> X(LEN, 0);
 	mt19937 generator(static_cast<unsigned int>(time(0)));
 	uniform_int_distribution<int> range(-Range, Range);
-	for (int i = 0; i < LEN; i++)
-	{
-		X[i] = range(generator);
+	if (uniformDistribution) {
+		for (int i = 0; i < LEN; i++)
+			X[i] = rand() % Range;
+	}
+	else {
+		for (int i = 0; i < LEN; i++)
+			X[i] = range(generator);
 	}
 	return X;
 };
