@@ -1,12 +1,13 @@
 #pragma once
 #include <vector>
-#include <iostream>
-#include <iostream>
-#include <vector>
+#include <iostream> // Used by some template functions
+
 #include <cstdlib>
 #include <chrono>
 #include <random>
-using namespace std;
+#include <cstdint> // For int8_t if you define new structs using it
+
+using namespace std; // Avoid in headers generally, but keeping for consistency with original
 
 class SparseFormat
 {
@@ -18,30 +19,50 @@ public:
 
 	SparseFormat(int *matrix, int K, int N)
 	{
-		int column_start_pos = 0;
-		int column_start_neg = 0;
-		for (int n = 0; n < N; n++)
+		// ... (existing constructor logic is fine) ...
+		int column_start_pos_val = 0; // Renamed for clarity
+		int column_start_neg_val = 0; // Renamed for clarity
+		for (int n_idx = 0; n_idx < N; n_idx++) // Renamed n
 		{
-			this->col_start_pos.push_back(column_start_pos);
-			this->col_start_neg.push_back(column_start_neg);
-			for (int k = 0; k < K; k++)
+			this->col_start_pos.push_back(column_start_pos_val);
+			this->col_start_neg.push_back(column_start_neg_val);
+			for (int k_idx = 0; k_idx < K; k_idx++) // Renamed k
 			{
-				if (matrix[k * N + n] >= 1)
+				if (matrix[k_idx * N + n_idx] >= 1)
 				{
-					column_start_pos++;
-					this->row_index_pos.push_back(k);
+					column_start_pos_val++;
+					this->row_index_pos.push_back(k_idx);
 				}
-				else if (matrix[k * N + n] <= -1)
+				else if (matrix[k_idx * N + n_idx] <= -1)
 				{
-					column_start_neg++;
-					this->row_index_neg.push_back(k);
+					column_start_neg_val++;
+					this->row_index_neg.push_back(k_idx);
 				}
 			}
 		}
-		this->col_start_pos.push_back(column_start_pos);
-		this->col_start_neg.push_back(column_start_neg);
+		this->col_start_pos.push_back(column_start_pos_val);
+		this->col_start_neg.push_back(column_start_neg_val);
 	}
 };
+
+// Example of where you would define a new, "radically different" data structure
+/*
+struct CustomMixedTypeFormat {
+    std::vector<int> main_indices;
+    std::vector<int8_t> value_types;
+    int K_dim; // Store necessary dimensions if needed by the algorithms
+    int N_dim;
+
+    // Constructor would take appropriate data to populate these vectors
+    CustomMixedTypeFormat(int K, int N, const std::vector<int>& raw_indices, const std::vector<int8_t>& raw_types)
+        : main_indices(raw_indices), value_types(raw_types), K_dim(K), N_dim(N) {}
+
+    // Or a constructor that processes raw data like SparseFormat does
+    CustomMixedTypeFormat(int* some_custom_matrix_format, int K, int N) : K_dim(K), N_dim(N) {
+        // Logic to parse some_custom_matrix_format and populate main_indices and value_types
+    }
+};
+*/
 
 template <typename T>
 vector<T> initX(int LEN, int Range)

@@ -1,7 +1,7 @@
 // #error Please comment out the next two lines under linux, then comment this error
-// #include "stdafx.h"  //Visual studio expects this line to be the first one, comment out if different compiler
-// #include <windows.h> // Include if under windows
-#include "perf.h"
+// #include "stdafx.h"
+// #include <windows.h>
+#include "perf.h" // Should now include the std::function based comp_func
 
 #ifndef WIN32
 #include <sys/time.h>
@@ -10,366 +10,361 @@
 #include <stdio.h>
 #include <time.h>
 #include <math.h>
-#include <stdbool.h>
+#include <stdbool.h> // Can use bool from C++ directly
 #include <string.h>
+#include <vector>      // <-- Add this for creating X, B, Y in perf_test
+// #include <functional> // Not strictly needed here if perf.h includes it for comp_func
 
-#include "SparseGEMM.h"
+#include "SparseGEMM.h" // For initX, generateSparseMatrix (though generateSparseMatrix not used directly in perf_test now)
 
 #ifdef __x86_64__
-#include "../include/tsc_x86.h"
+#include "../include/tsc_x86.h" // Ensure path is correct
 #endif
 
 #ifdef __aarch64__
-#include "../include/vct_arm.h"
+#include "../include/vct_arm.h" // Ensure path is correct
 #ifdef PMU
-#include "../include/kperf.h"
+#include "../include/kperf.h"   // Ensure path is correct
 #endif
-#include <vector>
+// #include <vector> // Already included above
 #endif
 
 #define NUM_RUNS 1
-#define CYCLES_REQUIRED 1e8
+#define CYCLES_REQUIRED 1e8 // This is also defined in main.cpp, define once (e.g. in common.h or a config.h)
 #define FREQUENCY 3.2e9
 #define CALIBRATE
 
-using namespace std;
+using namespace std; // Generally fine for .cpp files, avoid in headers
 
 /*
  * Timing function based on the TimeStep Counter of the CPU.
  */
 #ifdef __x86_64__
-double rdtsc(comp_func func_to_test, float *X, SparseFormat *sparse_W, float *B, float *Y, int M, int N, int K)
+// Old: double rdtsc(comp_func func_to_test, float *X, SparseFormat *sparse_W, float *B, float *Y, int M, int N, int K)
+// New: comp_func is std::function, doesn't need SparseFormat *sparse_W. X, B, Y are buffers for the test.
+double rdtsc(comp_func func_to_test, float *X_buf, float *B_buf, float *Y_buf, int M_arg, int N_arg, int K_arg)
 {
-    int i, num_runs;
-    myInt64 cycles;
-    myInt64 start;
-    num_runs = NUM_RUNS;
+    int i, num_runs_actual; // Renamed num_runs
+    myInt64 cycles_val;     // Renamed cycles
+    myInt64 start_val;      // Renamed start
+    num_runs_actual = NUM_RUNS;
 
 #ifdef CALIBRATE
-    while (num_runs < (1 << 14))
+    while (num_runs_actual < (1 << 14))
     {
-        start = start_tsc();
-        for (i = 0; i < num_runs; ++i)
+        start_val = start_tsc();
+        for (i = 0; i < num_runs_actual; ++i)
         {
-            func_to_test(X,
-                         sparse_W->col_start_pos.data(), sparse_W->col_start_neg.data(),
-                         sparse_W->row_index_pos.data(), sparse_W->row_index_neg.data(),
-                         B, Y, M, N, K);
+            // Y_buf is modified by func_to_test. For calibration, this is usually fine.
+            // If strict identical calls are needed, Y_buf might need resetting or to be a scratchpad.
+            func_to_test(X_buf, B_buf, Y_buf, M_arg, N_arg, K_arg);
         }
-        cycles = stop_tsc(start);
+        cycles_val = stop_tsc(start_val);
 
-        if (cycles >= CYCLES_REQUIRED)
+        if (cycles_val >= CYCLES_REQUIRED)
             break;
 
-        num_runs *= 2;
+        num_runs_actual *= 2;
     }
 #endif
 
-    start = start_tsc();
-    for (i = 0; i < num_runs; ++i)
+    start_val = start_tsc();
+    for (i = 0; i < num_runs_actual; ++i)
     {
-        func_to_test(X,
-                     sparse_W->col_start_pos.data(), sparse_W->col_start_neg.data(),
-                     sparse_W->row_index_neg.data(), sparse_W->row_index_pos.data(),
-                     B, Y, M, N, K);
+        func_to_test(X_buf, B_buf, Y_buf, M_arg, N_arg, K_arg);
     }
 
-    cycles = stop_tsc(start) / num_runs;
-    return (double)cycles;
+    cycles_val = stop_tsc(start_val) / num_runs_actual;
+    return (double)cycles_val;
 }
 #endif
 
 #ifdef __aarch64__
-double rdvct(comp_func func_to_test, float *X, SparseFormat *sparse_W, float *B, float *Y, int M, int N, int K, int nonZero)
+// Old: double rdvct(comp_func func_to_test, float *X, SparseFormat *sparse_W, float *B, float *Y, int M, int N, int K, int nonZero)
+// New: nonZero might not be needed by rdvct itself if it was for sparse_W. Let's remove it from rdvct's signature for now.
+// If any timer intrinsically needs nonZero (density), it can be added back.
+double rdvct(comp_func func_to_test, float *X_buf, float *B_buf, float *Y_buf, int M_arg, int N_arg, int K_arg /*, int nonZero_arg (if needed by timer) */)
 {
-    int i, num_runs;
-    TIMESTAMP cycles;
-    TIMESTAMP start;
-    num_runs = NUM_RUNS;
+    int i, num_runs_actual;
+    TIMESTAMP cycles_val;
+    TIMESTAMP start_val;
+    num_runs_actual = NUM_RUNS;
 
 #ifdef CALIBRATE
-    while (num_runs < (1 << 14))
+    while (num_runs_actual < (1 << 14))
     {
-        start = start_vct();
-        for (i = 0; i < num_runs; ++i)
+        start_val = start_vct();
+        for (i = 0; i < num_runs_actual; ++i)
         {
-            func_to_test(X,
-                         sparse_W->col_start_pos.data(), sparse_W->col_start_neg.data(),
-                         sparse_W->row_index_pos.data(), sparse_W->row_index_neg.data(),
-                         B, Y, M, N, K);
+            func_to_test(X_buf, B_buf, Y_buf, M_arg, N_arg, K_arg);
         }
-        cycles = stop_vct(start);
+        cycles_val = stop_vct(start_val);
 
-        if (cycles >= CYCLES_REQUIRED)
+        if (cycles_val >= CYCLES_REQUIRED)
             break;
 
-        num_runs *= 2;
+        num_runs_actual *= 2;
     }
 #endif
 
-    start = start_vct();
-    for (i = 0; i < num_runs; ++i)
+    start_val = start_vct();
+    for (i = 0; i < num_runs_actual; ++i)
     {
-        func_to_test(X,
-                     sparse_W->col_start_pos.data(), sparse_W->col_start_neg.data(),
-                     sparse_W->row_index_neg.data(), sparse_W->row_index_pos.data(),
-                     B, Y, M, N, K);
+        func_to_test(X_buf, B_buf, Y_buf, M_arg, N_arg, K_arg);
     }
 
-    cycles = stop_vct(start) / num_runs;
-    return (double)cycles;
+    cycles_val = stop_vct(start_val) / num_runs_actual;
+    return (double)cycles_val;
 }
 
 #ifdef PMU
-struct performance_counters rdpmu(comp_func func_to_test, float *X, SparseFormat *sparse_W, float *B, float *Y, int M, int N, int K)
+// Old: struct performance_counters rdpmu(comp_func func_to_test, float *X, SparseFormat *sparse_W, float *B, float *Y, int M, int N, int K)
+// New:
+struct performance_counters rdpmu(comp_func func_to_test, float *X_buf, float *B_buf, float *Y_buf, int M_arg, int N_arg, int K_arg)
 {
     kperf_init();
-    int i, num_runs;
+    int i, num_runs_actual;
     struct performance_counters startperf, endperf, result;
-    num_runs = NUM_RUNS;
+    num_runs_actual = NUM_RUNS;
 
 #ifdef CALIBRATE
-    while (num_runs < (1 << 14))
+    while (num_runs_actual < (1 << 14))
     {
         startperf = kperf_get_counters();
-        for (i = 0; i < num_runs; ++i)
+        for (i = 0; i < num_runs_actual; ++i)
         {
-            func_to_test(X,
-                         sparse_W->col_start_pos.data(), sparse_W->col_start_neg.data(),
-                         sparse_W->row_index_pos.data(), sparse_W->row_index_neg.data(),
-                         B, Y, M, N, K);
+            func_to_test(X_buf, B_buf, Y_buf, M_arg, N_arg, K_arg);
         }
         endperf = kperf_get_counters();
-        double cycles = endperf.cycles - startperf.cycles;
-        if (cycles >= CYCLES_REQUIRED)
+        double cycles_pmu = endperf.cycles - startperf.cycles; // Renamed cycles
+        if (cycles_pmu >= CYCLES_REQUIRED)
             break;
 
-        num_runs *= 2;
+        num_runs_actual *= 2;
     }
 #endif
     startperf = kperf_get_counters();
-    for (i = 0; i < num_runs; ++i)
+    for (i = 0; i < num_runs_actual; ++i)
     {
-        func_to_test(X,
-                     sparse_W->col_start_pos.data(), sparse_W->col_start_neg.data(),
-                     sparse_W->row_index_neg.data(), sparse_W->row_index_pos.data(),
-                     B, Y, M, N, K);
+        func_to_test(X_buf, B_buf, Y_buf, M_arg, N_arg, K_arg);
     }
 
     endperf = kperf_get_counters();
-    result.cycles = (endperf.cycles - startperf.cycles) / num_runs;
-    result.instructions = (endperf.instructions - startperf.instructions) / num_runs;
-    result.branches = (endperf.branches - startperf.branches) / num_runs;
-    result.branch_misses = (endperf.branch_misses - startperf.branch_misses) / num_runs;
+    result.cycles = (endperf.cycles - startperf.cycles) / num_runs_actual;
+    result.instructions = (endperf.instructions - startperf.instructions) / num_runs_actual;
+    result.branches = (endperf.branches - startperf.branches) / num_runs_actual;
+    result.branch_misses = (endperf.branch_misses - startperf.branch_misses) / num_runs_actual;
+    result.retired_uops = (endperf.retired_uops - startperf.retired_uops) / num_runs_actual;
+    result.int_uops = (endperf.int_uops - startperf.int_uops) / num_runs_actual;
+    result.simdfp_uops = (endperf.simdfp_uops - startperf.simdfp_uops) / num_runs_actual;
+    result.loadstore_uops = (endperf.loadstore_uops - startperf.loadstore_uops) / num_runs_actual;
 
     return result;
 }
-#endif
+#endif // PMU
+#endif // __aarch64__
 
-#endif
-
-double c_clock(comp_func func_to_test, float *X, SparseFormat *sparse_W, float *B, float *Y, int M, int N, int K, int nonZero)
+// Old: double c_clock(comp_func func_to_test, float *X, SparseFormat *sparse_W, float *B, float *Y, int M, int N, int K, int nonZero)
+// New: nonZero might be unneeded by c_clock itself.
+double c_clock(comp_func func_to_test, float *X_buf, float *B_buf, float *Y_buf, int M_arg, int N_arg, int K_arg /*, int nonZero_arg if needed */)
 {
-    int i, num_runs;
-    double cycles;
-    clock_t start, end;
+    int i, num_runs_actual;
+    double cycles_val;
+    clock_t start_clk, end_clk; // Renamed start, end
 
-    num_runs = NUM_RUNS;
+    num_runs_actual = NUM_RUNS;
 #ifdef CALIBRATE
-    while (num_runs < (1 << 14))
+    while (num_runs_actual < (1 << 14))
     {
-        start = clock();
-        for (i = 0; i < num_runs; ++i)
+        start_clk = clock();
+        for (i = 0; i < num_runs_actual; ++i)
         {
-            func_to_test(X,
-                         sparse_W->col_start_pos.data(), sparse_W->col_start_neg.data(),
-                         sparse_W->row_index_pos.data(), sparse_W->row_index_neg.data(),
-                         B, Y, M, N, K);
+            func_to_test(X_buf, B_buf, Y_buf, M_arg, N_arg, K_arg);
         }
-        end = clock();
+        end_clk = clock();
 
-        cycles = (double)(end - start);
-        if (cycles >= CYCLES_REQUIRED / (FREQUENCY / CLOCKS_PER_SEC))
+        cycles_val = (double)(end_clk - start_clk);
+        if (cycles_val >= CYCLES_REQUIRED / (FREQUENCY / CLOCKS_PER_SEC))
             break;
 
-        num_runs *= 2;
+        num_runs_actual *= 2;
     }
 #endif
 
-    start = clock();
-    for (i = 0; i < num_runs; ++i)
+    start_clk = clock();
+    for (i = 0; i < num_runs_actual; ++i)
     {
-        func_to_test(X,
-                     sparse_W->col_start_pos.data(), sparse_W->col_start_neg.data(),
-                     sparse_W->row_index_neg.data(), sparse_W->row_index_pos.data(),
-                     B, Y, M, N, K);
+        func_to_test(X_buf, B_buf, Y_buf, M_arg, N_arg, K_arg);
     }
-    end = clock();
+    end_clk = clock();
 
-    return (double)(end - start) / num_runs;
+    return (double)(end_clk - start_clk) / num_runs_actual;
 }
 
 #ifndef WIN32
-double timeofday(comp_func func_to_test, float *X, SparseFormat *sparse_W, float *B, float *Y, int M, int N, int K, int nonZero)
+// Old: double timeofday(comp_func func_to_test, float *X, SparseFormat *sparse_W, float *B, float *Y, int M, int N, int K, int nonZero)
+// New: nonZero might be unneeded.
+double timeofday(comp_func func_to_test, float *X_buf, float *B_buf, float *Y_buf, int M_arg, int N_arg, int K_arg /*, int nonZero_arg if needed */)
 {
-    int i, num_runs;
-    double cycles;
-    struct timeval start, end;
+    int i, num_runs_actual;
+    double cycles_val;
+    struct timeval start_tv, end_tv; // Renamed start, end
 
-    num_runs = NUM_RUNS;
+    num_runs_actual = NUM_RUNS;
 #ifdef CALIBRATE
-    while (num_runs < (1 << 14))
+    while (num_runs_actual < (1 << 14))
     {
-        gettimeofday(&start, NULL);
-        for (i = 0; i < num_runs; ++i)
+        gettimeofday(&start_tv, NULL);
+        for (i = 0; i < num_runs_actual; ++i)
         {
-            func_to_test(X,
-                         sparse_W->col_start_pos.data(), sparse_W->col_start_neg.data(),
-                         sparse_W->row_index_pos.data(), sparse_W->row_index_neg.data(),
-                         B, Y, M, N, K);
+            func_to_test(X_buf, B_buf, Y_buf, M_arg, N_arg, K_arg);
         }
-        gettimeofday(&end, NULL);
+        gettimeofday(&end_tv, NULL);
 
-        cycles = (double)((end.tv_sec - start.tv_sec) + (end.tv_usec - start.tv_usec) / 1e6) * FREQUENCY;
-        if (cycles >= CYCLES_REQUIRED)
+        cycles_val = (double)((end_tv.tv_sec - start_tv.tv_sec) + (end_tv.tv_usec - start_tv.tv_usec) / 1e6) * FREQUENCY;
+        if (cycles_val >= CYCLES_REQUIRED)
             break;
 
-        num_runs *= 2;
+        num_runs_actual *= 2;
     }
 #endif
 
-    gettimeofday(&start, NULL);
-    for (i = 0; i < num_runs; ++i)
+    gettimeofday(&start_tv, NULL);
+    for (i = 0; i < num_runs_actual; ++i)
     {
-        func_to_test(X,
-                     sparse_W->col_start_pos.data(), sparse_W->col_start_neg.data(),
-                     sparse_W->row_index_neg.data(), sparse_W->row_index_pos.data(),
-                     B, Y, M, N, K);
+        func_to_test(X_buf, B_buf, Y_buf, M_arg, N_arg, K_arg);
     }
-    gettimeofday(&end, NULL);
+    gettimeofday(&end_tv, NULL);
 
-    return (double)((end.tv_sec - start.tv_sec) + (end.tv_usec - start.tv_usec) / 1e6) / num_runs;
+    return (double)((end_tv.tv_sec - start_tv.tv_sec) + (end_tv.tv_usec - start_tv.tv_usec) / 1e6) / num_runs_actual;
 }
 
-#else
+#else // For WIN32
 
-double gettickcount(comp_func func_to_test, float *X, SparseFormat *sparse_W, float *B, float *Y, int M, int N, int K, int nonZero)
+// Old: double gettickcount(comp_func func_to_test, float *X, SparseFormat *sparse_W, float *B, float *Y, int M, int N, int K, int nonZero)
+// New: nonZero might be unneeded.
+double gettickcount(comp_func func_to_test, float *X_buf, float *B_buf, float *Y_buf, int M_arg, int N_arg, int K_arg /*, int nonZero_arg if needed */)
 {
-    int i, num_runs;
-    double cycles, start, end;
+    int i, num_runs_actual;
+    double cycles_val, start_tc, end_tc; // Renamed start, end
 
-    num_runs = NUM_RUNS;
+    num_runs_actual = NUM_RUNS;
 #ifdef CALIBRATE
-    while (num_runs < (1 << 14))
+    while (num_runs_actual < (1 << 14))
     {
-        start = (double)GetTickCount();
-        for (i = 0; i < num_runs; ++i)
+        start_tc = (double)GetTickCount();
+        for (i = 0; i < num_runs_actual; ++i)
         {
-            func_to_test(X,
-                         sparse_W->col_start_pos.data(), sparse_W->col_start_neg.data(),
-                         sparse_W->row_index_pos.data(), sparse_W->row_index_neg.data(),
-                         B, Y, M, N, K);
+            func_to_test(X_buf, B_buf, Y_buf, M_arg, N_arg, K_arg);
         }
-        end = (double)GetTickCount();
+        end_tc = (double)GetTickCount();
 
-        cycles = (end - start) * FREQUENCY / 1e3; // end-start provides a measurement in the order of milliseconds
-
-        if (cycles >= CYCLES_REQUIRED)
+        cycles_val = (end_tc - start_tc) * FREQUENCY / 1e3;
+        if (cycles_val >= CYCLES_REQUIRED)
             break;
 
-        num_runs *= 2;
+        num_runs_actual *= 2;
     }
 #endif
 
-    start = (double)GetTickCount();
-    for (i = 0; i < num_runs; ++i)
+    start_tc = (double)GetTickCount();
+    for (i = 0; i < num_runs_actual; ++i)
     {
-        func_to_test(X,
-                     sparse_W->col_start_pos.data(), sparse_W->col_start_neg.data(),
-                     sparse_W->row_index_neg.data(), sparse_W->row_index_pos.data(),
-                     B, Y, M, N, K);
+        func_to_test(X_buf, B_buf, Y_buf, M_arg, N_arg, K_arg);
     }
-    end = (double)GetTickCount();
+    end_tc = (double)GetTickCount();
 
-    return (end - start) / num_runs;
+    return (end_tc - start_tc) / num_runs_actual;
 }
 
-double queryperfcounter(comp_func func_to_test, float *X, SparseFormat *sparse_W, float *B, float *Y, int M, int N, int K, int nonZero, LARGE_INTEGER f)
+// Old: double queryperfcounter(comp_func func_to_test, float *X, SparseFormat *sparse_W, float *B, float *Y, int M, int N, int K, int nonZero, LARGE_INTEGER f)
+// New: nonZero might be unneeded by the timer itself.
+double queryperfcounter(comp_func func_to_test, float *X_buf, float *B_buf, float *Y_buf, int M_arg, int N_arg, int K_arg, /* int nonZero_arg,*/ LARGE_INTEGER f)
 {
-    int i, num_runs;
-    double cycles;
-    LARGE_INTEGER start, end;
+    int i, num_runs_actual;
+    double cycles_val;
+    LARGE_INTEGER start_pc, end_pc; // Renamed start, end
 
-    num_runs = NUM_RUNS;
+    num_runs_actual = NUM_RUNS;
 #ifdef CALIBRATE
-    while (num_runs < (1 << 14))
+    while (num_runs_actual < (1 << 14))
     {
-        QueryPerformanceCounter(&start);
-        for (i = 0; i < num_runs; ++i)
+        QueryPerformanceCounter(&start_pc);
+        for (i = 0; i < num_runs_actual; ++i)
         {
-            func_to_test(X,
-                         sparse_W->col_start_pos.data(), sparse_W->col_start_neg.data(),
-                         sparse_W->row_index_pos.data(), sparse_W->row_index_neg.data(),
-                         B, Y, M, N, K);
+            func_to_test(X_buf, B_buf, Y_buf, M_arg, N_arg, K_arg);
         }
-        QueryPerformanceCounter(&end);
+        QueryPerformanceCounter(&end_pc);
 
-        cycles = (double)(end.QuadPart - start.QuadPart);
-
-        if (cycles >= CYCLES_REQUIRED / (FREQUENCY / f.QuadPart))
+        cycles_val = (double)(end_pc.QuadPart - start_pc.QuadPart);
+        if (cycles_val >= CYCLES_REQUIRED / (FREQUENCY / f.QuadPart))
             break;
 
-        num_runs *= 2;
+        num_runs_actual *= 2;
     }
 #endif
 
-    QueryPerformanceCounter(&start);
-    for (i = 0; i < num_runs; ++i)
+    QueryPerformanceCounter(&start_pc);
+    for (i = 0; i < num_runs_actual; ++i)
     {
-        func_to_test(X,
-                     sparse_W->col_start_pos.data(), sparse_W->col_start_neg.data(),
-                     sparse_W->row_index_neg.data(), sparse_W->row_index_pos.data(),
-                     B, Y, M, N, K);
+        func_to_test(X_buf, B_buf, Y_buf, M_arg, N_arg, K_arg);
     }
-    QueryPerformanceCounter(&end);
+    QueryPerformanceCounter(&end_pc);
 
-    return (double)(end.QuadPart - start.QuadPart) / num_runs;
+    return (double)(end_pc.QuadPart - start_pc.QuadPart) / num_runs_actual;
 }
 
-#endif
+#endif // WIN32
 
-double perf_test(comp_func f, int M, int K, int N, int nonZero)
+// perf_test function signature remains the same, as 'f' (comp_func) now encapsulates the sparse data.
+// 'nonZero' is used here if needed by initX or generateSparseMatrix.
+// However, since generateSparseMatrix is called in main.cpp before lambdas are created,
+// perf_test actually doesn't need to generate the W matrix itself.
+// It only needs to generate X, B, Y for the benchmark run.
+double perf_test(comp_func f, int M_param, int K_param, int N_param, int nonZero_param [[maybe_unused]]) // nonZero_param might be unused now by perf_test directly
 {
+    // Mark nonZero_param as potentially unused if SparseGEMM.h's initX or other local utilities don't need it.
+    // It was primarily for generateSparseMatrix, which is now done in main.cpp before lambda creation.
     srand((unsigned)time(NULL));
 
-    vector<float> X = initX<float>(M * K, 512);
-    vector<int> W = generateSparseMatrix<int>(K, N, nonZero, false);
-    vector<float> Y(M * N, 0);
-    vector<float> B(N, 2);
-
-    SparseFormat sf = SparseFormat(W.data(), K, N);
+    // Create X, B, Y buffers for the benchmark run.
+    // The sparse matrix W is already captured within the std::function 'f'.
+    vector<float> X_perf = initX<float>(M_param * K_param, 512);
+    vector<float> Y_perf(M_param * N_param, 0); // Output buffer, will be written into by 'f'
+    vector<float> B_perf(N_param, 2);
 
 #ifdef __x86_64__
-    // Su Intel/AMD x86_64: già restituisce i cicli
-    return rdtsc(f, X.data(), &sf, B.data(), Y.data(), M, N, K);
+    return rdtsc(f, X_perf.data(), B_perf.data(), Y_perf.data(), M_param, N_param, K_param);
 #elif defined(__aarch64__) && defined(PMU)
-    // Su ARM64 con PMU: usa i cicli hardware
-    struct performance_counters p = rdpmu(f, X.data(), &sf, B.data(), Y.data(), M, N, K);
+    struct performance_counters p = rdpmu(f, X_perf.data(), B_perf.data(), Y_perf.data(), M_param, N_param, K_param);
+    // Original printf for PMU counters
+    printf("\n"
+           "Instructions     : %.3e\n"
+           "Branches         : %.3e\n"
+           "Branch Misses    : %.3e\n"
+           "Retired Uops     : %.3e\n"
+           "Int Uops         : %.3e\n"
+           "SIMD FP Uops     : %.3e\n"
+           "Load/Store Uops  : %.3e",
+           p.instructions,
+           p.branches,
+           p.branch_misses,
+           p.retired_uops,
+           p.int_uops,
+           p.simdfp_uops,
+           p.loadstore_uops);
     return p.cycles;
 #elif defined(__aarch64__)
-    // Su ARM64 senza PMU: assume che rdvct restituisca cicli (se fosse in Hz, va adattato)
-    return rdvct(f, X.data(), &sf, B.data(), Y.data(), M, N, K, nonZero);
+    // Pass nonZero_param to rdvct only if rdvct intrinsically needs it, otherwise remove.
+    // Assuming rdvct doesn't need nonZero if it was for sparse_W details.
+    return rdvct(f, X_perf.data(), B_perf.data(), Y_perf.data(), M_param, N_param, K_param /*, nonZero_param */);
 #elif defined(_WIN32) || defined(WIN32)
-    // Su Windows: QueryPerformanceCounter -> cicli stimati tramite frequenza
     LARGE_INTEGER freq;
     QueryPerformanceFrequency(&freq);
-    double ticks = queryperfcounter(f, X.data(), &sf, B.data(), Y.data(), M, N, K, nonZero, freq);
-    // Conversione: ticks * (FREQUENCY / freq.QuadPart) = cicli
-    return ticks * (FREQUENCY / (double)freq.QuadPart);
-#else
-    // Su Unix generico: timeofday -> secondi, converto in cicli
-    double seconds = timeofday(f, X.data(), &sf, B.data(), Y.data(), M, N, K, nonZero);
-    // Conversione: secondi * FREQUENCY = cicli
-    return seconds * FREQUENCY;
+    // Pass nonZero_param to queryperfcounter only if it intrinsically needs it.
+    return queryperfcounter(f, X_perf.data(), B_perf.data(), Y_perf.data(), M_param, N_param, K_param, /* nonZero_param,*/ freq) * (FREQUENCY / (double)freq.QuadPart);
+#else // Generic Unix
+    // Pass nonZero_param to timeofday only if it intrinsically needs it.
+    return timeofday(f, X_perf.data(), B_perf.data(), Y_perf.data(), M_param, N_param, K_param /*, nonZero_param */) * FREQUENCY;
 #endif
 }
