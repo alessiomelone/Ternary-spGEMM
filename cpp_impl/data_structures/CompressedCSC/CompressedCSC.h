@@ -6,6 +6,7 @@
 #include <cstdlib>
 #include <chrono>
 #include <random>
+#include <iomanip>
 
 using namespace std;
 
@@ -43,6 +44,12 @@ public:
 		}
 	}
 };
+
+template <typename T>
+void printMatrix(const CompressedCSC& mat)
+{
+    
+}
 
 constexpr uint8_t encode(int8_t v0, int8_t v1, int8_t v2,
 						 int8_t v3, int8_t v4) noexcept
