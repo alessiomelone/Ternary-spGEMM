@@ -1,0 +1,35 @@
+Profiling: CSR_BASE
+Dummy sum #1 is: 0
+Dummy sum #2 is: 262144
+Attempting to fill a region of 8388608 bytes with random data...
+Cache region fill attempt complete. Dummy sum (to ensure usage): 221
+---- <application exited with code 256> ----
+Cache simulation results:
+Core #0 (1 thread(s))
+  L1I0 (size=32768, assoc=8, block=64, LRU) stats:
+    Hits:                       1214864093
+    Misses:                           1971
+    Compulsory misses:                1846
+    Invalidations:                       0
+    Miss rate:                        0.00%
+  L1D0 (size=32768, assoc=8, block=64, LRU) stats:
+    Hits:                        329752995
+    Misses:                        7308376
+    Compulsory misses:              795416
+    Invalidations:                       0
+    Prefetch hits:                    5091
+    Prefetch misses:               7303285
+    Miss rate:                        2.17%
+Core #1 (0 thread(s))
+Core #2 (0 thread(s))
+Core #3 (0 thread(s))
+LL (size=8388608, assoc=16, block=64, LRU) stats:
+    Hits:                          2232904
+    Misses:                        5077443
+    Compulsory misses:              797254
+    Invalidations:                       0
+    Prefetch hits:                 2226635
+    Prefetch misses:               5076650
+    Local miss rate:                 69.46%
+    Child hits:                 1544622179
+    Total miss rate:                  0.33%

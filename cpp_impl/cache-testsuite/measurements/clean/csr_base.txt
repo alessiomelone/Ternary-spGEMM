@@ -1,0 +1,19 @@
+Profiling: CSR_BASE
+Cache simulation results:
+Core #0 (1 thread(s))
+  L1I0 (size=32768, assoc=8, block=64, LRU) stats:
+    Hits:                       236978453
+    Misses:                           6
+    Calculated Miss Ratio: 0.00% (M=6, H=236978453)
+  L1D0 (size=32768, assoc=8, block=64, LRU) stats:
+    Hits:                        66832906
+    Misses:                        1062422
+    Calculated Miss Ratio: 1.56% (M=1062422, H=66832906)
+LL (size=8388608, assoc=16, block=64, LRU) stats:
+    Hits:                          1024153
+    Misses:                        38275
+    Child hits:                 303807457
+  Calculated Miss Ratio: 0.01% (M=38275, H=1024153, CH=303807457)
+Core #1 (0 thread(s))
+Core #2 (0 thread(s))
+Core #3 (0 thread(s))

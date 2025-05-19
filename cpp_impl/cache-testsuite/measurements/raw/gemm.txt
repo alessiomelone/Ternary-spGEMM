@@ -1,0 +1,35 @@
+Profiling: GEMM
+Dummy sum #1 is: 0
+Dummy sum #2 is: 262144
+Attempting to fill a region of 8388608 bytes with random data...
+Cache region fill attempt complete. Dummy sum (to ensure usage): 180
+---- <application exited with code 256> ----
+Cache simulation results:
+Core #0 (1 thread(s))
+  L1I0 (size=32768, assoc=8, block=64, LRU) stats:
+    Hits:                       1776507519
+    Misses:                           1966
+    Compulsory misses:                1843
+    Invalidations:                       0
+    Miss rate:                        0.00%
+  L1D0 (size=32768, assoc=8, block=64, LRU) stats:
+    Hits:                        396989397
+    Misses:                      140874166
+    Compulsory misses:              789393
+    Invalidations:                       0
+    Prefetch hits:                  141937
+    Prefetch misses:             140732229
+    Miss rate:                       26.19%
+Core #1 (0 thread(s))
+Core #2 (0 thread(s))
+Core #3 (0 thread(s))
+LL (size=8388608, assoc=16, block=64, LRU) stats:
+    Hits:                          1584090
+    Misses:                      139292042
+    Compulsory misses:              791228
+    Invalidations:                       0
+    Prefetch hits:                 1431221
+    Prefetch misses:             139301008
+    Local miss rate:                 98.88%
+    Child hits:                 2173638853
+    Total miss rate:                  6.02%
