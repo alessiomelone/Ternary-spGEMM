@@ -1,0 +1,31 @@
+Profiling: COMPULSORY
+---- <application exited with code 256> ----
+Cache simulation results:
+Core #0 (1 thread(s))
+  L1I0 (size=32768, assoc=8, block=64, LRU) stats:
+    Hits:                        175809487
+    Misses:                           1620
+    Compulsory misses:                1567
+    Invalidations:                       0
+    Miss rate:                        0.00%
+  L1D0 (size=32768, assoc=8, block=64, LRU) stats:
+    Hits:                         48328141
+    Misses:                        4580496
+    Compulsory misses:              412536
+    Invalidations:                       0
+    Prefetch hits:                    4536
+    Prefetch misses:               4575960
+    Miss rate:                        8.66%
+Core #1 (0 thread(s))
+Core #2 (0 thread(s))
+Core #3 (0 thread(s))
+LL (size=8388608, assoc=16, block=64, LRU) stats:
+    Hits:                            43903
+    Misses:                        4538213
+    Compulsory misses:              414095
+    Invalidations:                       0
+    Prefetch hits:                   38249
+    Prefetch misses:               4537711
+    Local miss rate:                 99.04%
+    Child hits:                  224142164
+    Total miss rate:                  1.98%

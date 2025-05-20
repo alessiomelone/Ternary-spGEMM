@@ -1,0 +1,19 @@
+Profiling: GEMM
+Cache simulation results:
+Core #0 (1 thread(s))
+  L1I0 (size=32768, assoc=8, block=64, LRU) stats:
+    Hits:                       798621879
+    Misses:                           1
+    Calculated Miss Ratio: 0.00% (M=1, H=798621879)
+  L1D0 (size=32768, assoc=8, block=64, LRU) stats:
+    Hits:                        134069308
+    Misses:                      134628212
+    Calculated Miss Ratio: 50.10% (M=134628212, H=134069308)
+LL (size=8388608, assoc=16, block=64, LRU) stats:
+    Hits:                          375339
+    Misses:                      134252874
+    Child hits:                 932824131
+  Calculated Miss Ratio: 12.58% (M=134252874, H=375339, CH=932824131)
+Core #1 (0 thread(s))
+Core #2 (0 thread(s))
+Core #3 (0 thread(s))
