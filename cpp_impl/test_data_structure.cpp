@@ -63,15 +63,20 @@ bool test(int K, int N, int nonZero, int seed, bool verbose = false)
 }
 
 template<typename T>
-bool testMany(int K, int N, int nonZero, int variants)
+bool testMany(int K, int N, int nonZero, int variants, bool verbose = false)
 {
     static_assert(std::is_base_of<DataStructureInterface, T>::value,
                   "T must inherit from DataStructureInterface");
 
     // const int K = 10, N = 10, nonZero = 2, variants = 1'000;
     bool mismatch_flag = false;
-    for (int k = 1; k < K; ++k)
-        for (int n = 1; n < N; ++n)
+    for (int k = 1; k < K; ++k) {
+        for (int n = 1; n < N; ++n) {
+            
+            if (verbose) {
+                printf("Testing k=%d, n=%d, nonZero=%d\n", k, n, nonZero);
+            }
+
             for (int seed = 0; seed < variants; ++seed)
             {
                 if (!test<T>(k, n, nonZero, seed))
@@ -81,6 +86,8 @@ bool testMany(int K, int N, int nonZero, int variants)
                     break;
                 }
             }
+        }
+    }
     if (!mismatch_flag)
         printf("All vectors match!\n");
     return 0;
@@ -101,10 +108,12 @@ bool testRequired(int variants, bool verbose = false)
     {
         for (int nonZero : nonZeros)
         {
+            if (verbose) {
+                printf("Testing k=%d, n=%d, nonZero=%d\n", K[i], N[i], nonZero);
+            }
+
             for (int seed = 0; seed < variants; ++seed)
             {
-                if (verbose)
-                    printf("Testing k=%d, n=%d, nonZero=%d, seed=%d\n", K[i], N[i], nonZero, seed);
 
                 if (!test<T>(K[i], N[i], nonZero, seed))
                 {
@@ -122,5 +131,11 @@ bool testRequired(int variants, bool verbose = false)
 
 int main()
 {
-    testRequired<CompressedCSC>(1, true);
+    // Sizes you'll probably use debugging
+    printf("(1/2)\n");
+    testMany<CompressedCSC>(40, 40, 2, 20, false);
+    
+    // Required sizes
+    printf("(2/2)\n");
+    testRequired<CompressedCSC>(10, true);
 }
