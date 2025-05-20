@@ -8,58 +8,11 @@
 #include <random>
 #include <iomanip>
 
+#include "DataStructureInterface.hpp"
+
 using namespace std;
 
 constexpr uint8_t encode(int8_t v0, int8_t v1, int8_t v2, int8_t v3, int8_t v4) noexcept;
-
-class CompressedCSC
-{
-public:
-	vector<uint8_t> vals;
-	vector<int> col_start;
-
-	CompressedCSC(int *matrix, int K, int N)
-	{
-		int *matrix_walker = matrix;
-		for (int n = 0; n < N; ++n)
-		{
-			for (int k = 0; k < K - 5; k += 5)
-			{ // K rows
-				if (matrix_walker[0] == 0 && matrix_walker[1] == 0 && matrix_walker[2] == 0 && matrix_walker[3] == 0 && matrix_walker[4] == 0)
-				{
-					continue;
-				}
-
-				uint8_t bitstring = encode(matrix_walker[0], matrix_walker[1], matrix_walker[2], matrix_walker[3], matrix_walker[4]);
-				vals.push_back(bitstring);
-			}
-			// cleanup for last few bits
-			int values[5] = {0, 0, 0, 0, 0};
-			for (int k_pad = K % 5; k_pad >= 0; --k_pad)
-				values[5 - k_pad] = *matrix_walker;
-			uint8_t bitstring = encode(values[0], values[1], values[2], values[3], values[4]);
-			vals.push_back(bitstring);
-			
-			col_start.push_back(vals.size());
-		}
-	}
-};
-
-template <typename T>
-void printMatrix(const CompressedCSC& mat)
-{
-    
-}
-
-constexpr uint8_t encode(int8_t v0, int8_t v1, int8_t v2,
-						 int8_t v3, int8_t v4) noexcept
-{
-	return uint8_t((v0 + 1) * 81 +
-				   (v1 + 1) * 27 +
-				   (v2 + 1) * 9 +
-				   (v3 + 1) * 3 +
-				   (v4 + 1) * 1);
-}
 
 static constexpr int8_t decode[256][5] = {
 	{-1, -1, -1, -1, -1},
@@ -305,3 +258,131 @@ static constexpr int8_t decode[256][5] = {
 	{1, 1, 1, 1, -1},
 	{1, 1, 1, 1, 0},
 	{1, 1, 1, 1, 1}};
+
+class CompressedCSC : public DataStructureInterface
+{
+public:
+	// Each value is a byte representing 5 ternary values.
+	vector<uint8_t> vals;
+
+	// Contains indices in vals where the next matrix column starts, inclusive.
+	// Each byte is only in one column.
+	vector<int> col_start;
+	vector<int> row_pos;
+
+	CompressedCSC() { }
+
+	void init(int *matrix, int rows, int cols)
+	{
+		for (int col = 0; col < cols; ++col)
+		{
+			col_start.push_back(vals.size());
+			for (int row = 0; row <= rows - 5; row += 5)
+			{
+				int *matrix_ptr = matrix + (row * cols) + col;
+				if (matrix_ptr[0] == 0 && matrix_ptr[1 * cols] == 0 && matrix_ptr[2 * cols] == 0 && matrix_ptr[3 * cols] == 0 && matrix_ptr[4 * cols] == 0)
+				{
+					continue; // Skip bytes that are fully zero
+				}
+
+				uint8_t bitstring = encode(matrix_ptr[0], matrix_ptr[1 * cols], matrix_ptr[2 * cols], matrix_ptr[3 * cols], matrix_ptr[4 * cols]);
+
+				vals.push_back(bitstring);
+				row_pos.push_back(row);
+			}
+
+			// cleanup for last few bits
+			int pad_values[5] = {0, 0, 0, 0, 0};
+			for (int pad_pos = 0; pad_pos < rows % 5; ++pad_pos)
+			{
+				int row = (rows - (rows % 5)) + pad_pos;
+				int *matrix_ptr = matrix + (row * cols) + col;
+				pad_values[pad_pos] = *matrix_ptr;
+			}
+			uint8_t bitstring;
+			if (pad_values[0] != 0 || pad_values[1] != 0 || pad_values[2] != 0 || pad_values[3] != 0 || pad_values[4] != 0)
+			{
+				bitstring = encode(pad_values[0], pad_values[1], pad_values[2], pad_values[3], pad_values[4]);
+				vals.push_back(bitstring);
+				row_pos.push_back(rows - (rows % 5));
+			}
+		}
+	}
+
+	void printVars()
+	{
+		std::cout << "\nvals: ";
+		for (uint8_t val : vals)
+		{
+			std::cout << int(val) << " ";
+		}
+		std::cout << std::endl;
+		std::cout << "vals decoded: ";
+		for (auto b : vals)
+		{
+			std::cout << "[";
+			for (int8_t val : decode[b])
+			{
+				std::cout << int(val) << " ";
+			}
+			std::cout << "]";
+		}
+		std::cout << "\ncol_start: ";
+		for (auto idx : col_start)
+		{
+			std::cout << idx << " ";
+		}
+		std::cout << "\nrow_start: ";
+		for (auto idx : row_pos)
+		{
+			std::cout << idx << " ";
+		}
+		std::cout << std::endl;
+	}
+
+	vector<int> getVectorRepresentation(size_t rows, size_t cols)
+	{
+		// allocate and zero-init output
+		vector<int> M(rows * cols, 0);
+
+		// for each column
+		for (size_t c = 0; c < cols; ++c)
+		{
+			// where this column’s bytes start…
+			size_t start = col_start[c];
+			// …and end (next col’s start, or end of vals)
+			size_t end = (c + 1 < col_start.size()
+							  ? col_start[c + 1]
+							  : vals.size());
+
+			for (size_t idx = start; idx < end; ++idx)
+			{
+				uint8_t code = vals[idx];
+				int baseRow = row_pos[idx];
+				auto &dec = decode[code]; // decoded 5-tuple
+
+				// assign each of the up-to-5 entries, skip past-end rows
+				for (int j = 0; j < 5; ++j)
+				{
+					size_t r = baseRow + j;
+					if (r < rows)
+					{
+						M[r * cols + c] = dec[j];
+					}
+				}
+			}
+		}
+
+		return M;
+	}
+};
+
+constexpr uint8_t encode(int8_t v0, int8_t v1, int8_t v2,
+						 int8_t v3, int8_t v4) noexcept
+{
+	return uint8_t((v0 + 1) * 81 +
+				   (v1 + 1) * 27 +
+				   (v2 + 1) * 9 +
+				   (v3 + 1) * 3 +
+				   (v4 + 1) * 1);
+}

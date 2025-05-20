@@ -1,1 +1,0 @@
-g++ -Icpp_impl/data_structures -o cpp_impl/data_structures/CompressedCSC/CompressedCSC cpp_impl/data_structures/CompressedCSC/CompressedCSC.cpp

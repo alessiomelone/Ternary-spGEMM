@@ -82,8 +82,12 @@ vector<T> initX(int LEN, int Range, bool uniformDistribution = false)
 };
 
 template <typename T>
-vector<T> generateSparseMatrix(int H, int W, int nonZero, bool uniformDistribution)
+vector<T> generateSparseMatrix(int H, int W, int nonZero, bool uniformDistribution, int seed = -1)
 {
+	if (seed != -1) {
+		srand(seed);
+	}
+
 	vector<T> y = vector<T>(H * W, 0);
 	if (uniformDistribution)
 	{
@@ -105,7 +109,7 @@ vector<T> generateSparseMatrix(int H, int W, int nonZero, bool uniformDistributi
 	}
 	else
 	{
-		mt19937 generator(static_cast<unsigned int>(time(0)));
+		mt19937 generator(static_cast<unsigned int>((seed == -1) ? time(0) : seed));
 		uniform_int_distribution<int> range(0, W - 1);
 		uniform_int_distribution<int> variRange(0, int(W / nonZero / 20 + 1)); // The variation among different columns
 		for (int h = 0; h < H; h++)

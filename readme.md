@@ -11,6 +11,16 @@ g++ -O2 -march=native -mtune=native -fstrict-aliasing -DNDEBUG cpp_impl/main.cpp
 sudo ./cpp_impl/SparseGEMM.out -M 32 -K 1024 -N 4096 -s 4
 ```
 
+Test data structure:
+
+```
+g++ -Icpp_impl/test_data_structure -o cpp_impl/test_data_structure cpp_impl/test_data_structure.cpp
+```
+
+```
+./cpp_impl/test_data_structure
+```
+
 
 ## Considerations
 
