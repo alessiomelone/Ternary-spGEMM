@@ -23,9 +23,9 @@
 // --- Prototypes for implementations in comp.cpp ---
 // These are now declarations of explicitly instantiated templates
 template <typename T>
-void sparseGEMM_csr_base_impl(T *X, const SparseFormat& W_csr, T *b, T *Y, int M, int N, int K);
+void CSR_base(T *X, const SparseFormat& W_csr, T *b, T *Y, int M, int N, int K);
 template <typename T, int UNROLL_FACTOR> // Provide default for UNROLL_FACTOR if used in declaration
-void sparseGEMM_csr_unrolled_impl(T *X, const SparseFormat& W_csr, T *b, T *Y, int M, int N, int K);
+void CSR_unrolled(T *X, const SparseFormat& W_csr, T *b, T *Y, int M, int N, int K);
 // --- End Prototypes ---
 
 #ifndef M
@@ -161,7 +161,7 @@ int main(int argc, char **argv)
         sum += i;
     }
     std::cout << "Dummy sum #1 is: " << sum << std::endl;
-    sparseGEMM_csr_unrolled_impl<float,2>(X_main.data(), *sf_csr_data, B_main.data(), Y_main.data(), M, N, K);
+    CSR_unrolled<float,2>(X_main.data(), *sf_csr_data, B_main.data(), Y_main.data(), M, N, K);
     sum = 0;
     for (auto i : Y_main) {
         sum += i;
@@ -177,13 +177,13 @@ int main(int argc, char **argv)
             GEMM(X_main.data(), W_FP32_main.data(), B_main.data(), Y_main.data(), M, N, K);
         #endif
         #ifdef CSR_BASE
-            sparseGEMM_csr_base_impl<float>(X_main.data(), *sf_csr_data, B_main.data(), Y_main.data(), M, N, K);
+            CSR_base<float>(X_main.data(), *sf_csr_data, B_main.data(), Y_main.data(), M, N, K);
         #endif
         #ifdef CSR_LU2
-            sparseGEMM_csr_unrolled_impl<float,2>(X_main.data(), *sf_csr_data, B_main.data(), Y_main.data(), M, N, K);
+            CSR_unrolled<float,2>(X_main.data(), *sf_csr_data, B_main.data(), Y_main.data(), M, N, K);
         #endif
         #ifdef CSR_LU12
-            sparseGEMM_csr_unrolled_impl<float,12>(X_main.data(), *sf_csr_data, B_main.data(), Y_main.data(), M, N, K);
+            CSR_unrolled<float,12>(X_main.data(), *sf_csr_data, B_main.data(), Y_main.data(), M, N, K);
         #endif
     #endif
 

@@ -3,7 +3,7 @@
 
 // Rename and modify sparseGEMM_base to be a specific implementation for SparseFormat
 template <typename T>
-void sparseGEMM_csr_base_impl(T *X, const SparseFormat& W_csr, T *b, T *Y, int M, int N, int K)
+void CSR_base(T *X, const SparseFormat& W_csr, T *b, T *Y, int M, int N, int K)
 {
     const int* col_start_pos = W_csr.col_start_pos.data();
     const int* col_start_neg = W_csr.col_start_neg.data();
@@ -30,7 +30,7 @@ void sparseGEMM_csr_base_impl(T *X, const SparseFormat& W_csr, T *b, T *Y, int M
 
 // Rename and modify sparseGEMM_unrolled to be a specific implementation for SparseFormat
 template <typename T, int UNROLL_FACTOR>
-void sparseGEMM_csr_unrolled_impl(
+void CSR_unrolled(
     T *X, const SparseFormat& W_csr, T *b, T *Y,
     int M, int N, int K)
 {
@@ -92,7 +92,7 @@ void sparseGEMM_csr_unrolled_impl(
 
 // --- Explicit Instantiations ---
 // This tells the compiler to generate code for these specific versions in comp.o
-template void sparseGEMM_csr_base_impl<float>(float*, const SparseFormat&, float*, float*, int, int, int);
-template void sparseGEMM_csr_unrolled_impl<float, 2>(float*, const SparseFormat&, float*, float*, int, int, int);
+template void CSR_base<float>(float*, const SparseFormat&, float*, float*, int, int, int);
+template void CSR_unrolled<float, 2>(float*, const SparseFormat&, float*, float*, int, int, int);
 // If you use other unroll factors or other types for T, you'd add them here.
-template void sparseGEMM_csr_unrolled_impl<float, 12>(float*, const SparseFormat&, float*, float*, int, int, int);
+template void CSR_unrolled<float, 12>(float*, const SparseFormat&, float*, float*, int, int, int);

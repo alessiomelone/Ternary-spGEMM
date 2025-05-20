@@ -19,9 +19,9 @@
 // --- Prototypes for implementations in comp.cpp ---
 // These are now declarations of explicitly instantiated templates
 template <typename T>
-void sparseGEMM_csr_base_impl(T *X, const SparseFormat& W_csr, T *b, T *Y, int M, int N, int K);
+void CSR_base(T *X, const SparseFormat& W_csr, T *b, T *Y, int M, int N, int K);
 template <typename T, int UNROLL_FACTOR> // Provide default for UNROLL_FACTOR if used in declaration
-void sparseGEMM_csr_unrolled_impl(T *X, const SparseFormat& W_csr, T *b, T *Y, int M, int N, int K);
+void CSR_unrolled(T *X, const SparseFormat& W_csr, T *b, T *Y, int M, int N, int K);
 // --- End Prototypes ---
 
 
@@ -87,17 +87,17 @@ int main(int argc, char **argv)
     // --- Register functions using lambdas ---
     add_function(
         [sf_csr_data](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg) {
-            sparseGEMM_csr_base_impl<float>(X_arg, *sf_csr_data, B_arg, Y_arg, M_arg, N_arg, K_arg);
+            CSR_base<float>(X_arg, *sf_csr_data, B_arg, Y_arg, M_arg, N_arg, K_arg);
         },
-        "sparseGEMM_csr_base"
+        "CSR_base"
     );
 
     add_function(
         [sf_csr_data](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg) {
-            sparseGEMM_csr_unrolled_impl<float, 2>(X_arg, *sf_csr_data, B_arg, Y_arg, M_arg, N_arg, K_arg);
+            CSR_unrolled<float, 2>(X_arg, *sf_csr_data, B_arg, Y_arg, M_arg, N_arg, K_arg);
             // Note: You can vary UNROLL_FACTOR here or make it part of the name if you test multiple unroll factors
         },
-        "sparseGEMM_csr_unrolled_16"
+        "CSR_unrolled-16"
     );
 
     // Example registration for a custom format:

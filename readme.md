@@ -7,18 +7,13 @@ A project template for ASL Spring 2025.
 Edit only `comp.cpp`:
 
 ```bash
-g++ -O2 -march=native -mtune=native -fstrict-aliasing -DNDEBUG cpp_impl/main.cpp cpp_impl/comp.cpp cpp_impl/perf.cpp -o cpp_impl/SparseGEMM.out -DPMU
-sudo ./cpp_impl/SparseGEMM.out -M 32 -K 1024 -N 4096 -s 4
+g++ -O2 -march=native -mtune=native -fstrict-aliasing -DNDEBUG cpp_impl/main.cpp cpp_impl/comp.cpp cpp_impl/perf.cpp -o cpp_impl/SparseGEMM.out -DPMU && sudo ./cpp_impl/SparseGEMM.out -M 32 -K 1024 -N 4096 -s 4
 ```
 
 Test data structure:
 
 ```
-g++ -Icpp_impl/test_data_structure -o cpp_impl/test_data_structure cpp_impl/test_data_structure.cpp
-```
-
-```
-./cpp_impl/test_data_structure
+g++ -Icpp_impl/test_data_structure -o cpp_impl/test_data_structure cpp_impl/test_data_structure.cpp && ./cpp_impl/test_data_structure
 ```
 
 
