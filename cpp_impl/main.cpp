@@ -10,21 +10,23 @@
 #include <time.h>
 #include <math.h>
 #include <string.h>
+#include <iomanip>
 
 #include "perf.h"
 #include "common.h"
 #include "SparseGEMM.h" 
 #include "data_structures/CompressedCSC.h"
 
+using namespace std;
 
 // --- Prototypes for implementations in comp.cpp ---
 // These are now declarations of explicitly instantiated templates
 template <typename T>
-void CSR_base(T *X, const SparseFormat& W_csr, T *b, T *Y, int M, int N, int K);
+void CSC_base(T *X, const SparseFormat& W_csc, T *b, T *Y, int M, int N, int K);
 template <typename T>
-void CCSC_base(T *X, const CompressedCSC& W_csr, T *b, T *Y, int M, int N, int K);
+void CCSC_base(T *X, const CompressedCSC& W_csc, T *b, T *Y, int M, int N, int K);
 template <typename T, int UNROLL_FACTOR> // Provide default for UNROLL_FACTOR if used in declaration
-void CSR_unrolled(T *X, const SparseFormat& W_csr, T *b, T *Y, int M, int N, int K);
+void CSC_unrolled(T *X, const SparseFormat& W_csc, T *b, T *Y, int M, int N, int K);
 // --- End Prototypes ---
 
 
@@ -53,7 +55,6 @@ void sparseGEMM_custom_mixed_impl(T *X, const CustomMixedTypeFormat& W_custom, T
 
 int main(int argc, char **argv)
 {
-    cout << "Starting program. ";
     double perf_val; // Renamed perf
     int i_loop;      // Renamed i
 
@@ -69,9 +70,7 @@ int main(int argc, char **argv)
     K = atoi(argv[4]);
     N = atoi(argv[6]);
     nonZero = atoi(argv[8]);
-
-    if (M <= 0 || K <= 0 || N <= 0 || nonZero <= 0)
-    {
+    if (M <= 0 || K <= 0 || N <= 0 || nonZero <= 0) {
         fprintf(stderr, "ERROR: All dimensions must be positive integers.\n");
         fprintf(stderr, "Usage: %s -M <int> -K <int> -N <int> -s <int>\n", argv[0]);
         return 1;
@@ -79,8 +78,8 @@ int main(int argc, char **argv)
 
     // Create data structures that will be captured by lambdas.
     // Use std::shared_ptr to manage their lifetime.
-    vector<int> W_raw = generateSparseMatrix<int>(K, N, nonZero, false); // For SparseFormat
-    auto sf_csr_data = std::make_shared<SparseFormat>(W_raw.data(), K, N);
+    vector<int> W_raw = generateSparseMatrix<int>(K, N, nonZero, false, 0); // For SparseFormat
+    auto sf_csc_data = std::make_shared<SparseFormat>(W_raw.data(), K, N);
     auto sf_ccsc_data = std::make_shared<CompressedCSC>(W_raw.data(), K, N);
 
     // Example for a custom data structure:
@@ -90,10 +89,10 @@ int main(int argc, char **argv)
 
     // --- Register functions using lambdas ---
     add_function(
-        [sf_csr_data](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg) {
-            CSR_base<float>(X_arg, *sf_csr_data, B_arg, Y_arg, M_arg, N_arg, K_arg);
+        [sf_csc_data](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg) {
+            CSC_base<float>(X_arg, *sf_csc_data, B_arg, Y_arg, M_arg, N_arg, K_arg);
         },
-        "CSR_base"
+        "CSC_base"
     );
     
     add_function(
@@ -104,11 +103,11 @@ int main(int argc, char **argv)
     );
 
     // add_function(
-    //     [sf_csr_data](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg) {
-    //         CSR_unrolled<float, 2>(X_arg, *sf_csr_data, B_arg, Y_arg, M_arg, N_arg, K_arg);
+    //     [sf_csc_data](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg) {
+    //         CSC_unrolled<float, 2>(X_arg, *sf_csc_data, B_arg, Y_arg, M_arg, N_arg, K_arg);
     //         // Note: You can vary UNROLL_FACTOR here or make it part of the name if you test multiple unroll factors
     //     },
-    //     "CSR_unrolled-16"
+    //     "CSC_unrolled-16"
     // );
 
     // Example registration for a custom format:
@@ -135,7 +134,7 @@ int main(int argc, char **argv)
 
     vector<float> X_main = initX<float>(M * K, 512); // Renamed X
     vector<float> W_FP32_main(W_raw.begin(), W_raw.end()); // Renamed W_FP32
-    vector<float> B_main(N, 2); // Renamed B
+    vector<float> B_main(N, 0); // Renamed B
     vector<float> Y_main(M * N, 0); // Renamed Y
     vector<float> refY_main(M * N, 0); // Renamed refY
 
@@ -144,7 +143,11 @@ int main(int argc, char **argv)
     for (i_loop = 0; i_loop < numFuncs; i_loop++)
     {
         fill(Y_main.begin(), Y_main.end(), 0);
+        
+        Y_main.insert(Y_main.end(), 10, 0); // extend Y so we can modify unused pad values without bounds checking
         comp_func func = userFuncs[i_loop]; // func is std::function
+
+        Y_main.resize(Y_main.size() - 10);
 
         // Call the std::function directly. Sparse data is captured in the lambda.
         func(X_main.data(), B_main.data(), Y_main.data(), M, N, K);
@@ -177,4 +180,3 @@ int main(int argc, char **argv)
 
     return 0;
 }
-
