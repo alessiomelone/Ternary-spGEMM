@@ -14,12 +14,15 @@
 #include "perf.h"
 #include "common.h"
 #include "SparseGEMM.h" 
+#include "data_structures/CompressedCSC.h"
 
 
 // --- Prototypes for implementations in comp.cpp ---
 // These are now declarations of explicitly instantiated templates
 template <typename T>
 void CSR_base(T *X, const SparseFormat& W_csr, T *b, T *Y, int M, int N, int K);
+template <typename T>
+void CCSC_base(T *X, const CompressedCSC& W_csr, T *b, T *Y, int M, int N, int K);
 template <typename T, int UNROLL_FACTOR> // Provide default for UNROLL_FACTOR if used in declaration
 void CSR_unrolled(T *X, const SparseFormat& W_csr, T *b, T *Y, int M, int N, int K);
 // --- End Prototypes ---
@@ -78,6 +81,7 @@ int main(int argc, char **argv)
     // Use std::shared_ptr to manage their lifetime.
     vector<int> W_raw = generateSparseMatrix<int>(K, N, nonZero, false); // For SparseFormat
     auto sf_csr_data = std::make_shared<SparseFormat>(W_raw.data(), K, N);
+    auto sf_ccsc_data = std::make_shared<CompressedCSC>(W_raw.data(), K, N);
 
     // Example for a custom data structure:
     // You would need to generate or prepare data for CustomMixedTypeFormat here
@@ -91,14 +95,21 @@ int main(int argc, char **argv)
         },
         "CSR_base"
     );
-
+    
     add_function(
-        [sf_csr_data](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg) {
-            CSR_unrolled<float, 2>(X_arg, *sf_csr_data, B_arg, Y_arg, M_arg, N_arg, K_arg);
-            // Note: You can vary UNROLL_FACTOR here or make it part of the name if you test multiple unroll factors
+        [sf_ccsc_data](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg) {
+            CCSC_base<float>(X_arg, *sf_ccsc_data, B_arg, Y_arg, M_arg, N_arg, K_arg);
         },
-        "CSR_unrolled-16"
+        "CCSC_base"
     );
+
+    // add_function(
+    //     [sf_csr_data](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg) {
+    //         CSR_unrolled<float, 2>(X_arg, *sf_csr_data, B_arg, Y_arg, M_arg, N_arg, K_arg);
+    //         // Note: You can vary UNROLL_FACTOR here or make it part of the name if you test multiple unroll factors
+    //     },
+    //     "CSR_unrolled-16"
+    // );
 
     // Example registration for a custom format:
     /*

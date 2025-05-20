@@ -1,5 +1,6 @@
 #include "common.h"
 #include "SparseGEMM.h" // For SparseFormat
+#include "data_structures/CompressedCSC.h"
 
 // Rename and modify sparseGEMM_base to be a specific implementation for SparseFormat
 template <typename T>
@@ -26,6 +27,32 @@ void CSR_base(T *X, const SparseFormat& W_csr, T *b, T *Y, int M, int N, int K)
             Y[m * N + n_idx] = y_val + b[n_idx];
         }
     }
+}
+
+template <typename T>
+void CCSC_base(T *X, const CompressedCSC& W_csr, T *b, T *Y, int M, int N, int K)
+{
+    // const int* col_start_pos = W_csr.col_start_pos.data();
+    // const int* col_start_neg = W_csr.col_start_neg.data();
+    // const int* row_index_pos = W_csr.row_index_pos.data();
+    // const int* row_index_neg = W_csr.row_index_neg.data();
+
+    // for (int m = 0; m < M; m++)
+    // {
+    //     for (int n_idx = 0; n_idx < N; n_idx++) // Renamed n to n_idx
+    //     {
+    //         T y_val = 0; // Renamed y to y_val
+    //         for (int k_idx = col_start_pos[n_idx]; k_idx < col_start_pos[n_idx + 1]; k_idx++) // Renamed k to k_idx
+    //         {
+    //             y_val += X[m * K + row_index_pos[k_idx]];
+    //         }
+    //         for (int k_idx = col_start_neg[n_idx]; k_idx < col_start_neg[n_idx + 1]; k_idx++) // Renamed k to k_idx
+    //         {
+    //             y_val -= X[m * K + row_index_neg[k_idx]];
+    //         }
+    //         Y[m * N + n_idx] = y_val + b[n_idx];
+    //     }
+    // }
 }
 
 // Rename and modify sparseGEMM_unrolled to be a specific implementation for SparseFormat
@@ -93,6 +120,7 @@ void CSR_unrolled(
 // --- Explicit Instantiations ---
 // This tells the compiler to generate code for these specific versions in comp.o
 template void CSR_base<float>(float*, const SparseFormat&, float*, float*, int, int, int);
+template void CCSC_base<float>(float*, const CompressedCSC&, float*, float*, int, int, int);
 template void CSR_unrolled<float, 2>(float*, const SparseFormat&, float*, float*, int, int, int);
 // If you use other unroll factors or other types for T, you'd add them here.
 template void CSR_unrolled<float, 12>(float*, const SparseFormat&, float*, float*, int, int, int);

@@ -271,15 +271,18 @@ public:
 	vector<int> row_pos;
 
 	CompressedCSC() { }
+	CompressedCSC(const int* W_raw, int K, int N) {
+		init(W_raw, K, N);
+	}
 
-	void init(int *matrix, int rows, int cols)
+	void init(const int *matrix, int rows, int cols)
 	{
 		for (int col = 0; col < cols; ++col)
 		{
 			col_start.push_back(vals.size());
 			for (int row = 0; row <= rows - 5; row += 5)
 			{
-				int *matrix_ptr = matrix + (row * cols) + col;
+				const int *matrix_ptr = matrix + (row * cols) + col;
 				if (matrix_ptr[0] == 0 && matrix_ptr[1 * cols] == 0 && matrix_ptr[2 * cols] == 0 && matrix_ptr[3 * cols] == 0 && matrix_ptr[4 * cols] == 0)
 				{
 					continue; // Skip bytes that are fully zero
@@ -296,7 +299,7 @@ public:
 			for (int pad_pos = 0; pad_pos < rows % 5; ++pad_pos)
 			{
 				int row = (rows - (rows % 5)) + pad_pos;
-				int *matrix_ptr = matrix + (row * cols) + col;
+				const int *matrix_ptr = matrix + (row * cols) + col;
 				pad_values[pad_pos] = *matrix_ptr;
 			}
 			uint8_t bitstring;

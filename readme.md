@@ -16,6 +16,11 @@ Test data structure:
 g++ -Icpp_impl/test_data_structure -o cpp_impl/test_data_structure cpp_impl/test_data_structure.cpp && ./cpp_impl/test_data_structure
 ```
 
+## Steps to add a data structure:
+1. Add new function in comp.cpp
+2. Add template instantiation in comp.cpp
+3. Add prototype at the top of main.cpp
+4. Register function with a lambda in main.cpp
 
 ## Considerations
 
