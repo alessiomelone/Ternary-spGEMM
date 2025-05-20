@@ -13,7 +13,7 @@ g++ -O2 -march=native -mtune=native -fstrict-aliasing -DNDEBUG cpp_impl/main.cpp
 Test data structure:
 
 ```
-g++ -Icpp_impl/test_data_structure -o cpp_impl/test_data_structure cpp_impl/test_data_structure.cpp && ./cpp_impl/test_data_structure
+g++ -Icpp_impl/test_data_structure -o cpp_impl/test_data_structure.out cpp_impl/test_data_structure.cpp && ./cpp_impl/test_data_structure.out
 ```
 
 ## Steps to add a data structure:
