@@ -30,29 +30,12 @@ void CSR_base(T *X, const SparseFormat& W_csr, T *b, T *Y, int M, int N, int K)
 }
 
 template <typename T>
-void CCSC_base(T *X, const CompressedCSC& W_csr, T *b, T *Y, int M, int N, int K)
+void CCSC_base(T *X, const CompressedCSC& W, T *b, T *Y, int M, int N, int K) // K is rows, N is cols
 {
-    // const int* col_start_pos = W_csr.col_start_pos.data();
-    // const int* col_start_neg = W_csr.col_start_neg.data();
-    // const int* row_index_pos = W_csr.row_index_pos.data();
-    // const int* row_index_neg = W_csr.row_index_neg.data();
-
-    // for (int m = 0; m < M; m++)
-    // {
-    //     for (int n_idx = 0; n_idx < N; n_idx++) // Renamed n to n_idx
-    //     {
-    //         T y_val = 0; // Renamed y to y_val
-    //         for (int k_idx = col_start_pos[n_idx]; k_idx < col_start_pos[n_idx + 1]; k_idx++) // Renamed k to k_idx
-    //         {
-    //             y_val += X[m * K + row_index_pos[k_idx]];
-    //         }
-    //         for (int k_idx = col_start_neg[n_idx]; k_idx < col_start_neg[n_idx + 1]; k_idx++) // Renamed k to k_idx
-    //         {
-    //             y_val -= X[m * K + row_index_neg[k_idx]];
-    //         }
-    //         Y[m * N + n_idx] = y_val + b[n_idx];
-    //     }
-    // }
+    size_t col_start_i = 0;
+    for (int row = 0; row < K; ++row) {
+        decode[W.vals]
+    }
 }
 
 // Rename and modify sparseGEMM_unrolled to be a specific implementation for SparseFormat
