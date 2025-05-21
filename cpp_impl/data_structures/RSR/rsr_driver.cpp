@@ -11,7 +11,7 @@
 
 using namespace std;
 
-static void rsr_inference_matrix(float *matrix, float *Y, float *B, int M, int K, int N, const RSR& rsr);
+static void rsr_inference_matrix(float *matrix, float *Y, float *B, int M, int K, int N, RSR& rsr);
 
 static pair<vector<vector<int>>,vector<vector<int>>> convertSparseToTwoBinaryMatrices(vector<int> W_raw, int K, int N) {
     vector<vector<int>> Bminus(K, vector<int>(N));
@@ -65,8 +65,7 @@ RSR::RSR(vector<int> W_raw, int K, int N) {
     for (int i = 0; i < pre_Bplus.second.size(); i++) {
         this->segment_sizes_Bplus.push_back(pre_Bplus.second[i].size());
     }
-    this->permutations_size_Bminus = pre_Bminus.first.size();
-    this->permutations_size_Bplus = pre_Bplus.first.size();
+    this->permutations_size = pre_Bminus.first.size();
     
     auto& permutations = pre_Bminus.first;
     auto& segments = pre_Bminus.second;
@@ -116,11 +115,15 @@ RSR::RSR(vector<int> W_raw, int K, int N) {
             this->indices_Bplus.push_back(local_indices);
         }
     }
+
+    this->powK = pow(2, k);
+    // this->us1 = vector<vector<float>>(this->permutations_size, vector<float>(pow(2, this->k), 0));
+    // this->us2 = vector<vector<float>>(this->permutations_size, vector<float>(pow(2, this->k), 0));
 }
 
-static void rsr_inference2(float *v, float *res, bool isMinus, int permutations_size, const vector<int>& segment_sizes, const vector<vector<int>>& bin_k, int k, const vector<vector<int>>& idx) {
-    // segmented sums
-    vector<vector<float>> us(permutations_size, vector<float>(pow(2, k)));
+static void rsr_inference2(float *v, float *res, bool isMinus, int permutations_size, 
+    const vector<int>& segment_sizes, const vector<vector<int>>& bin_k, int k, const vector<vector<int>>& idx, vector<vector<float>>& us) {
+   // segmented sums
     int index = 0;
     for (int i = 0; i < permutations_size; i++) {
         int seg_size = segment_sizes[i];
@@ -155,20 +158,22 @@ static void rsr_inference2(float *v, float *res, bool isMinus, int permutations_
     // return result;
 }
 
-static void rsr_inference_matrix2(float *matrix, float *Y, float *B, int M, int K, int N, const RSR& rsr) {
+static void rsr_inference_matrix2(float *matrix, float *Y, float *B, int M, int K, int N, RSR& rsr) {
     int n = rsr.n;
     for (int row = 0; row < M; row++) {
         float *v = matrix + row * K;
         float *res = Y + row * N;
-        rsr_inference2(v, res, true, rsr.permutations_size_Bminus, rsr.segment_sizes_Bminus, rsr.bin_k, rsr.k, rsr.indices_Bminus);
-        rsr_inference2(v, res, false, rsr.permutations_size_Bplus, rsr.segment_sizes_Bplus, rsr.bin_k, rsr.k, rsr.indices_Bplus);
+        auto us = vector<vector<float>>(rsr.permutations_size, vector<float>(rsr.powK));
+        auto uss = vector<vector<float>>(rsr.permutations_size, vector<float>(rsr.powK));
+        rsr_inference2(v, res, true, rsr.permutations_size, rsr.segment_sizes_Bminus, rsr.bin_k, rsr.k, rsr.indices_Bminus, us);
+        rsr_inference2(v, res, false, rsr.permutations_size, rsr.segment_sizes_Bplus, rsr.bin_k, rsr.k, rsr.indices_Bplus, uss);
         for (int i = 0; i < n; i++) {
             res[i] += B[i];
         }
     }
 }
 
-void MMPlusB(float *X_arg, const RSR& rsr, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg) {
+void MMPlusB(float *X_arg, RSR& rsr, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg) {
     rsr_inference_matrix2(X_arg, Y_arg, B_arg, M_arg, K_arg, N_arg, rsr);
 }
 

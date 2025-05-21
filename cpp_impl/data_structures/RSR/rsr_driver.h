@@ -8,8 +8,8 @@ using namespace std;
 class RSR
 {
 public:
-    pair<vector<vector<int>>, vector<vector<int>>> pre_Bminus;
-    pair<vector<vector<int>>, vector<vector<int>>> pre_Bplus;
+    // pair<vector<vector<int>>, vector<vector<int>>> pre_Bminus;
+    // pair<vector<vector<int>>, vector<vector<int>>> pre_Bplus;
     vector<vector<int>> bin_k;
     int k;
     int n;
@@ -19,12 +19,13 @@ public:
     vector<vector<int>> indices_Bplus;
     vector<int> segment_sizes_Bminus;
     vector<int> segment_sizes_Bplus;
-    int permutations_size_Bminus;
-    int permutations_size_Bplus;
-
+    int permutations_size;
+    float powK;
+    vector<vector<vector<float>>> us1;
+    vector<vector<vector<float>>> us2;
     RSR(vector<int> W_raw, int K, int N);
 };
 
-void MMPlusB(float *X_arg, const RSR& rsr, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg);
+void MMPlusB(float *X_arg, RSR& rsr, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg);
 
 

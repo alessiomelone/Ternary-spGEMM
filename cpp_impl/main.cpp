@@ -27,7 +27,7 @@ void CCSC_base(T *X, const CompressedCSC& W_csr, T *b, T *Y, int M, int N, int K
 template <typename T, int UNROLL_FACTOR> // Provide default for UNROLL_FACTOR if used in declaration
 void CSR_unrolled(T *X, const SparseFormat& W_csr, T *b, T *Y, int M, int N, int K);
 template <typename T>
-void RSR_base(T *X, const RSR& W_rsr, T *b, T *Y, int M, int N, int K);
+void RSR_base(T *X, RSR& W_rsr, T *b, T *Y, int M, int N, int K);
 // --- End Prototypes ---
 
 
