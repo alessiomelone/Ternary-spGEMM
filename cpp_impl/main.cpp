@@ -31,14 +31,16 @@ template <typename T>
 void TCSR_base(T *X, const TCSRMatrix &W_tcsr, T *b, T *Y, int M, int N, int K);
 template <typename T>
 void TCSC_base(T *X, const TCSCMatrix &W_tcsc, T *b, T *Y, int M, int N, int K);
-template <typename T>
-void TCSC_base_original_blocked(T *X, const TCSCMatrix &W_tcsc, T *b, T *Y, int M, int N, int K, int Mb_block_size, int Nb_block_size);
-template <typename T>
-void TCSC_base_alt_loop(T *X, const TCSCMatrix &W_tcsc, T *b, T *Y, int M, int N, int K);
-template <typename T>
-void TCSC_base_alt_loop_blocked(T *X, const TCSCMatrix &W_tcsc, T *b, T *Y, int M, int N, int K, int Mb_block_size, int Nb_block_size);
 template <typename T, int UNROLL_FACTOR> // Provide default for UNROLL_FACTOR if used in declaration
 void CSC_unrolled(T *X, const SparseFormat &W_csc, T *b, T *Y, int M, int N, int K);
+template <typename T, int UNROLL_FACTOR>
+void TCSR_unrolled(T *X, const TCSRMatrix &W_tcsr, T *b, T *Y, int M, int N, int K);
+template <typename T, int UNROLL_FACTOR>
+void TCSC_unrolled(T *X, const TCSCMatrix &W_tcsc, T *b, T *Y, int M, int N, int K);
+
+template <typename T, int UNROLL_FACTOR, int TILE_M, int TILE_N>
+void TCSC_unrolled_tiled(T *X_arg, const TCSCMatrix &W_tcsc, T *B_arg, T *Y_arg,
+                         int M_dim, int N_dim, int K_dim);
 // --- End Prototypes ---
 
 vector<comp_func> userFuncs; // This is now vector<std::function<...>>
@@ -93,8 +95,10 @@ int main(int argc, char **argv)
     auto sf_csc_data = std::make_shared<SparseFormat>(W_raw.data(), K, N);
     auto sf_ccsc_data = std::make_shared<CompressedCSC>(W_raw.data(), K, N);
     auto sf_tcsr_data = std::make_shared<TCSRMatrix>(W_raw.data(), K, N);
+    auto sf_tcsr_unrolled_data = std::make_shared<TCSRMatrix>(W_raw.data(), K, N);
     auto sf_tcsc_data = std::make_shared<TCSCMatrix>(W_raw.data(), K, N);
-    auto sf_tcsc_alt_data = std::make_shared<TCSCMatrix>(W_raw.data(), K, N);
+    auto sf_tcsc_unrolled_data = std::make_shared<TCSCMatrix>(W_raw.data(), K, N);
+    auto sf_tcsc_unrolled_tiled_data = std::make_shared<TCSCMatrix>(W_raw.data(), K, N);
 
     // Example for a custom data structure:
     // You would need to generate or prepare data for CustomMixedTypeFormat here
@@ -123,6 +127,13 @@ int main(int argc, char **argv)
         "TCSR_base");
 
     add_function(
+        [sf_tcsr_unrolled_data](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
+        {
+            TCSR_unrolled<float, 12>(X_arg, *sf_tcsr_unrolled_data, B_arg, Y_arg, M_arg, N_arg, K_arg);
+        },
+        "TCSR_unrolled-12");
+
+    add_function(
         [sf_tcsc_data](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
         {
             TCSC_base<float>(X_arg, *sf_tcsc_data, B_arg, Y_arg, M_arg, N_arg, K_arg);
@@ -130,11 +141,18 @@ int main(int argc, char **argv)
         "TCSC_base");
 
     add_function(
-        [sf_tcsc_alt_data](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
+        [sf_tcsc_unrolled_data](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
         {
-            TCSC_base_alt_loop<float>(X_arg, *sf_tcsc_alt_data, B_arg, Y_arg, M_arg, N_arg, K_arg);
+            TCSC_unrolled<float, 12>(X_arg, *sf_tcsc_unrolled_data, B_arg, Y_arg, M_arg, N_arg, K_arg);
         },
-        "TCSC_base_alt_loop");
+        "TCSC_unrolled-12");
+
+    add_function(
+        [sf_tcsc_unrolled_tiled_data](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
+        {
+            TCSC_unrolled_tiled<float, 12, 32, 32>(X_arg, *sf_tcsc_unrolled_tiled_data, B_arg, Y_arg, M_arg, N_arg, K_arg);
+        },
+        "TCSC_unrolled_tiled-12-32-32");
 
     // add_function(
     //     [sf_csc_data](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg) {
