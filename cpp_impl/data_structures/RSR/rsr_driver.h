@@ -17,12 +17,10 @@ public:
     int n_preBplus;
     vector<vector<int>> indices_Bminus;
     vector<vector<int>> indices_Bplus;
-    vector<int> segment_sizes_Bminus;
-    vector<int> segment_sizes_Bplus;
+    vector<int> size_and_index;
+    int seg_size;
     int permutations_size;
     float powK;
-    vector<vector<vector<float>>> us1;
-    vector<vector<vector<float>>> us2;
     RSR(vector<int> W_raw, int K, int N);
 };
 
