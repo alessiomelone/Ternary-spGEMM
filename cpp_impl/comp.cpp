@@ -1,6 +1,12 @@
 #include "common.h"
 #include "SparseGEMM.h" // For SparseFormat
 #include "data_structures/CompressedCSC.h"
+#include "data_structures/RSR/rsr_driver.h"
+
+template <typename T>
+void RSR_base(T *X, const RSR& W_rsr, T *b, T *Y, int M, int N, int K) {
+    MMPlusB(X, W_rsr, b, Y, M, N, K);
+}
 
 // Rename and modify sparseGEMM_base to be a specific implementation for SparseFormat
 template <typename T>
@@ -124,3 +130,4 @@ template void CCSC_base<float>(float*, const CompressedCSC&, float*, float*, int
 template void CSR_unrolled<float, 2>(float*, const SparseFormat&, float*, float*, int, int, int);
 // If you use other unroll factors or other types for T, you'd add them here.
 template void CSR_unrolled<float, 12>(float*, const SparseFormat&, float*, float*, int, int, int);
+template void RSR_base<float>(float*, const RSR&, float*, float*, int, int, int);

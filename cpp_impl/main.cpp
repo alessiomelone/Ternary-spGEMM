@@ -15,6 +15,7 @@
 #include "common.h"
 #include "SparseGEMM.h" 
 #include "data_structures/CompressedCSC.h"
+#include "data_structures/RSR/rsr_driver.h"
 
 
 // --- Prototypes for implementations in comp.cpp ---
@@ -25,6 +26,8 @@ template <typename T>
 void CCSC_base(T *X, const CompressedCSC& W_csr, T *b, T *Y, int M, int N, int K);
 template <typename T, int UNROLL_FACTOR> // Provide default for UNROLL_FACTOR if used in declaration
 void CSR_unrolled(T *X, const SparseFormat& W_csr, T *b, T *Y, int M, int N, int K);
+template <typename T>
+void RSR_base(T *X, const RSR& W_rsr, T *b, T *Y, int M, int N, int K);
 // --- End Prototypes ---
 
 
@@ -81,7 +84,8 @@ int main(int argc, char **argv)
     // Use std::shared_ptr to manage their lifetime.
     vector<int> W_raw = generateSparseMatrix<int>(K, N, nonZero, false); // For SparseFormat
     auto sf_csr_data = std::make_shared<SparseFormat>(W_raw.data(), K, N);
-    auto sf_ccsc_data = std::make_shared<CompressedCSC>(W_raw.data(), K, N);
+    // auto sf_ccsc_data = std::make_shared<CompressedCSC>(W_raw.data(), K, N);
+    auto rsr_data = std::make_shared<RSR>(W_raw, K, N);
 
     // Example for a custom data structure:
     // You would need to generate or prepare data for CustomMixedTypeFormat here
@@ -96,11 +100,18 @@ int main(int argc, char **argv)
         "CSR_base"
     );
     
+    // add_function(
+    //     [sf_ccsc_data](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg) {
+    //         CCSC_base<float>(X_arg, *sf_ccsc_data, B_arg, Y_arg, M_arg, N_arg, K_arg);
+    //     },
+    //     "CCSC_base"
+    // );
+
     add_function(
-        [sf_ccsc_data](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg) {
-            CCSC_base<float>(X_arg, *sf_ccsc_data, B_arg, Y_arg, M_arg, N_arg, K_arg);
+        [rsr_data](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg) {
+            RSR_base<float>(X_arg, *rsr_data, B_arg, Y_arg, M_arg, N_arg, K_arg);
         },
-        "CCSC_base"
+        "RSR_base"
     );
 
     // add_function(
