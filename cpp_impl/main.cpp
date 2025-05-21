@@ -81,26 +81,33 @@ int main(int argc, char **argv)
     vector<int> W_raw = generateSparseMatrix<int>(K, N, nonZero, false, 0); // For SparseFormat
     auto sf_csc_data = std::make_shared<SparseFormat>(W_raw.data(), K, N);
     auto sf_ccsc_data = std::make_shared<CompressedCSC>(W_raw.data(), K, N);
+    auto sf_tcsr_data = std::make_shared<TCSRMatrix>(W_raw.data(), K, N);
 
     // Example for a custom data structure:
     // You would need to generate or prepare data for CustomMixedTypeFormat here
     // auto custom_mixed_data = std::make_shared<CustomMixedTypeFormat>(/* constructor args for custom format */);
 
-
     // --- Register functions using lambdas ---
     add_function(
-        [sf_csc_data](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg) {
+        [sf_csc_data](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
+        {
             CSC_base<float>(X_arg, *sf_csc_data, B_arg, Y_arg, M_arg, N_arg, K_arg);
         },
-        "CSC_base"
-    );
-    
+        "CSC_base");
+
+    // add_function(
+    //     [sf_ccsc_data](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
+    //     {
+    //         CCSC_base<float>(X_arg, *sf_ccsc_data, B_arg, Y_arg, M_arg, N_arg, K_arg);
+    //     },
+    //     "CCSC_base");
+
     add_function(
-        [sf_ccsc_data](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg) {
-            CCSC_base<float>(X_arg, *sf_ccsc_data, B_arg, Y_arg, M_arg, N_arg, K_arg);
+        [sf_tcsr_data](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
+        {
+            TCSR_base<float>(X_arg, *sf_tcsr_data, B_arg, Y_arg, M_arg, N_arg, K_arg);
         },
-        "CCSC_base"
-    );
+        "TCSR_base");
 
     // add_function(
     //     [sf_csc_data](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg) {
