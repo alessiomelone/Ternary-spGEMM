@@ -3,8 +3,8 @@
 #include <string>
 #include <iostream>
 #include <algorithm>
-#include <functional> 
-#include <memory>    
+#include <functional>
+#include <memory>
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
@@ -17,6 +17,7 @@
 #include "SparseGEMM.h"
 #include "data_structures/CompressedCSC.h"
 #include "data_structures/TCSRMatrix.h"
+#include "data_structures/TCSCMatrix.h"
 
 using namespace std;
 
@@ -28,6 +29,14 @@ template <typename T>
 void CCSC_base(T *X, const CompressedCSC &W_csc, T *b, T *Y, int M, int N, int K);
 template <typename T>
 void TCSR_base(T *X, const TCSRMatrix &W_tcsr, T *b, T *Y, int M, int N, int K);
+template <typename T>
+void TCSC_base(T *X, const TCSCMatrix &W_tcsc, T *b, T *Y, int M, int N, int K);
+template <typename T>
+void TCSC_base_original_blocked(T *X, const TCSCMatrix &W_tcsc, T *b, T *Y, int M, int N, int K, int Mb_block_size, int Nb_block_size);
+template <typename T>
+void TCSC_base_alt_loop(T *X, const TCSCMatrix &W_tcsc, T *b, T *Y, int M, int N, int K);
+template <typename T>
+void TCSC_base_alt_loop_blocked(T *X, const TCSCMatrix &W_tcsc, T *b, T *Y, int M, int N, int K, int Mb_block_size, int Nb_block_size);
 template <typename T, int UNROLL_FACTOR> // Provide default for UNROLL_FACTOR if used in declaration
 void CSC_unrolled(T *X, const SparseFormat &W_csc, T *b, T *Y, int M, int N, int K);
 // --- End Prototypes ---
@@ -84,6 +93,8 @@ int main(int argc, char **argv)
     auto sf_csc_data = std::make_shared<SparseFormat>(W_raw.data(), K, N);
     auto sf_ccsc_data = std::make_shared<CompressedCSC>(W_raw.data(), K, N);
     auto sf_tcsr_data = std::make_shared<TCSRMatrix>(W_raw.data(), K, N);
+    auto sf_tcsc_data = std::make_shared<TCSCMatrix>(W_raw.data(), K, N);
+    auto sf_tcsc_alt_data = std::make_shared<TCSCMatrix>(W_raw.data(), K, N);
 
     // Example for a custom data structure:
     // You would need to generate or prepare data for CustomMixedTypeFormat here
@@ -110,6 +121,20 @@ int main(int argc, char **argv)
             TCSR_base<float>(X_arg, *sf_tcsr_data, B_arg, Y_arg, M_arg, N_arg, K_arg);
         },
         "TCSR_base");
+
+    add_function(
+        [sf_tcsc_data](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
+        {
+            TCSC_base<float>(X_arg, *sf_tcsc_data, B_arg, Y_arg, M_arg, N_arg, K_arg);
+        },
+        "TCSC_base");
+
+    add_function(
+        [sf_tcsc_alt_data](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
+        {
+            TCSC_base_alt_loop<float>(X_arg, *sf_tcsc_alt_data, B_arg, Y_arg, M_arg, N_arg, K_arg);
+        },
+        "TCSC_base_alt_loop");
 
     // add_function(
     //     [sf_csc_data](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg) {
