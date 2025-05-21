@@ -1,8 +1,9 @@
 import subprocess
 import re
 import json
+import argparse
 
-def run_and_parse_benchmark():
+def run_and_parse_benchmark(save_results=False):
     test_cases = [
         (   1,  512,  2048),
         (   1, 1024,  4096),
@@ -13,8 +14,7 @@ def run_and_parse_benchmark():
         ( 256, 2048,  8192),
         ( 256, 4096, 16384),
     ]
-    non_zero_s = 2
-    # Assuming SparseGEMM.out is in the cpp_impl subdirectory relative to this script
+    non_zero_s = 4
     executable_path = "./cpp_impl/SparseGEMM.out" 
     base_command = ["sudo", executable_path]
 
@@ -33,8 +33,7 @@ def run_and_parse_benchmark():
         ]
 
         try:
-            # print(f"Executing command: {' '.join(command)}") # Uncomment for debugging command
-            process = subprocess.run(command, capture_output=True, text=True, check=False, timeout=300) # 5 min timeout
+            process = subprocess.run(command, capture_output=True, text=True, check=False) # NO TIMEOUT
 
             if process.returncode != 0:
                 print(f"ERROR: Benchmark run failed for M={m_val}, K={k_val}, N={n_val}")
@@ -48,23 +47,20 @@ def run_and_parse_benchmark():
                 continue
 
             stdout_output = process.stdout
-            # print(f"Raw stdout:\n{stdout_output[:500]}...") # Uncomment for debugging output
 
-            # Regex to find function name and its cycle count
-            # Handles various number formats including scientific notation
-            # and skips the "Starting program. X functions registered." and "Test case ... passed/failed!" lines
-            matches = re.findall(r"Running: (.*?)\s*\n\s*([\d\.eE+-]+) cycles", stdout_output)
-            
             # Regex to find test case correctness (passed/failed)
             correctness_matches = re.findall(r"Test case (.*?) (passed|failed)!", stdout_output)
             correctness_status = {fn.strip(): status for fn, status in correctness_matches}
-
+ 
+            # Regex to find function name and its cycle count
+            matches = re.findall(r"Running: (.*?)\s*\n\s*([\d\.eE+-]+) cycles", stdout_output)
+            
             current_test_results = {}
             if matches:
                 for func_name, cycles_str in matches:
                     stripped_func_name = func_name.strip()
                     try:
-                        cycles = float(cycles_str) # Convert cycles to float
+                        cycles = float(cycles_str)
                         current_test_results[stripped_func_name] = cycles
                         print(f"  {stripped_func_name}: {cycles:.2e} cycles")
                         if correctness_status.get(stripped_func_name) == "failed":
@@ -74,7 +70,6 @@ def run_and_parse_benchmark():
                         current_test_results[stripped_func_name] = "Error parsing cycles"
             else:
                 print("  No performance results found in output.")
-                # print(f"Full stdout for M={m_val}, K={k_val}, N={n_val}:\n{stdout_output}")
 
 
             all_results.append({
@@ -99,10 +94,14 @@ def run_and_parse_benchmark():
         print("-" * (len(f"--- Running test case: M={m_val}, K={k_val}, N={n_val}, s={non_zero_s} ---")) + "\n")
 
     # Optionally, save all results to a JSON file
-    output_file = "benchmark_results.json"
-    with open(output_file, 'w') as f:
-        json.dump(all_results, f, indent=4)
-    print(f"\nAll benchmark results saved to {output_file}")
+    if save_results:
+        output_file = "benchmark_results.json"
+        with open(output_file, 'w') as f:
+            json.dump(all_results, f, indent=4)
+        print(f"\nAll benchmark results saved to {output_file}")
 
 if __name__ == "__main__":
-    run_and_parse_benchmark() 
+    parser = argparse.ArgumentParser(description='Run SparseGEMM benchmarks')
+    parser.add_argument('-s', '--save', action='store_true', help='Save benchmark results to JSON file')
+    args = parser.parse_args()
+    run_and_parse_benchmark(save_results=args.save) 

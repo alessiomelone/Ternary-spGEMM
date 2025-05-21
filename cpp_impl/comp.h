@@ -99,7 +99,7 @@ void sparseGEMM_csc_unrolled_impl(
 
 // New sparse GEMM implementation using CSR format for W
 template <typename T>
-void sparseGEMM_csr_format_impl(T *X, const SparseFormatCSR& W_csr, T *b, T *Y, int M, int N, int K)
+void sparseGEMM_csr_base_impl(T *X, const SparseFormatCSR& W_csr, T *b, T *Y, int M, int N, int K)
 {
     // Y is M x N
     // X is M x K
@@ -188,6 +188,7 @@ void sparseGEMM_csr_unrolled_impl(
         }
     }
 }
+
 
 #endif // COMP_H
 
