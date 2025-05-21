@@ -14,21 +14,23 @@
 
 #include "perf.h"
 #include "common.h"
-#include "SparseGEMM.h" 
+#include "SparseGEMM.h"
 #include "data_structures/CompressedCSC.h"
+#include "data_structures/TCSRMatrix.h"
 
 using namespace std;
 
 // --- Prototypes for implementations in comp.cpp ---
 // These are now declarations of explicitly instantiated templates
 template <typename T>
-void CSC_base(T *X, const SparseFormat& W_csc, T *b, T *Y, int M, int N, int K);
+void CSC_base(T *X, const SparseFormat &W_csc, T *b, T *Y, int M, int N, int K);
 template <typename T>
-void CCSC_base(T *X, const CompressedCSC& W_csc, T *b, T *Y, int M, int N, int K);
+void CCSC_base(T *X, const CompressedCSC &W_csc, T *b, T *Y, int M, int N, int K);
+template <typename T>
+void TCSR_base(T *X, const TCSRMatrix &W_tcsr, T *b, T *Y, int M, int N, int K);
 template <typename T, int UNROLL_FACTOR> // Provide default for UNROLL_FACTOR if used in declaration
-void CSC_unrolled(T *X, const SparseFormat& W_csc, T *b, T *Y, int M, int N, int K);
+void CSC_unrolled(T *X, const SparseFormat &W_csc, T *b, T *Y, int M, int N, int K);
 // --- End Prototypes ---
-
 
 vector<comp_func> userFuncs; // This is now vector<std::function<...>>
 vector<string> funcNames;
@@ -52,7 +54,6 @@ void sparseGEMM_custom_mixed_impl(T *X, const CustomMixedTypeFormat& W_custom, T
 */
 // --- End Prototypes ---
 
-
 int main(int argc, char **argv)
 {
     double perf_val; // Renamed perf
@@ -70,7 +71,8 @@ int main(int argc, char **argv)
     K = atoi(argv[4]);
     N = atoi(argv[6]);
     nonZero = atoi(argv[8]);
-    if (M <= 0 || K <= 0 || N <= 0 || nonZero <= 0) {
+    if (M <= 0 || K <= 0 || N <= 0 || nonZero <= 0)
+    {
         fprintf(stderr, "ERROR: All dimensions must be positive integers.\n");
         fprintf(stderr, "Usage: %s -M <int> -K <int> -N <int> -s <int>\n", argv[0]);
         return 1;
@@ -128,7 +130,6 @@ int main(int argc, char **argv)
     */
     // --- End Register functions ---
 
-
     if (numFuncs == 0)
     {
         cout << endl;
@@ -139,18 +140,18 @@ int main(int argc, char **argv)
     }
     cout << numFuncs << " functions registered." << endl;
 
-    vector<float> X_main = initX<float>(M * K, 512); // Renamed X
+    vector<float> X_main = initX<float>(M * K, 512);       // Renamed X
     vector<float> W_FP32_main(W_raw.begin(), W_raw.end()); // Renamed W_FP32
-    vector<float> B_main(N, 0); // Renamed B
-    vector<float> Y_main(M * N, 0); // Renamed Y
-    vector<float> refY_main(M * N, 0); // Renamed refY
+    vector<float> B_main(N, 0);                            // Renamed B
+    vector<float> Y_main(M * N, 0);                        // Renamed Y
+    vector<float> refY_main(M * N, 0);                     // Renamed refY
 
     GEMM(X_main.data(), W_FP32_main.data(), B_main.data(), refY_main.data(), M, N, K);
 
     for (i_loop = 0; i_loop < numFuncs; i_loop++)
     {
         fill(Y_main.begin(), Y_main.end(), 0);
-        
+
         Y_main.insert(Y_main.end(), 10, 0); // extend Y so we can modify unused pad values without bounds checking
         comp_func func = userFuncs[i_loop]; // func is std::function
 
