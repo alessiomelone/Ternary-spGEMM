@@ -11,7 +11,9 @@ public:
     pair<vector<vector<int>>, vector<vector<int>>> pre_Bminus;
     pair<vector<vector<int>>, vector<vector<int>>> pre_Bplus;
     vector<vector<int>> bin_k;
-    int k;    
+    int k;
+    int n;
+    vector<vector<float>> us;
     RSR(vector<int> W_raw, int K, int N);
 };
 

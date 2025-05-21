@@ -56,22 +56,12 @@ RSR::RSR(vector<int> W_raw, int K, int N) {
     auto pr = convertSparseToTwoBinaryMatrices(W_raw, K, N);
     this->pre_Bminus = preprocess(pr.first, k);
     this->pre_Bplus = preprocess(pr.second, k);
-    this->bin_k = generateBinaryMatrix(k);
+    this->bin_k = generateBinaryMatrix2(k);
     this->k = k;
+    this->n = this->pre_Bminus.first[0].size();
+    vector<vector<float>> us(n, vector<float>(pow(2, k)));
+    this->us = us;
 }
-// RSR *ConvertToRSR(vector<int> W_raw, int K, int N) {
-//     RSR *rsr = new RSR();
-//     int n = K; // > N ? K : N; // TODO : Experiment with that
-//     int k = static_cast<int>(ceil(log2(n) - log2(log2(n))));
-//     auto pr = convertSparseToTwoBinaryMatrices(W_raw, K, N);
-//     rsr->pre_Bminus = preprocess(pr.first, k);
-//     rsr->pre_Bplus = preprocess(pr.second, k);
-//     rsr->bin_k = generateBinaryMatrix(k);
-//     rsr->k = k;
-//     return rsr;
-// }
-
-
 
 static void rsr_inference2(float *v, float *res, bool isMinus, const vector<vector<int>>& permutations, const vector<vector<int>>& segments, const vector<vector<int>>& bin_k, int k) {
     int n = permutations[0].size();
@@ -98,29 +88,26 @@ static void rsr_inference2(float *v, float *res, bool isMinus, const vector<vect
             // Segmented sum
             for (int index = start; index < end; index++) {
                 us[i][j] += v[permutation[index]];
-            }           
+            }          
         }
     }
 
-    // vector<float> result(n);
-
-
-    // Block product to Bin_k
-    // TODO: change from here for RSR++
     if (! isMinus) {
-        vector<float> partial_result;
         for (int i = 0; i < us.size(); i++) {
-            partial_result = vectorMatrixMultiply2(us[i], bin_k);
+            auto& vec = us[i];
             for (int j = 0; j < k; j++) {
-                res[i * k + j] += partial_result[j];
+                for (int l = 0; l < vec.size(); l++) {
+                    res[i * k + j] += vec[l] * bin_k[l][j];
+                }
             }
         }
     } else {
-        vector<float> partial_result;
         for (int i = 0; i < us.size(); i++) {
-            partial_result = vectorMatrixMultiply2(us[i], bin_k);
+            auto& vec = us[i];
             for (int j = 0; j < k; j++) {
-                res[i * k + j] -= partial_result[j];
+                for (int l = 0; l < vec.size(); l++) {
+                    res[i * k + j] -= vec[l] * bin_k[l][j];
+                }
             }
         }
     }
@@ -129,9 +116,9 @@ static void rsr_inference2(float *v, float *res, bool isMinus, const vector<vect
 }
 
 static void rsr_inference_matrix2(float *matrix, float *Y, float *B, int M, int K, int N, const RSR& rsr) {
+    int n = rsr.n;
     for (int row = 0; row < M; row++) {
         float *v = matrix + row * K;
-        int n = rsr.pre_Bminus.first[0].size();
         float *res = Y + row * N;
         rsr_inference2(v, res, 1, rsr.pre_Bminus.first, rsr.pre_Bminus.second, rsr.bin_k, rsr.k);
         rsr_inference2(v, res, 0, rsr.pre_Bplus.first, rsr.pre_Bplus.second, rsr.bin_k, rsr.k);
@@ -143,7 +130,7 @@ static void rsr_inference_matrix2(float *matrix, float *Y, float *B, int M, int 
 
 void MMPlusB(float *X_arg, const RSR& rsr, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg) {
     rsr_inference_matrix2(X_arg, Y_arg, B_arg, M_arg, K_arg, N_arg, rsr);
-    cout << "exititng..." << endl;
+    cout << "exitting..." << endl;
 }
 
 
