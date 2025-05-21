@@ -13,7 +13,15 @@ public:
     vector<vector<int>> bin_k;
     int k;
     int n;
-    vector<vector<float>> us;
+    int n_preBminus;
+    int n_preBplus;
+    vector<vector<int>> indices_Bminus;
+    vector<vector<int>> indices_Bplus;
+    vector<int> segment_sizes_Bminus;
+    vector<int> segment_sizes_Bplus;
+    int permutations_size_Bminus;
+    int permutations_size_Bplus;
+
     RSR(vector<int> W_raw, int K, int N);
 };
 
