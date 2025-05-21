@@ -148,42 +148,31 @@ void MMPlusB(float *X_arg, RSR& rsr, float *B_arg, float *Y_arg, int M_arg, int 
     int n = rsr.n;
     int perm_size = rsr.permutations_size;
     auto& bin_k = rsr.bin_k;
+    auto& seg_size = rsr.segment_sizes_Bplus[0];
     int k = rsr.k;
     for (int row = 0; row < M_arg; row++) {
         float *v = X_arg + row * K_arg;
         float *res = Y_arg + row * N_arg;
-        auto us = vector<vector<float>>(rsr.permutations_size, vector<float>(rsr.powK));
-        auto uss = vector<vector<float>>(rsr.permutations_size, vector<float>(rsr.powK));
-        int index = 0;
+        auto us = vector<vector<float>>(perm_size, vector<float>(rsr.powK));
+        auto uss = vector<vector<float>>(perm_size, vector<float>(rsr.powK));
+        int index = 0, index1 = 0;
         for (int i = 0; i < perm_size; i++) {
-            int seg_size = rsr.segment_sizes_Bplus[i];
             for (int j = 0; j < seg_size; j++) {
                 auto& local_indices = rsr.indices_Bplus[index++];
+                auto& local_indices_min = rsr.indices_Bminus[index1++];
+
                 for (int l = 0; l < local_indices.size(); l++) {
                     us[i][j] += v[local_indices[l]];
                 }
+                for (int l = 0; l < local_indices_min.size(); l++) {
+                    uss[i][j] += v[local_indices_min[l]];
+                }
                 for (int l=0; l < k; l++) {
-                    res[i*k + l] += us[i][j] * bin_k[j][l];
+                    res[i*k + l] += (us[i][j] - uss[i][j]) * bin_k[j][l];
                 }
             }
         }
 
-        index = 0;
-        for (int i = 0; i < perm_size; i++) {
-            int seg_size = rsr.segment_sizes_Bminus[i];
-            for (int j = 0; j < seg_size; j++) {
-                auto& local_indices = rsr.indices_Bminus[index++];
-                for (int l = 0; l < local_indices.size(); l++) {
-                    uss[i][j] += v[local_indices[l]];
-                }
-                for (int l=0; l < k; l++) {
-                    res[i*k + l] -= uss[i][j] * bin_k[j][l];
-                }
-            }
-        }
-
-        // rsr_inference2(v, res, true, perm_size, rsr.segment_sizes_Bminus, bin_k, k, rsr.indices_Bminus, us);
-        // rsr_inference2(v, res, false, perm_size, rsr.segment_sizes_Bplus, bin_k, k, rsr.indices_Bplus, uss);
         for (int i = 0; i < n; i++) {
             res[i] += B_arg[i];
         }
