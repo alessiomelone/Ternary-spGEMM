@@ -25,7 +25,7 @@ public:
       return col_idx;
 
     // if (val == -1)
-    return ~col_idx; // TODO: Try with Bitwise NOT or with -col_idx -1
+    return ~col_idx;
   }
 
   static std::pair<int, int> tcsr_decode_col(int encoded_c)
@@ -64,11 +64,6 @@ public:
 
   std::vector<int> getVectorRepresentation(size_t expected_rows, size_t expected_cols) override
   {
-    // if (static_cast<size_t>(num_matrix_rows) != expected_rows || static_cast<size_t>(num_matrix_cols) != expected_cols)
-    // {
-    //   std::cerr << "TCSRMatrix::getVectorRepresentation - Mismatch in expected dimensions." << std::endl;
-    // }
-
     std::vector<int> M(num_matrix_rows * num_matrix_cols, 0);
     for (int r = 0; r < num_matrix_rows; ++r)
     {
@@ -79,14 +74,7 @@ public:
         std::pair<int, int> decoded = tcsr_decode_col(encoded_cols[i]);
         int c = decoded.first;
         int val = decoded.second;
-        // if (c >= 0 && c < num_matrix_cols)
-        // { // Basic bounds check
         M[r * num_matrix_cols + c] = val;
-        // }
-        // else
-        // {
-        //   std::cerr << "TCSRMatrix::getVectorRepresentation - Decoded column out of bounds." << std::endl;
-        // }
       }
     }
     return M;

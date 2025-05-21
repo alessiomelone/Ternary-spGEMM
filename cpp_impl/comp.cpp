@@ -2,6 +2,7 @@
 #include "SparseGEMM.h" // For SparseFormat
 #include "data_structures/CompressedCSC.h"
 #include "data_structures/TCSRMatrix.h" // For TCSRMatrix definition
+#include "data_structures/TCSCMatrix.h"
 
 // Rename and modify sparseGEMM_base to be a specific implementation for SparseFormat
 template <typename T>
@@ -60,7 +61,7 @@ void CCSC_base(T *X, const CompressedCSC &W, T *b, T *Y, int M, int N, int K)
                 y_val3 += vals_decoded[3] * X[m * K + row_index[k] + 3];
                 y_val4 += vals_decoded[4] * X[m * K + row_index[k] + 4];
             }
-            
+
             Y[m * N + n + 0] = y_val0 + b[n];
             Y[m * N + n + 1] = y_val1 + b[n];
             Y[m * N + n + 2] = y_val2 + b[n];
@@ -74,17 +75,13 @@ template <typename T>
 void TCSR_base(T *X_arg, const TCSRMatrix &W_tcsr, T *B_arg, T *Y_arg,
                int M_dim, int N_dim, int K_dim)
 {
-    // dimensions check
-    // if (W_tcsr.num_matrix_rows != K_dim || W_tcsr.num_matrix_cols != N_dim)
-    // {
-    //     std::cerr << "TCSR_base Error: Dimension mismatch for W_tcsr." << std::endl;
-    //     return;
-    // }
-
-    // Initialize Y_arg to 0 (accumulator)
-    for (int i = 0; i < M_dim * N_dim; ++i)
+    // Initialize Y with Bias first
+    for (int m = 0; m < M_dim; ++m)
     {
-        Y_arg[i] = T(0);
+        for (int n = 0; n < N_dim; ++n)
+        {
+            Y_arg[m * N_dim + n] = B_arg[n];
+        }
     }
 
     for (int m = 0; m < M_dim; ++m) // Iterate over rows of X and Y
@@ -92,8 +89,8 @@ void TCSR_base(T *X_arg, const TCSRMatrix &W_tcsr, T *B_arg, T *Y_arg,
         for (int k = 0; k < K_dim; ++k) // Iterate over columns of X (which are rows of W)
         {
             T x_mk_val = X_arg[m * K_dim + k];
-            if (x_mk_val == T(0))
-                continue; // Optimization: if X_mk is zero, it contributes nothing
+            // if (x_mk_val == T(0))
+            //     continue; // Optimization: if X_mk is zero, it contributes nothing
 
             // Get non-zero elements in row k of W_tcsr
             int row_start_offset_W = W_tcsr.row_offsets[k];
@@ -110,13 +107,81 @@ void TCSR_base(T *X_arg, const TCSRMatrix &W_tcsr, T *B_arg, T *Y_arg,
             }
         }
     }
+}
 
-    // Add bias B after Y = XW
+template <typename T>
+void TCSC_base(T *X_arg, const TCSCMatrix &W_tcsc, T *B_arg, T *Y_arg,
+               int M_dim, int N_dim, int K_dim)
+{
+    // Initialize Y with Bias first
     for (int m = 0; m < M_dim; ++m)
     {
         for (int n = 0; n < N_dim; ++n)
         {
-            Y_arg[m * N_dim + n] += B_arg[n];
+            Y_arg[m * N_dim + n] = B_arg[n];
+        }
+    }
+
+    // Iterate over columns of W (and Y)
+    for (int n = 0; n < N_dim; ++n)
+    { // Column of W and Y
+        int col_start_offset_W = W_tcsc.col_offsets[n];
+        int col_end_offset_W = W_tcsc.col_offsets[n + 1];
+
+        // Iterate over non-zero elements in column 'n' of W
+        for (int nz_idx = col_start_offset_W; nz_idx < col_end_offset_W; ++nz_idx)
+        {
+            std::pair<int, int> decoded_W_element = TCSCMatrix::tcsc_decode_row(W_tcsc.encoded_rows[nz_idx]);
+            int k_row_in_W = decoded_W_element.first; // This is the 'k' in W_kn
+            T w_kn_val = static_cast<T>(decoded_W_element.second);
+
+            // Accumulate for all Y[m][n]
+            for (int m = 0; m < M_dim; ++m)
+            { // Row of X and Y
+                // X_arg[m * K_dim + k_row_in_W] is X[m][k]
+                T x_mk_val = X_arg[m * K_dim + k_row_in_W];
+                Y_arg[m * N_dim + n] += x_mk_val * w_kn_val;
+            }
+        }
+    }
+}
+
+template <typename T>
+void TCSC_base_alt_loop(T *X_arg, const TCSCMatrix &W_tcsc, T *B_arg, T *Y_arg,
+                        int M_dim, int N_dim, int K_dim)
+{
+    // Initialize Y with Bias first
+    for (int m = 0; m < M_dim; ++m)
+    {
+        for (int n = 0; n < N_dim; ++n)
+        {
+            Y_arg[m * N_dim + n] = B_arg[n];
+        }
+    }
+
+    // For each row m of X and Y
+    for (int m = 0; m < M_dim; ++m)
+    {
+        // For each column n of W and Y
+        for (int n = 0; n < N_dim; ++n)
+        {
+            T y_mn_acc = 0; // Accumulator for Y[m][n] from XW
+            int col_start_offset_W = W_tcsc.col_offsets[n];
+            int col_end_offset_W = W_tcsc.col_offsets[n + 1];
+
+            // Iterate over non-zeros in column n of W
+            for (int nz_idx = col_start_offset_W; nz_idx < col_end_offset_W; ++nz_idx)
+            {
+                std::pair<int, int> decoded_W = TCSCMatrix::tcsc_decode_row(W_tcsc.encoded_rows[nz_idx]);
+                int k_row_in_W = decoded_W.first;
+                T w_kn_val = static_cast<T>(decoded_W.second);
+
+                // X_arg[m * K_dim + k_row_in_W] is X[m][k]
+                // For a fixed m, as k_row_in_W changes, we are accessing different elements
+                // within the SAME ROW of X. This has better spatial locality than before.
+                y_mn_acc += X_arg[m * K_dim + k_row_in_W] * w_kn_val;
+            }
+            Y_arg[m * N_dim + n] += y_mn_acc; // Add XW part to Y (which already has B)
         }
     }
 }
@@ -197,6 +262,8 @@ void CSC_unrolled(
 template void CSC_base<float>(float *, const SparseFormat &, float *, float *, int, int, int);
 template void CCSC_base<float>(float *, const CompressedCSC &, float *, float *, int, int, int);
 template void TCSR_base<float>(float *, const TCSRMatrix &, float *, float *, int, int, int);
+template void TCSC_base<float>(float *, const TCSCMatrix &, float *, float *, int, int, int);
+template void TCSC_base_alt_loop<float>(float *, const TCSCMatrix &, float *, float *, int, int, int);
 template void CSC_unrolled<float, 2>(float *, const SparseFormat &, float *, float *, int, int, int);
 // If you use other unroll factors or other types for T, you'd add them here.
 template void CSC_unrolled<float, 12>(float *, const SparseFormat &, float *, float *, int, int, int);
