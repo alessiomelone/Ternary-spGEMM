@@ -1,5 +1,6 @@
 #pragma once
 #include <vector>
+#include <iostream>
 #include "DataStructureInterface.hpp"
 
 /**
@@ -8,7 +9,7 @@
  * This class implements a CSC format specifically for ternary matrices (-1, 0, 1).
  * It stores positive and negative values separately for better performance.
  */
-class SparseFormatCSC : public DataStructureInterface
+class BaseTCSC : public DataStructureInterface
 {
 public:
     std::vector<int> col_start_pos;
@@ -18,9 +19,9 @@ public:
     int num_rows;
     int num_cols;
 
-    SparseFormatCSC() : num_rows(0), num_cols(0) {}
+    BaseTCSC() : num_rows(0), num_cols(0) {}
 
-    SparseFormatCSC(const int *matrix, int K, int N) : num_rows(K), num_cols(N)
+    BaseTCSC(const int *matrix, int K, int N) : num_rows(K), num_cols(N)
     {
         init(matrix, K, N);
     }

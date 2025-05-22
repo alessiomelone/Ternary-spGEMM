@@ -5,7 +5,7 @@
 
 // Rename and modify sparseGEMM_base to be a specific implementation for SparseFormatCSC
 template <typename T>
-void CSC_base(T *X, const SparseFormatCSC &W_csr, T *b, T *Y, int M, int N, int K)
+void CSC_base(T *X, const BaseTCSC &W_csr, T *b, T *Y, int M, int N, int K)
 {
     const int *col_start_pos = W_csr.col_start_pos.data();
     const int *col_start_neg = W_csr.col_start_neg.data();
@@ -32,7 +32,7 @@ void CSC_base(T *X, const SparseFormatCSC &W_csr, T *b, T *Y, int M, int N, int 
 
 // comment out X or W memory access to see how much it's slowing it down
 template <typename T>
-void CSC_base_testing(T *X, const SparseFormatCSC &W_csr, T *b, T *Y, int M, int N, int K)
+void CSC_base_testing(T *X, const BaseTCSC &W_csr, T *b, T *Y, int M, int N, int K)
 {
     // grab the column‐pointer arrays once
     const int *col_start_pos = W_csr.col_start_pos.data();
@@ -343,7 +343,7 @@ void TCSC_unrolled_tiled(T *X, const TCSCMatrix &W, T *B,
 // Rename and modify sparseGEMM_unrolled to be a specific implementation for SparseFormatCSC
 template <typename T, int UNROLL_FACTOR>
 void CSC_unrolled(
-    T *X, const SparseFormatCSC &W_csr, T *b, T *Y,
+    T *X, const BaseTCSC &W_csr, T *b, T *Y,
     int M, int N, int K)
 {
     const int *col_start_pos = W_csr.col_start_pos.data();

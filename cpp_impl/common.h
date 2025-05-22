@@ -5,8 +5,8 @@
 #include "data_structures/CompressedCSC.h"
 #include "data_structures/TCSRMatrix.h"
 #include "data_structures/TCSCMatrix.h"
-#include "data_structures/SparseFormatCSC.h"
-#include "data_structures/SparseFormatCSR.h"
+#include "data_structures/BaseTCSC.h"
+#include "data_structures/BaseTCSR.h"
 
 using comp_func = std::function<void(float *X, float *B, float *Y, int M, int N, int K)>;
 

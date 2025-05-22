@@ -3,7 +3,7 @@
 #include <iostream>
 #include "DataStructureInterface.hpp"
 
-class SparseFormatCSR : public DataStructureInterface
+class BaseTCSR : public DataStructureInterface
 {
 public:
     int num_rows;
@@ -13,9 +13,9 @@ public:
     std::vector<int> col_index_pos;
     std::vector<int> col_index_neg;
 
-    SparseFormatCSR() : num_rows(0), num_cols(0) {}
+    BaseTCSR() : num_rows(0), num_cols(0) {}
 
-    SparseFormatCSR(const int *matrix, int K, int N) : num_rows(K), num_cols(N)
+    BaseTCSR(const int *matrix, int K, int N) : num_rows(K), num_cols(N)
     {
         init(matrix, K, N);
     }
