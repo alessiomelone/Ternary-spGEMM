@@ -78,13 +78,19 @@ int main(int argc, char **argv)
             CSC_base<float>(X_arg, *sf_csc, B_arg, Y_arg, M_arg, N_arg, K_arg);
         },
         "CSC_base");
-
     // add_function(
     //     [sf_ccsc](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
     //     {
     //         CCSC_base<float>(X_arg, *sf_ccsc, B_arg, Y_arg, M_arg, N_arg, K_arg);
     //     },
-    //     "CCSC_base");
+    //     "CSC_base_testing");
+
+    add_function(
+        [sf_ccsc_data](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
+        {
+            CCSC_base<float>(X_arg, *sf_ccsc_data, B_arg, Y_arg, M_arg, N_arg, K_arg);
+        },
+        "CCSC_base");
 
     add_function(
         [sf_tcsr](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
@@ -143,6 +149,14 @@ int main(int argc, char **argv)
         fill(Y_main.begin(), Y_main.end(), 0);
         comp_func func = userFuncs[i_loop];
 
+
+        Y_main.insert(Y_main.end(), 10, 0); // extend Y so we can modify unused pad values without bounds checking
+        X_main.insert(X_main.end(), 10, 0); // extend Y so we can modify unused pad values without bounds checking
+        comp_func func = userFuncs[i_loop]; // func is std::function
+
+        Y_main.resize(Y_main.size() - 10);
+
+        // Call the std::function directly. Sparse data is captured in the lambda.
         func(X_main.data(), B_main.data(), Y_main.data(), M, N, K);
 
         if (compare_results(Y_main.data(), refY_main.data(), M, N))

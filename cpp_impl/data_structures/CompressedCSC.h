@@ -290,16 +290,19 @@ public:
 			col_start[c] = current_nnz_count;
 			for (int r = 0; r < rows; ++r)
 			{
-				int val = matrix[r * cols + c];
-				if (val != 0)
-				{
-					row_index.push_back(r);
-					vals.push_back(static_cast<uint8_t>(val));
-					current_nnz_count++;
-				}
+				int row = (rows - (rows % 5)) + pad_pos;
+				const int *matrix_ptr = matrix + (row * cols) + col;
+				pad_values[pad_pos] = *matrix_ptr;
+			}
+			uint8_t bitstring;
+			if (pad_values[0] != 0 || pad_values[1] != 0 || pad_values[2] != 0 || pad_values[3] != 0 || pad_values[4] != 0)
+			{
+				bitstring = encode(pad_values[0], pad_values[1], pad_values[2], pad_values[3], pad_values[4]);
+				vals.push_back(bitstring);
+				row_index.push_back(rows - (rows % 5));
 			}
 		}
-		col_start[cols] = current_nnz_count;
+		col_start.push_back(vals.size()); // end col_start val
 	}
 
 	static constexpr uint8_t encode(int8_t v0, int8_t v1, int8_t v2, int8_t v3, int8_t v4) noexcept
