@@ -30,25 +30,71 @@ void CSC_base(T *X, const SparseFormatCSC &W_csc, T *b, T *Y, int M, int n_col, 
     }
 }
 
+// comment out X or W memory access to see how much it's slowing it down
 template <typename T>
+<<<<<<< HEAD:cpp_impl/comp.h
 void CCSC_base(T *X, const CompressedCSC &W, T *b, T *Y, int M, int n_col, int N_Rows)
 // X: M rows, N_Rows cols
 // W: N_Rows rows, n_col cols
 // Y: M rows, n_col cols
+=======
+void CSC_base_testing(T* X, const SparseFormat &W_csr, T *b, T *Y, int M, int N, int K)
+>>>>>>> 00c090c (Add TCSR and TCSC base function prototypes; refactor CSC_base and CCSC_base implementations):cpp_impl/comp.cpp
 {
-    const int *col_start = W.col_start.data();
-    const int *row_index = W.row_index.data();
-    const uint8_t *vals = W.vals.data();
+    // grab the column‐pointer arrays once
+    const int *col_start_pos = W_csr.col_start_pos.data();
+    const int *col_start_neg = W_csr.col_start_neg.data();
 
-    for (int m = 0; m < M; m++)
+    for (int m = 0; m < M; ++m) {
+        for (int n = 0; n < N; ++n) {
+            T y_val = 0;
+
+            // simulate the same # of pos‐entries
+            int pos_count = col_start_pos[n+1] - col_start_pos[n];
+            for (int i = 0; i < pos_count; ++i) {
+                y_val += T(1);     // replace X[...] and W[...] with constant 1
+            }
+
+            // simulate the same # of neg‐entries
+            int neg_count = col_start_neg[n+1] - col_start_neg[n];
+            for (int i = 0; i < neg_count; ++i) {
+                y_val -= T(1);     // replace X[...] and W[...] with constant 1
+            }
+
+            // keep the bias add so you still write to Y
+            Y[m * N + n] = y_val + b[n];
+        }
+    }
+}
+
+
+template <typename T>
+void CCSC_base(T *X,                 // dense input X, row-major, size M×K
+               const CompressedCSC &W,
+               T *b,                 // bias vector, length N
+               T *Y,                 // output Y, row-major, size M×N
+               int M, int N, int K)  // dimensions
+{
+    // raw pointers into W’s storage
+    const int     *col_start = W.col_start.data();  // where each column’s blocks begin in vals/row_index
+    const int     *row_index = W.row_index.data();  // starting row for each encoded block
+    const uint8_t *vals      = W.vals.data();       // encoded bytes packing 5 ternary values
+
+    for (int m = 0; m < M; ++m)            // for each row m of X and Y
     {
+<<<<<<< HEAD:cpp_impl/comp.h
         for (int n = 0; n < n_col; n++)
+=======
+        for (int n = 0; n < N; ++n)        // for each column n of W and Y
+>>>>>>> 00c090c (Add TCSR and TCSC base function prototypes; refactor CSC_base and CCSC_base implementations):cpp_impl/comp.cpp
         {
+            // five partial sums for the 5 rows inside each block
             T y_val0 = 0;
             T y_val1 = 0;
             T y_val2 = 0;
             T y_val3 = 0;
             T y_val4 = 0;
+<<<<<<< HEAD:cpp_impl/comp.h
             for (int N_Rows = col_start[n]; N_Rows < col_start[n + 1]; N_Rows++)
             {
                 const int row = row_index[N_Rows];
@@ -66,6 +112,29 @@ void CCSC_base(T *X, const CompressedCSC &W, T *b, T *Y, int M, int n_col, int N
             Y[m * n_col + n + 2] = y_val2 + b[n];
             Y[m * n_col + n + 3] = y_val3 + b[n];
             Y[m * n_col + n + 4] = y_val4 + b[n];
+=======
+
+            // scan through all blocks in column n
+            for (int k = col_start[n]; k < col_start[n + 1]; ++k)
+            {
+                // “row” is the first row index of 5 consecutive rows in W, comprising a block.
+                int          row = row_index[k];
+                const int8_t *d  = decodeCCSC[vals[k]];// decode byte into an array of 5 values (-1/0/1)
+
+                // multiply-add each of the 5 values with X’s corresponding entries
+                y_val0 += d[0] * X[m * K + row + 0];
+                y_val1 += d[1] * X[m * K + row + 1];
+                y_val2 += d[2] * X[m * K + row + 2];
+                y_val3 += d[3] * X[m * K + row + 3];
+                y_val4 += d[4] * X[m * K + row + 4];
+            }
+
+            // combine partials into the full dot product
+            T acc = y_val0 + y_val1 + y_val2 + y_val3 + y_val4;
+
+            // add bias for column n and store in Y
+            Y[m * N + n] = acc + b[n];
+>>>>>>> 00c090c (Add TCSR and TCSC base function prototypes; refactor CSC_base and CCSC_base implementations):cpp_impl/comp.cpp
         }
     }
 }
@@ -391,6 +460,7 @@ void CSC_unrolled(
     }
 }
 
+<<<<<<< HEAD:cpp_impl/comp.h
 // Base implementations
 template <typename T>
 void sparseGEMM_csc_base_impl(T *X, const SparseFormatCSC &W_csc, T *b, T *Y, int M, int n_col, int N_Rows)
@@ -399,6 +469,18 @@ void sparseGEMM_csc_base_impl(T *X, const SparseFormatCSC &W_csc, T *b, T *Y, in
     const int *col_start_neg = W_csc.col_start_neg.data();
     const int *row_index_pos = W_csc.row_index_pos.data();
     const int *row_index_neg = W_csc.row_index_neg.data();
+=======
+// --- Explicit Instantiations ---
+// This tells the compiler to generate code for these specific versions in comp.o
+template void CSC_base<float>(float *, const SparseFormat &, float *, float *, int, int, int);
+template void CSC_base_testing<float>(float *, const SparseFormat &, float *, float *, int, int, int);
+template void CCSC_base<float>(float *, const CompressedCSC &, float *, float *, int, int, int);
+template void TCSR_base<float>(float *, const TCSRMatrix &, float *, float *, int, int, int);
+template void TCSC_base<float>(float *, const TCSCMatrix &, float *, float *, int, int, int);
+template void CSC_unrolled<float, 2>(float *, const SparseFormat &, float *, float *, int, int, int);
+// If you use other unroll factors or other types for T, you'd add them here.
+template void CSC_unrolled<float, 12>(float *, const SparseFormat &, float *, float *, int, int, int);
+>>>>>>> 00c090c (Add TCSR and TCSC base function prototypes; refactor CSC_base and CCSC_base implementations):cpp_impl/comp.cpp
 
     for (int m = 0; m < M; m++)
     {

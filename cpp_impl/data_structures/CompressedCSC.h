@@ -299,7 +299,11 @@ public:
 				}
 			}
 		}
+<<<<<<< HEAD
 		col_start[cols] = current_nnz_count;
+=======
+		col_start.push_back(vals.size()); // end col_start val
+>>>>>>> 00c090c (Add TCSR and TCSC base function prototypes; refactor CSC_base and CCSC_base implementations)
 	}
 
 	static constexpr uint8_t encode(int8_t v0, int8_t v1, int8_t v2, int8_t v3, int8_t v4) noexcept

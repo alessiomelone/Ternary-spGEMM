@@ -3,8 +3,39 @@
 #include "sparseUtils.h"
 #include "comp.h"
 
+<<<<<<< HEAD
 std::vector<comp_func> userFuncs;
 std::vector<std::string> funcNames;
+=======
+using namespace std;
+
+// --- Prototypes for implementations in comp.cpp ---
+// These are now declarations of explicitly instantiated templates
+template <typename T>
+void CSC_base(T *X, const SparseFormat &W_csc, T *b, T *Y, int M, int N, int K);
+template <typename T>
+void CSC_base_testing(T *X, const SparseFormat &W_csc, T *b, T *Y, int M, int N, int K);
+template <typename T>
+void CCSC_base(T *X, const CompressedCSC &W_csc, T *b, T *Y, int M, int N, int K);
+template <typename T>
+void TCSR_base(T *X, const TCSRMatrix &W_tcsr, T *b, T *Y, int M, int N, int K);
+template <typename T>
+void TCSC_base(T *X, const TCSCMatrix &W_tcsc, T *b, T *Y, int M, int N, int K);
+template <typename T, int UNROLL_FACTOR> // Provide default for UNROLL_FACTOR if used in declaration
+void CSC_unrolled(T *X, const SparseFormat &W_csc, T *b, T *Y, int M, int N, int K);
+template <typename T, int UNROLL_FACTOR>
+void TCSR_unrolled(T *X, const TCSRMatrix &W_tcsr, T *b, T *Y, int M, int N, int K);
+template <typename T, int UNROLL_FACTOR>
+void TCSC_unrolled(T *X, const TCSCMatrix &W_tcsc, T *b, T *Y, int M, int N, int K);
+
+template <typename T, int UNROLL_FACTOR, int TILE_M, int TILE_N>
+void TCSC_unrolled_tiled(T *X_arg, const TCSCMatrix &W_tcsc, T *B_arg, T *Y_arg,
+                         int M_dim, int N_dim, int K_dim);
+// --- End Prototypes ---
+
+vector<comp_func> userFuncs; // This is now vector<std::function<...>>
+vector<string> funcNames;
+>>>>>>> 00c090c (Add TCSR and TCSC base function prototypes; refactor CSC_base and CCSC_base implementations)
 int numFuncs = 0;
 
 void add_function(comp_func f, std::string name)
@@ -78,13 +109,25 @@ int main(int argc, char **argv)
             CSC_base<float>(X_arg, *sf_csc, B_arg, Y_arg, M_arg, N_arg, K_arg);
         },
         "CSC_base");
-
     // add_function(
+<<<<<<< HEAD
     //     [sf_ccsc](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
     //     {
     //         CCSC_base<float>(X_arg, *sf_ccsc, B_arg, Y_arg, M_arg, N_arg, K_arg);
+=======
+    //     [sf_csc_data](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
+    //     {
+    //         CSC_base_testing<float>(X_arg, *sf_csc_data, B_arg, Y_arg, M_arg, N_arg, K_arg);
+>>>>>>> 00c090c (Add TCSR and TCSC base function prototypes; refactor CSC_base and CCSC_base implementations)
     //     },
-    //     "CCSC_base");
+    //     "CSC_base_testing");
+
+    add_function(
+        [sf_ccsc_data](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
+        {
+            CCSC_base<float>(X_arg, *sf_ccsc_data, B_arg, Y_arg, M_arg, N_arg, K_arg);
+        },
+        "CCSC_base");
 
     add_function(
         [sf_tcsr](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
@@ -93,12 +136,21 @@ int main(int argc, char **argv)
         },
         "TCSR_base");
 
+<<<<<<< HEAD
     add_function(
         [sf_tcsr](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
         {
             TCSR_unrolled<float, 12>(X_arg, *sf_tcsr, B_arg, Y_arg, M_arg, N_arg, K_arg);
         },
         "TCSR_unrolled-12");
+=======
+    // add_function(
+    //     [sf_tcsr_unrolled_data](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
+    //     {
+    //         TCSR_unrolled<float, 12>(X_arg, *sf_tcsr_unrolled_data, B_arg, Y_arg, M_arg, N_arg, K_arg);
+    //     },
+    //     "TCSR_unrolled-12");
+>>>>>>> 00c090c (Add TCSR and TCSC base function prototypes; refactor CSC_base and CCSC_base implementations)
 
     add_function(
         [sf_tcsc](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
@@ -107,6 +159,7 @@ int main(int argc, char **argv)
         },
         "TCSC_base");
 
+<<<<<<< HEAD
     add_function(
         [sf_tcsc](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
         {
@@ -120,6 +173,21 @@ int main(int argc, char **argv)
             TCSC_unrolled_tiled<float, 12, 32, 32>(X_arg, *sf_tcsc, B_arg, Y_arg, M_arg, N_arg, K_arg);
         },
         "TCSC_unrolled_tiled-12-32-32");
+=======
+    // add_function(
+    //     [sf_tcsc_unrolled_data](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
+    //     {
+    //         TCSC_unrolled<float, 12>(X_arg, *sf_tcsc_unrolled_data, B_arg, Y_arg, M_arg, N_arg, K_arg);
+    //     },
+    //     "TCSC_unrolled-12");
+
+    // add_function(
+    //     [sf_tcsc_unrolled_tiled_data](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
+    //     {
+    //         TCSC_unrolled_tiled<float, 12, 32, 32>(X_arg, *sf_tcsc_unrolled_tiled_data, B_arg, Y_arg, M_arg, N_arg, K_arg);
+    //     },
+    //     "TCSC_unrolled_tiled-12-32-32");
+>>>>>>> 00c090c (Add TCSR and TCSC base function prototypes; refactor CSC_base and CCSC_base implementations)
 
     if (numFuncs == 0)
     {
@@ -143,6 +211,16 @@ int main(int argc, char **argv)
         fill(Y_main.begin(), Y_main.end(), 0);
         comp_func func = userFuncs[i_loop];
 
+<<<<<<< HEAD
+=======
+        Y_main.insert(Y_main.end(), 10, 0); // extend Y so we can modify unused pad values without bounds checking
+        X_main.insert(X_main.end(), 10, 0); // extend Y so we can modify unused pad values without bounds checking
+        comp_func func = userFuncs[i_loop]; // func is std::function
+
+        Y_main.resize(Y_main.size() - 10);
+
+        // Call the std::function directly. Sparse data is captured in the lambda.
+>>>>>>> 00c090c (Add TCSR and TCSC base function prototypes; refactor CSC_base and CCSC_base implementations)
         func(X_main.data(), B_main.data(), Y_main.data(), M, N, K);
 
         if (compare_results(Y_main.data(), refY_main.data(), M, N))
