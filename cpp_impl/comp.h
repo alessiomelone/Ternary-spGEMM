@@ -32,26 +32,30 @@ void CSC_base(T *X, const SparseFormatCSC &W_csr, T *b, T *Y, int M, int N, int 
 
 // comment out X or W memory access to see how much it's slowing it down
 template <typename T>
-void CSC_base_testing(T* X, const SparseFormatCSC &W_csr, T *b, T *Y, int M, int N, int K)
+void CSC_base_testing(T *X, const SparseFormatCSC &W_csr, T *b, T *Y, int M, int N, int K)
 {
     // grab the column‐pointer arrays once
     const int *col_start_pos = W_csr.col_start_pos.data();
     const int *col_start_neg = W_csr.col_start_neg.data();
 
-    for (int m = 0; m < M; ++m) {
-        for (int n = 0; n < N; ++n) {
+    for (int m = 0; m < M; ++m)
+    {
+        for (int n = 0; n < N; ++n)
+        {
             T y_val = 0;
 
             // simulate the same # of pos‐entries
-            int pos_count = col_start_pos[n+1] - col_start_pos[n];
-            for (int i = 0; i < pos_count; ++i) {
-                y_val += T(1);     // replace X[...] and W[...] with constant 1
+            int pos_count = col_start_pos[n + 1] - col_start_pos[n];
+            for (int i = 0; i < pos_count; ++i)
+            {
+                y_val += T(1); // replace X[...] and W[...] with constant 1
             }
 
             // simulate the same # of neg‐entries
-            int neg_count = col_start_neg[n+1] - col_start_neg[n];
-            for (int i = 0; i < neg_count; ++i) {
-                y_val -= T(1);     // replace X[...] and W[...] with constant 1
+            int neg_count = col_start_neg[n + 1] - col_start_neg[n];
+            for (int i = 0; i < neg_count; ++i)
+            {
+                y_val -= T(1); // replace X[...] and W[...] with constant 1
             }
 
             // keep the bias add so you still write to Y
@@ -60,22 +64,21 @@ void CSC_base_testing(T* X, const SparseFormatCSC &W_csr, T *b, T *Y, int M, int
     }
 }
 
-
 template <typename T>
-void CCSC_base(T *X,                 // dense input X, row-major, size M×K
+void CCSC_base(T *X, // dense input X, row-major, size M×K
                const CompressedCSC &W,
-               T *b,                 // bias vector, length N
-               T *Y,                 // output Y, row-major, size M×N
-               int M, int N, int K)  // dimensions
+               T *b,                // bias vector, length N
+               T *Y,                // output Y, row-major, size M×N
+               int M, int N, int K) // dimensions
 {
     // raw pointers into W’s storage
-    const int     *col_start = W.col_start.data();  // where each column’s blocks begin in vals/row_index
-    const int     *row_index = W.row_index.data();  // starting row for each encoded block
-    const uint8_t *vals      = W.vals.data();       // encoded bytes packing 5 ternary values
+    const int *col_start = W.col_start.data(); // where each column’s blocks begin in vals/row_index
+    const int *row_index = W.row_index.data(); // starting row for each encoded block
+    const uint8_t *vals = W.vals.data();       // encoded bytes packing 5 ternary values
 
-    for (int m = 0; m < M; ++m)            // for each row m of X and Y
+    for (int m = 0; m < M; ++m) // for each row m of X and Y
     {
-        for (int n = 0; n < N; ++n)        // for each column n of W and Y
+        for (int n = 0; n < N; ++n) // for each column n of W and Y
         {
             // five partial sums for the 5 rows inside each block
             T y_val0 = 0;
@@ -88,8 +91,8 @@ void CCSC_base(T *X,                 // dense input X, row-major, size M×K
             for (int k = col_start[n]; k < col_start[n + 1]; ++k)
             {
                 // “row” is the first row index of 5 consecutive rows in W, comprising a block.
-                int          row = row_index[k];
-                const int8_t *d  = decodeCCSC[vals[k]];// decode byte into an array of 5 values (-1/0/1)
+                int row = row_index[k];
+                const int8_t *d = decodeCCSC[vals[k]]; // decode byte into an array of 5 values (-1/0/1)
 
                 // multiply-add each of the 5 values with X’s corresponding entries
                 y_val0 += d[0] * X[m * K + row + 0];
@@ -427,21 +430,5 @@ void CSC_unrolled(
         }
     }
 }
-
-// --- Explicit Instantiations ---
-// This tells the compiler to generate code for these specific versions in comp.o
-template void CSC_base<float>(float *, const SparseFormatCSC &, float *, float *, int, int, int);
-template void CSC_base_testing<float>(float *, const SparseFormatCSC &, float *, float *, int, int, int);
-template void CCSC_base<float>(float *, const CompressedCSC &, float *, float *, int, int, int);
-template void TCSR_base<float>(float *, const TCSRMatrix &, float *, float *, int, int, int);
-template void TCSC_base<float>(float *, const TCSCMatrix &, float *, float *, int, int, int);
-template void CSC_unrolled<float, 2>(float *, const SparseFormatCSC &, float *, float *, int, int, int);
-// If you use other unroll factors or other types for T, you'd add them here.
-template void CSC_unrolled<float, 12>(float *, const SparseFormatCSC &, float *, float *, int, int, int);
-
-template void TCSR_unrolled<float, 12>(float *, const TCSRMatrix &, float *, float *, int, int, int);
-template void TCSC_unrolled<float, 12>(float *, const TCSCMatrix &, float *, float *, int, int, int);
-
-template void TCSC_unrolled_tiled<float, 12, 32, 32>(float *, const TCSCMatrix &, float *, float *, int, int, int);
 
 #endif
