@@ -3,35 +3,36 @@
 
 #include "common.h"
 
-// Rename and modify sparseGEMM_base to be a specific implementation for SparseFormatCSC
+// Rename and modify sparseGEMM_base to be a specific implementation for SparseFormat
 template <typename T>
-void CSC_base(T *X, const SparseFormatCSC &W_csc, T *b, T *Y, int M, int n_col, int N_Rows)
+void CSC_base(T *X, const SparseFormat &W_csr, T *b, T *Y, int M, int N, int K)
 {
-    const int *col_start_pos = W_csc.col_start_pos.data();
-    const int *col_start_neg = W_csc.col_start_neg.data();
-    const int *row_index_pos = W_csc.row_index_pos.data();
-    const int *row_index_neg = W_csc.row_index_neg.data();
+    const int *col_start_pos = W_csr.col_start_pos.data();
+    const int *col_start_neg = W_csr.col_start_neg.data();
+    const int *row_index_pos = W_csr.row_index_pos.data();
+    const int *row_index_neg = W_csr.row_index_neg.data();
 
     for (int m = 0; m < M; m++)
     {
-        for (int n_col_idx = 0; n_col_idx < n_col; n_col_idx++)
+        for (int n_idx = 0; n_idx < N; n_idx++) // Renamed n to n_idx
         {
-            T y_val = 0;
-            for (int N_Rows_idx = col_start_pos[n_col_idx]; N_Rows_idx < col_start_pos[n_col_idx + 1]; N_Rows_idx++)
+            T y_val = 0;                                                                      // Renamed y to y_val
+            for (int k_idx = col_start_pos[n_idx]; k_idx < col_start_pos[n_idx + 1]; k_idx++) // Renamed k to k_idx
             {
-                y_val += X[m * N_Rows + row_index_pos[N_Rows_idx]];
+                y_val += X[m * K + row_index_pos[k_idx]];
             }
-            for (int N_Rows_idx = col_start_neg[n_col_idx]; N_Rows_idx < col_start_neg[n_col_idx + 1]; N_Rows_idx++)
+            for (int k_idx = col_start_neg[n_idx]; k_idx < col_start_neg[n_idx + 1]; k_idx++) // Renamed k to k_idx
             {
-                y_val -= X[m * N_Rows + row_index_neg[N_Rows_idx]];
+                y_val -= X[m * K + row_index_neg[k_idx]];
             }
-            Y[m * n_col + n_col_idx] = y_val + b[n_col_idx];
+            Y[m * N + n_idx] = y_val + b[n_idx];
         }
     }
 }
 
 // comment out X or W memory access to see how much it's slowing it down
 template <typename T>
+<<<<<<< HEAD
 <<<<<<< HEAD:cpp_impl/comp.h
 void CCSC_base(T *X, const CompressedCSC &W, T *b, T *Y, int M, int n_col, int N_Rows)
 // X: M rows, N_Rows cols
@@ -40,6 +41,12 @@ void CCSC_base(T *X, const CompressedCSC &W, T *b, T *Y, int M, int n_col, int N
 =======
 void CSC_base_testing(T* X, const SparseFormat &W_csr, T *b, T *Y, int M, int N, int K)
 >>>>>>> 00c090c (Add TCSR and TCSC base function prototypes; refactor CSC_base and CCSC_base implementations):cpp_impl/comp.cpp
+=======
+void CCSC_base(T *X, const CompressedCSC &W, T *b, T *Y, int M, int N, int K)
+// X: M rows, K cols
+// W: K rows, N cols
+// Y: M rows, N cols
+>>>>>>> 422cf16 (merge)
 {
     // grab the column‐pointer arrays once
     const int *col_start_pos = W_csr.col_start_pos.data();
@@ -82,11 +89,15 @@ void CCSC_base(T *X,                 // dense input X, row-major, size M×K
 
     for (int m = 0; m < M; ++m)            // for each row m of X and Y
     {
+<<<<<<< HEAD
 <<<<<<< HEAD:cpp_impl/comp.h
         for (int n = 0; n < n_col; n++)
 =======
         for (int n = 0; n < N; ++n)        // for each column n of W and Y
 >>>>>>> 00c090c (Add TCSR and TCSC base function prototypes; refactor CSC_base and CCSC_base implementations):cpp_impl/comp.cpp
+=======
+        for (int n = 0; n < N; n++)
+>>>>>>> 422cf16 (merge)
         {
             // five partial sums for the 5 rows inside each block
             T y_val0 = 0;
@@ -94,19 +105,24 @@ void CCSC_base(T *X,                 // dense input X, row-major, size M×K
             T y_val2 = 0;
             T y_val3 = 0;
             T y_val4 = 0;
+<<<<<<< HEAD
 <<<<<<< HEAD:cpp_impl/comp.h
             for (int N_Rows = col_start[n]; N_Rows < col_start[n + 1]; N_Rows++)
+=======
+            for (int k = col_start[n]; k < col_start[n + 1]; k++)
+>>>>>>> 422cf16 (merge)
             {
-                const int row = row_index[N_Rows];
-                const int8_t block = vals[N_Rows];
+                const int row = row_index[k];
+                const int8_t block = vals[k];
                 const int8_t *vals_decoded = decodeCCSC[block];
-                y_val0 += vals_decoded[0] * X[m * N_Rows + row_index[N_Rows] + 0];
-                y_val1 += vals_decoded[1] * X[m * N_Rows + row_index[N_Rows] + 1];
-                y_val2 += vals_decoded[2] * X[m * N_Rows + row_index[N_Rows] + 2];
-                y_val3 += vals_decoded[3] * X[m * N_Rows + row_index[N_Rows] + 3];
-                y_val4 += vals_decoded[4] * X[m * N_Rows + row_index[N_Rows] + 4];
+                y_val0 += vals_decoded[0] * X[m * K + row_index[k] + 0];
+                y_val1 += vals_decoded[1] * X[m * K + row_index[k] + 1];
+                y_val2 += vals_decoded[2] * X[m * K + row_index[k] + 2];
+                y_val3 += vals_decoded[3] * X[m * K + row_index[k] + 3];
+                y_val4 += vals_decoded[4] * X[m * K + row_index[k] + 4];
             }
 
+<<<<<<< HEAD
             Y[m * n_col + n + 0] = y_val0 + b[n];
             Y[m * n_col + n + 1] = y_val1 + b[n];
             Y[m * n_col + n + 2] = y_val2 + b[n];
@@ -135,34 +151,41 @@ void CCSC_base(T *X,                 // dense input X, row-major, size M×K
             // add bias for column n and store in Y
             Y[m * N + n] = acc + b[n];
 >>>>>>> 00c090c (Add TCSR and TCSC base function prototypes; refactor CSC_base and CCSC_base implementations):cpp_impl/comp.cpp
+=======
+            Y[m * N + n + 0] = y_val0 + b[n];
+            Y[m * N + n + 1] = y_val1 + b[n];
+            Y[m * N + n + 2] = y_val2 + b[n];
+            Y[m * N + n + 3] = y_val3 + b[n];
+            Y[m * N + n + 4] = y_val4 + b[n];
+>>>>>>> 422cf16 (merge)
         }
     }
 }
 
 template <typename T>
 void TCSR_base(T *X_arg, const TCSRMatrix &W_tcsr, T *B_arg, T *Y_arg,
-               int M_dim, int n_col_dim, int N_Rows_dim)
+               int M_dim, int N_dim, int K_dim)
 {
     const int *row_offsets_data = W_tcsr.row_offsets.data();
     const int *encoded_cols_data = W_tcsr.encoded_cols.data();
 
     for (int m = 0; m < M_dim; ++m)
     {
-        const T *X_row_m = X_arg + m * N_Rows_dim;
-        T *Y_row_m = Y_arg + m * n_col_dim;
+        const T *X_row_m = X_arg + m * K_dim;
+        T *Y_row_m = Y_arg + m * N_dim;
 
         // Initialize current row of Y with bias
-        for (int n = 0; n < n_col_dim; ++n)
+        for (int n = 0; n < N_dim; ++n)
         {
             Y_row_m[n] = B_arg[n];
         }
 
-        for (int N_Rows = 0; N_Rows < N_Rows_dim; ++N_Rows)
+        for (int k = 0; k < K_dim; ++k)
         {
-            T x_mk_val = X_row_m[N_Rows];
+            T x_mk_val = X_row_m[k];
 
-            int row_start_offset_W = row_offsets_data[N_Rows];
-            int row_end_offset_W = row_offsets_data[N_Rows + 1];
+            int row_start_offset_W = row_offsets_data[k];
+            int row_end_offset_W = row_offsets_data[k + 1];
 
             for (int nz_idx = row_start_offset_W; nz_idx < row_end_offset_W; ++nz_idx)
             {
@@ -381,7 +404,6 @@ void TCSC_unrolled_tiled(T *X_arg, const TCSCMatrix &W_tcsc, T *B_arg, T *Y_arg,
                         T w_kn_val = static_cast<T>(decoded_W.second);
                         y_mn_acc_final += X_row_m[k_row_in_W] * w_kn_val;
                     }
-
                     Y_row_m[n] = y_mn_acc_final + B_arg[n];
                 }
             }
@@ -389,33 +411,33 @@ void TCSC_unrolled_tiled(T *X_arg, const TCSCMatrix &W_tcsc, T *B_arg, T *Y_arg,
     }
 }
 
-// Rename and modify sparseGEMM_unrolled to be a specific implementation for SparseFormatCSC
+// Rename and modify sparseGEMM_unrolled to be a specific implementation for SparseFormat
 template <typename T, int UNROLL_FACTOR>
 void CSC_unrolled(
-    T *X, const SparseFormatCSC &W_csc, T *b, T *Y,
-    int M, int n_col, int N_Rows)
+    T *X, const SparseFormat &W_csr, T *b, T *Y,
+    int M, int N, int K)
 {
-    const int *col_start_pos = W_csc.col_start_pos.data();
-    const int *col_start_neg = W_csc.col_start_neg.data();
-    const int *row_index_pos = W_csc.row_index_pos.data();
-    const int *row_index_neg = W_csc.row_index_neg.data();
+    const int *col_start_pos = W_csr.col_start_pos.data();
+    const int *col_start_neg = W_csr.col_start_neg.data();
+    const int *row_index_pos = W_csr.row_index_pos.data();
+    const int *row_index_neg = W_csr.row_index_neg.data();
 
     for (int m = 0; m < M; m++)
     {
-        for (int n_col_idx = 0; n_col_idx < n_col; n_col_idx++)
-        {
+        for (int n_idx = 0; n_idx < N; n_idx++)
+        { // Renamed n
             T y_pos[UNROLL_FACTOR] = {0};
             T y_neg[UNROLL_FACTOR] = {0};
 
-            int N_Rows_loop = col_start_pos[n_col_idx];
-            const int end_pos = col_start_pos[n_col_idx + 1];
+            int k_pos_loop = col_start_pos[n_idx]; // Renamed k_pos
+            const int end_pos = col_start_pos[n_idx + 1];
 
-            for (; N_Rows_loop + UNROLL_FACTOR <= end_pos; N_Rows_loop += UNROLL_FACTOR)
+            for (; k_pos_loop + UNROLL_FACTOR <= end_pos; k_pos_loop += UNROLL_FACTOR)
             {
 #pragma unroll
                 for (int u = 0; u < UNROLL_FACTOR; u++)
                 {
-                    y_pos[u] += X[m * N_Rows + row_index_pos[N_Rows_loop + u]];
+                    y_pos[u] += X[m * K + row_index_pos[k_pos_loop + u]];
                 }
             }
 
@@ -426,20 +448,20 @@ void CSC_unrolled(
             }
 
             // remainder loop
-            for (; N_Rows_loop < end_pos; N_Rows_loop++)
+            for (; k_pos_loop < end_pos; k_pos_loop++)
             {
-                y_pos_final += X[m * N_Rows + row_index_pos[N_Rows_loop]];
+                y_pos_final += X[m * K + row_index_pos[k_pos_loop]];
             }
 
-            int N_Rows_loop_neg = col_start_neg[n_col_idx];
-            const int end_neg = col_start_neg[n_col_idx + 1];
+            int k_neg_loop = col_start_neg[n_idx]; // Renamed k_neg
+            const int end_neg = col_start_neg[n_idx + 1];
 
-            for (; N_Rows_loop_neg + UNROLL_FACTOR <= end_neg; N_Rows_loop_neg += UNROLL_FACTOR)
+            for (; k_neg_loop + UNROLL_FACTOR <= end_neg; k_neg_loop += UNROLL_FACTOR)
             {
 #pragma unroll
                 for (int u = 0; u < UNROLL_FACTOR; u++)
                 {
-                    y_neg[u] += X[m * N_Rows + row_index_neg[N_Rows_loop_neg + u]];
+                    y_neg[u] += X[m * K + row_index_neg[k_neg_loop + u]];
                 }
             }
 
@@ -450,16 +472,17 @@ void CSC_unrolled(
             }
 
             // remainder loop
-            for (; N_Rows_loop_neg < end_neg; N_Rows_loop_neg++)
+            for (; k_neg_loop < end_neg; k_neg_loop++)
             {
-                y_neg_final += X[m * N_Rows + row_index_neg[N_Rows_loop_neg]];
+                y_neg_final += X[m * K + row_index_neg[k_neg_loop]];
             }
 
-            Y[m * n_col + n_col_idx] = (y_pos_final - y_neg_final) + b[n_col_idx];
+            Y[m * N + n_idx] = (y_pos_final - y_neg_final) + b[n_idx];
         }
     }
 }
 
+<<<<<<< HEAD
 <<<<<<< HEAD:cpp_impl/comp.h
 // Base implementations
 template <typename T>
@@ -474,197 +497,23 @@ void sparseGEMM_csc_base_impl(T *X, const SparseFormatCSC &W_csc, T *b, T *Y, in
 // This tells the compiler to generate code for these specific versions in comp.o
 template void CSC_base<float>(float *, const SparseFormat &, float *, float *, int, int, int);
 template void CSC_base_testing<float>(float *, const SparseFormat &, float *, float *, int, int, int);
+=======
+// --- Explicit Instantiations ---
+// This tells the compiler to generate code for these specific versions in comp.o
+template void CSC_base<float>(float *, const SparseFormat &, float *, float *, int, int, int);
+>>>>>>> 422cf16 (merge)
 template void CCSC_base<float>(float *, const CompressedCSC &, float *, float *, int, int, int);
 template void TCSR_base<float>(float *, const TCSRMatrix &, float *, float *, int, int, int);
 template void TCSC_base<float>(float *, const TCSCMatrix &, float *, float *, int, int, int);
 template void CSC_unrolled<float, 2>(float *, const SparseFormat &, float *, float *, int, int, int);
 // If you use other unroll factors or other types for T, you'd add them here.
 template void CSC_unrolled<float, 12>(float *, const SparseFormat &, float *, float *, int, int, int);
+<<<<<<< HEAD
 >>>>>>> 00c090c (Add TCSR and TCSC base function prototypes; refactor CSC_base and CCSC_base implementations):cpp_impl/comp.cpp
+=======
+>>>>>>> 422cf16 (merge)
 
-    for (int m = 0; m < M; m++)
-    {
-        for (int n_col_idx = 0; n_col_idx < n_col; n_col_idx++)
-        {
-            T y_val = 0;
-            for (int N_Rows_idx = col_start_pos[n_col_idx]; N_Rows_idx < col_start_pos[n_col_idx + 1]; N_Rows_idx++)
-            {
-                y_val += X[m * N_Rows + row_index_pos[N_Rows_idx]];
-            }
-            for (int N_Rows_idx = col_start_neg[n_col_idx]; N_Rows_idx < col_start_neg[n_col_idx + 1]; N_Rows_idx++)
-            {
-                y_val -= X[m * N_Rows + row_index_neg[N_Rows_idx]];
-            }
-            Y[m * n_col + n_col_idx] = y_val + b[n_col_idx];
-        }
-    }
-}
+template void TCSR_unrolled<float, 12>(float *, const TCSRMatrix &, float *, float *, int, int, int);
+template void TCSC_unrolled<float, 12>(float *, const TCSCMatrix &, float *, float *, int, int, int);
 
-template <typename T>
-void sparseGEMM_csr_base_impl(T *X, const SparseFormatCSR &W_csr, T *b, T *Y, int M, int n_col, int N_Rows)
-{
-    // Initialize Y with B values
-    for (int m = 0; m < M; ++m)
-    {
-        for (int n_col_idx = 0; n_col_idx < n_col; ++n_col_idx)
-        {
-            Y[m * n_col + n_col_idx] = b[n_col_idx];
-        }
-    }
-
-    for (int m = 0; m < M; ++m)
-    {
-        for (int k_row = 0; k_row < W_csr.num_rows; ++k_row)
-        {
-            T x_val = X[m * N_Rows + k_row];
-
-            // Positive contributions from W
-            for (int j = W_csr.row_start_pos[k_row]; j < W_csr.row_start_pos[k_row + 1]; ++j)
-            {
-                int n_col_idx = W_csr.col_index_pos[j];
-                Y[m * n_col + n_col_idx] += x_val; // W_val is +1
-            }
-
-            // Negative contributions from W
-            for (int j = W_csr.row_start_neg[k_row]; j < W_csr.row_start_neg[k_row + 1]; ++j)
-            {
-                int n_col_idx = W_csr.col_index_neg[j];
-                Y[m * n_col + n_col_idx] -= x_val; // W_val is -1
-            }
-        }
-    }
-}
-
-// Unrolled implementations
-template <typename T, int UNROLL_FACTOR>
-void sparseGEMM_csc_unrolled_impl(
-    T *X, const SparseFormatCSC &W_csc, T *b, T *Y,
-    int M, int n_col, int N_Rows)
-{
-    const int *col_start_pos = W_csc.col_start_pos.data();
-    const int *col_start_neg = W_csc.col_start_neg.data();
-    const int *row_index_pos = W_csc.row_index_pos.data();
-    const int *row_index_neg = W_csc.row_index_neg.data();
-
-    for (int m = 0; m < M; m++)
-    {
-        for (int n_col_idx = 0; n_col_idx < n_col; n_col_idx++)
-        {
-            T y_pos[UNROLL_FACTOR] = {0};
-            T y_neg[UNROLL_FACTOR] = {0};
-
-            int N_Rows_loop = col_start_pos[n_col_idx];
-            const int end_pos = col_start_pos[n_col_idx + 1];
-
-            for (; N_Rows_loop + UNROLL_FACTOR <= end_pos; N_Rows_loop += UNROLL_FACTOR)
-            {
-                for (int u = 0; u < UNROLL_FACTOR; u++)
-                {
-                    y_pos[u] += X[m * N_Rows + row_index_pos[N_Rows_loop + u]];
-                }
-            }
-
-            T y_pos_final = 0;
-            for (int u = 0; u < UNROLL_FACTOR; u++)
-            {
-                y_pos_final += y_pos[u];
-            }
-
-            // remainder loop
-            for (; N_Rows_loop < end_pos; N_Rows_loop++)
-            {
-                y_pos_final += X[m * N_Rows + row_index_pos[N_Rows_loop]];
-            }
-
-            int N_Rows_loop_neg = col_start_neg[n_col_idx];
-            const int end_neg = col_start_neg[n_col_idx + 1];
-
-            for (; N_Rows_loop_neg + UNROLL_FACTOR <= end_neg; N_Rows_loop_neg += UNROLL_FACTOR)
-            {
-                for (int u = 0; u < UNROLL_FACTOR; u++)
-                {
-                    y_neg[u] += X[m * N_Rows + row_index_neg[N_Rows_loop_neg + u]];
-                }
-            }
-
-            T y_neg_final = 0;
-            for (int u = 0; u < UNROLL_FACTOR; u++)
-            {
-                y_neg_final += y_neg[u];
-            }
-
-            // remainder loop
-            for (; N_Rows_loop_neg < end_neg; N_Rows_loop_neg++)
-            {
-                y_neg_final += X[m * N_Rows + row_index_neg[N_Rows_loop_neg]];
-            }
-
-            Y[m * n_col + n_col_idx] = (y_pos_final - y_neg_final) + b[n_col_idx];
-        }
-    }
-}
-
-template <typename T, int UNROLL_FACTOR>
-void sparseGEMM_csr_unrolled_impl(
-    T *X, const SparseFormatCSR &W_csr, T *b, T *Y,
-    int M, int n_col, int N_Rows)
-{
-    // Initialize Y with B values
-    for (int m = 0; m < M; ++m)
-    {
-        for (int n_col_idx = 0; n_col_idx < n_col; ++n_col_idx)
-        {
-            Y[m * n_col + n_col_idx] = b[n_col_idx];
-        }
-    }
-
-    for (int m = 0; m < M; ++m)
-    {
-        for (int k_row = 0; k_row < W_csr.num_rows; ++k_row)
-        {
-            T x_val = X[m * N_Rows + k_row];
-
-            // Positive contributions from W
-            int j_pos = W_csr.row_start_pos[k_row];
-            const int end_pos = W_csr.row_start_pos[k_row + 1];
-
-            // Unrolled loop for positive contributions
-            for (; j_pos + UNROLL_FACTOR <= end_pos; j_pos += UNROLL_FACTOR)
-            {
-                for (int u = 0; u < UNROLL_FACTOR; ++u)
-                {
-                    int n_col_idx = W_csr.col_index_pos[j_pos + u];
-                    Y[m * n_col + n_col_idx] += x_val; // W_val is +1
-                }
-            }
-            // Remainder loop for positive contributions
-            for (; j_pos < end_pos; ++j_pos)
-            {
-                int n_col_idx = W_csr.col_index_pos[j_pos];
-                Y[m * n_col + n_col_idx] += x_val; // W_val is +1
-            }
-
-            // Negative contributions from W
-            int j_neg = W_csr.row_start_neg[k_row];
-            const int end_neg = W_csr.row_start_neg[k_row + 1];
-
-            // Unrolled loop for negative contributions
-            for (; j_neg + UNROLL_FACTOR <= end_neg; j_neg += UNROLL_FACTOR)
-            {
-                for (int u = 0; u < UNROLL_FACTOR; ++u)
-                {
-                    int n_col_idx = W_csr.col_index_neg[j_neg + u];
-                    Y[m * n_col + n_col_idx] -= x_val; // W_val is -1
-                }
-            }
-            // Remainder loop for negative contributions
-            for (; j_neg < end_neg; ++j_neg)
-            {
-                int n_col_idx = W_csr.col_index_neg[j_neg];
-                Y[m * n_col + n_col_idx] -= x_val; // W_val is -1
-            }
-        }
-    }
-}
-
-#endif // COMP_H
+template void TCSC_unrolled_tiled<float, 12, 32, 32>(float *, const TCSCMatrix &, float *, float *, int, int, int);
