@@ -1,5 +1,5 @@
 #include "data_structures/CompressedCSC.h"
-#include "SparseGEMM.h"
+#include "sparseUtils.h"
 #include <iomanip>
 
 template <typename T>
@@ -38,7 +38,7 @@ bool vecsEqual(const vector<int> &v1, const vector<int> &v2)
     return true;
 }
 
-template<typename T>
+template <typename T>
 bool test(int K, int N, int nonZero, int seed, bool verbose = false)
 {
     static_assert(std::is_base_of<DataStructureInterface, T>::value,
@@ -62,7 +62,7 @@ bool test(int K, int N, int nonZero, int seed, bool verbose = false)
     return M == W_truth;
 }
 
-template<typename T>
+template <typename T>
 bool testMany(int K, int N, int nonZero, int variants, bool verbose = false)
 {
     static_assert(std::is_base_of<DataStructureInterface, T>::value,
@@ -70,10 +70,13 @@ bool testMany(int K, int N, int nonZero, int variants, bool verbose = false)
 
     // const int K = 10, N = 10, nonZero = 2, variants = 1'000;
     bool mismatch_flag = false;
-    for (int k = 1; k < K; ++k) {
-        for (int n = 1; n < N; ++n) {
-            
-            if (verbose) {
+    for (int k = 1; k < K; ++k)
+    {
+        for (int n = 1; n < N; ++n)
+        {
+
+            if (verbose)
+            {
                 printf("Testing k=%d, n=%d, nonZero=%d\n", k, n, nonZero);
             }
 
@@ -93,7 +96,7 @@ bool testMany(int K, int N, int nonZero, int variants, bool verbose = false)
     return 0;
 }
 
-template<typename T>
+template <typename T>
 bool testRequired(int variants, bool verbose = false)
 {
     static_assert(std::is_base_of<DataStructureInterface, T>::value,
@@ -108,7 +111,8 @@ bool testRequired(int variants, bool verbose = false)
     {
         for (int nonZero : nonZeros)
         {
-            if (verbose) {
+            if (verbose)
+            {
                 printf("Testing k=%d, n=%d, nonZero=%d\n", K[i], N[i], nonZero);
             }
 
@@ -134,7 +138,7 @@ int main()
     // Sizes you'll probably use debugging
     printf("(1/2)\n");
     testMany<CompressedCSC>(40, 40, 2, 20, false);
-    
+
     // Required sizes
     printf("(2/2)\n");
     testRequired<CompressedCSC>(10, true);

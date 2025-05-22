@@ -1,12 +1,21 @@
 #pragma once
 #include <vector>
-#include <cstddef>
 
-class DataStructureInterface {
+class DataStructureInterface
+{
 public:
-    // Initialize data structure with a raw pointer to an int vector plus dimensions
-    virtual void init(const int* matrix, int rows, int cols) = 0;
+    virtual ~DataStructureInterface() = default;
 
-    // Return a vector<int> representation given requested dimensions
-    virtual std::vector<int> getVectorRepresentation(std::size_t rows, std::size_t cols) = 0;
+    // Initialize the data structure from a raw matrix
+    virtual void init(const int *matrix, int rows, int cols) = 0;
+
+    // Convert back to a dense matrix representation
+    virtual std::vector<int> getVectorRepresentation(size_t expected_rows, size_t expected_cols) = 0;
+
+    // Get dimensions
+    virtual int getNumRows() const = 0;
+    virtual int getNumCols() const = 0;
+
+    // Debug/print functionality
+    virtual void printVars() = 0;
 };

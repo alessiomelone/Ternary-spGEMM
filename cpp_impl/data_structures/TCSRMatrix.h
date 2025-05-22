@@ -80,8 +80,11 @@ public:
     return M;
   }
 
+  int getNumRows() const override { return num_matrix_rows; }
+  int getNumCols() const override { return num_matrix_cols; }
+
   // For debugging
-  void printVars()
+  void printVars() override
   {
     std::cout << "\nTCSRMatrix (" << num_matrix_rows << "x" << num_matrix_cols << "):" << std::endl;
     std::cout << "row_offsets (" << row_offsets.size() << "): ";
