@@ -89,8 +89,8 @@ public:
     return M;
   }
 
-  int getNumRows() const override { return num_matrix_rows; }
-  int getNumCols() const override { return num_matrix_cols; }
+  int getNumRows() const { return num_matrix_rows; }
+  int getNumCols() const { return num_matrix_cols; }
 
   // For debugging
   void printVars() override
