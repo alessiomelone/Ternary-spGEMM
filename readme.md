@@ -4,31 +4,80 @@ A project template for ASL Spring 2025.
 
 ## C++ Implementation
 
-Edit only `comp.cpp`:
+### Building the Project
 
+To build the C++ implementation, run:
 ```bash
-g++ -O2 -march=native -mtune=native -fstrict-aliasing -DNDEBUG cpp_impl/main.cpp cpp_impl/comp.cpp cpp_impl/perf.cpp -o cpp_impl/SparseGEMM.out -DPMU && sudo ./cpp_impl/SparseGEMM.out -M 32 -K 1024 -N 4096 -s 4
+make
 ```
 
-Test data structure:
+This will create an executable named `sparseGEMM` in the root directory.
 
+### Running the Program
+
+To run the compiled program (example):
+```bash
+./sparseGEMM -M 32 -K 1024 -N 4096 -s 4
 ```
-g++ -Icpp_impl/test_data_structure -o cpp_impl/test_data_structure.out cpp_impl/test_data_structure.cpp && ./cpp_impl/test_data_structure.out
+
+### Registering New Functions
+
+To register a new computational function:
+1. Define your templated function in `cpp_impl/comp.h`. This header is where all templated computational kernels should reside.
+2. In `cpp_impl/main.cpp`, register your function with the driver:
+   - Create a lambda function that calls your templated function with specific template arguments (e.g., `float`, specific unroll factors)
+   - Pass this lambda and a descriptive name string to the `add_function` utility
+
+Example:
+```cpp
+// In main.cpp
+add_function("MyFunction", [](const Matrix& A, const Matrix& B, Matrix& C) {
+    my_templated_function<float, 4>(A, B, C);  // Example with float type and unroll factor 4
+});
 ```
 
-## Steps to add a data structure:
-1. Add new function in comp.cpp
-2. Add template instantiation in comp.cpp
-3. Add prototype at the top of main.cpp
-4. Register function with a lambda in main.cpp
+### Adding New Data Structures
 
-## Considerations
+To add a new data structure:
+1. Create a new header file in `cpp_impl/data_structures/` (e.g., `MyDataStructure.h`)
+2. Implement the `DataStructureInterface` interface defined in `cpp_impl/data_structures/DataStructureInterface.hpp`
+3. Include your new header in `cpp_impl/common.h` to make it accessible throughout the project
+4. You can then use this data structure within your algorithm definitions in `cpp_impl/comp.h`
 
-### Flops of base implementation:
+Example data structure implementation:
+```cpp
+// MyDataStructure.h
+class MyDataStructure : public DataStructureInterface {
+public:
+    void init(const int* matrix, int rows, int cols) override;
+    std::vector<int> getVectorRepresentation(size_t expected_rows, size_t expected_cols) override;
+    int getNumRows() const override;
+    int getNumCols() const override;
+    // ... other methods
+};
+```
 
+### Testing Data Structures
+
+To test a data structure:
+```bash
+g++ -Icpp_impl/data_structures -o test_data_structure.out cpp_impl/test_data_structure.cpp && ./test_data_structure.out
+```
+
+## Implementation Steps
+
+When adding a new implementation:
+1. Add new function in `comp.cpp`
+2. Add template instantiation in `comp.cpp`
+3. Add prototype at the top of `main.cpp`
+4. Register function with a lambda in `main.cpp`
+
+## Performance Considerations
+
+### Flops of Base Implementation
 $MN\left(1 + \frac{K}{\text{nonZero}}\right)$
 
-### Data size:
+### Memory Usage
 
 - **X**: $MK \cdot \text{sizeof}(T)$ — One row at a time is accessed then never used again ($K \cdot \text{sizeof}(T)$)
 - **B**: $MN \cdot \text{sizeof}(T)$ — In the inner loop, one row is accessed then never used again ($N \cdot \text{sizeof}(T)$)
@@ -36,37 +85,20 @@ $MN\left(1 + \frac{K}{\text{nonZero}}\right)$
 
 **Total**: $M(K + 2N) \cdot \text{sizeof}(T)$
 
+### Data Structure Formats
 
-### Format:
-
-Considering $W$ is $K \times N$
-
-#### TCSC:
-
-- **CSP and CSN**, total: $2(N + 1) \cdot \text{sizeof(int)} = 2N \cdot \text{sizeof(int)}$
-
-TODO: Can it be reduced?  
-If we think we just need the information about how many values are being read in that iteration (max of $n_{\text{rows}}$ values, so $K$), we could use $\log_2(K)$ bits for each value in this vector.
-
-- **RIP and RIN**, total: $\frac{KN}{\text{nonZero}} \cdot \text{sizeof(int)}$
-
-TODO: Can it be reduced?  
-We only need to know in which row the values are located. We could also use $\log_2(K)$ bits.
+#### TCSC Format
+- **CSP and CSN**: $2(N + 1) \cdot \text{sizeof(int)} = 2N \cdot \text{sizeof(int)}$
+- **RIP and RIN**: $\frac{KN}{\text{nonZero}} \cdot \text{sizeof(int)}$
 
 **Total TCSC**: $N\left(\frac{K}{\text{nonZero}} + 2\right) \cdot \text{sizeof(int)}$
 
----
+### Total Memory Usage (Uncompressed)
+Assuming $T = \text{float}$, $\text{sizeof(float)} = 4$ bytes, $\text{sizeof(int)} = 4$ bytes:
 
-### Total, uncompressed:
+$4(MK + 2MN + 2N + \frac{KN}{\text{nonZero}})$ bytes
 
-Assuming $T = \text{float}$, $\text{sizeof(float)} = 2$ bytes, $\text{sizeof(int)} = 2$ bytes:
+## Optimization Approaches
 
-$2(MK + 2MN + 2N + \frac{KN}{\text{nonZero}})$
-
----
-
-## Operational Intensity
-
-1. First approach: compress TCSC, see how the code looks like — this would allow keeping the structure of the code  
-2. Second approach: normal CSC, compressed values vector (only 1s and -1s, 8 bits for 5 values)  
-   We need to try to code and think about how the code would look like
+1. Compress TCSC format while maintaining code structure
+2. Use normal CSC with compressed values vector (1s and -1s, 8 bits for 5 values)

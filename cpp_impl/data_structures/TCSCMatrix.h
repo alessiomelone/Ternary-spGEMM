@@ -89,7 +89,11 @@ public:
     return M;
   }
 
-  void printVars()
+  int getNumRows() const override { return num_matrix_rows; }
+  int getNumCols() const override { return num_matrix_cols; }
+
+  // For debugging
+  void printVars() override
   {
     std::cout << "\nTCSCMatrix (" << num_matrix_rows << "x" << num_matrix_cols << "):" << std::endl;
     std::cout << "col_offsets (" << col_offsets.size() << "): ";
