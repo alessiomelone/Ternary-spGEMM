@@ -1,0 +1,370 @@
+[
+    {
+        "test_case": {
+            "M": 1,
+            "K": 512,
+            "N": 2048,
+            "s": 4
+        },
+        "results": {
+            "BaseCSC_naive": {
+                "cycles": 430320.0,
+                "fpc": 0.613943
+            },
+            "BaseCSC_unrolled_8": {
+                "cycles": 150082.0,
+                "fpc": 1.76032
+            },
+            "BaseCSR_naive": {
+                "cycles": 309871.0,
+                "fpc": 0.852588
+            },
+            "BaseCSR_unrolled_8": {
+                "cycles": 209960.0,
+                "fpc": 1.25829
+            },
+            "CompressedCSC_naive": {
+                "cycles": 469653.0,
+                "fpc": 0.562525
+            },
+            "TernaryCSR_naive": {
+                "cycles": 308222.0,
+                "fpc": 0.857148
+            },
+            "TernaryCSR_unrolled_tiled_8x8": {
+                "cycles": 227806.0,
+                "fpc": 1.15972
+            },
+            "TernaryCSC_naive": {
+                "cycles": 426585.0,
+                "fpc": 0.619318
+            },
+            "TernaryCSC_unrolled_tiled_8x8x8": {
+                "cycles": 189481.0,
+                "fpc": 1.39429
+            }
+        }
+    },
+    {
+        "test_case": {
+            "M": 1,
+            "K": 1024,
+            "N": 4096,
+            "s": 4
+        },
+        "results": {
+            "BaseCSC_naive": {
+                "cycles": 1997280.0,
+                "fpc": 0.527053
+            },
+            "BaseCSC_unrolled_8": {
+                "cycles": 616518.0,
+                "fpc": 1.70745
+            },
+            "BaseCSR_naive": {
+                "cycles": 1155650.0,
+                "fpc": 0.910895
+            },
+            "BaseCSR_unrolled_8": {
+                "cycles": 856710.0,
+                "fpc": 1.22874
+            },
+            "CompressedCSC_naive": {
+                "cycles": 2075640.0,
+                "fpc": 0.507154
+            },
+            "TernaryCSR_naive": {
+                "cycles": 1151880.0,
+                "fpc": 0.913876
+            },
+            "TernaryCSR_unrolled_tiled_8x8": {
+                "cycles": 934560.0,
+                "fpc": 1.12638
+            },
+            "TernaryCSC_naive": {
+                "cycles": 1969740.0,
+                "fpc": 0.534422
+            },
+            "TernaryCSC_unrolled_tiled_8x8x8": {
+                "cycles": 817316.0,
+                "fpc": 1.28796
+            }
+        }
+    },
+    {
+        "test_case": {
+            "M": 1,
+            "K": 2048,
+            "N": 8192,
+            "s": 4
+        },
+        "results": {
+            "BaseCSC_naive": {
+                "cycles": 9506220.0,
+                "fpc": 0.442078
+            },
+            "BaseCSC_unrolled_8": {
+                "cycles": 2574000.0,
+                "fpc": 1.63267
+            },
+            "BaseCSR_naive": {
+                "cycles": 4432470.0,
+                "fpc": 0.948116
+            },
+            "BaseCSR_unrolled_8": {
+                "cycles": 3341040.0,
+                "fpc": 1.25784
+            },
+            "CompressedCSC_naive": {
+                "cycles": 8809630.0,
+                "fpc": 0.477034
+            },
+            "TernaryCSR_naive": {
+                "cycles": 4423970.0,
+                "fpc": 0.949937
+            },
+            "TernaryCSR_unrolled_tiled_8x8": {
+                "cycles": 3636080.0,
+                "fpc": 1.15578
+            },
+            "TernaryCSC_naive": {
+                "cycles": 9405440.0,
+                "fpc": 0.446815
+            },
+            "TernaryCSC_unrolled_tiled_8x8x8": {
+                "cycles": 3283600.0,
+                "fpc": 1.27984
+            }
+        }
+    },
+    {
+        "test_case": {
+            "M": 1,
+            "K": 4096,
+            "N": 16384,
+            "s": 4
+        },
+        "results": {
+            "BaseCSC_naive": {
+                "cycles": 41467700.0,
+                "fpc": 0.40498
+            },
+            "BaseCSC_unrolled_8": {
+                "cycles": 9894880.0,
+                "fpc": 1.6972
+            },
+            "BaseCSR_naive": {
+                "cycles": 17475700.0,
+                "fpc": 0.960968
+            },
+            "BaseCSR_unrolled_8": {
+                "cycles": 13272800.0,
+                "fpc": 1.26526
+            },
+            "CompressedCSC_naive": {
+                "cycles": 36306600.0,
+                "fpc": 0.46255
+            },
+            "TernaryCSR_naive": {
+                "cycles": 17376400.0,
+                "fpc": 0.96646
+            },
+            "TernaryCSR_unrolled_tiled_8x8": {
+                "cycles": 14229300.0,
+                "fpc": 1.18021
+            },
+            "TernaryCSC_naive": {
+                "cycles": 40664300.0,
+                "fpc": 0.412981
+            },
+            "TernaryCSC_unrolled_tiled_8x8x8": {
+                "cycles": 12773000.0,
+                "fpc": 1.31478
+            }
+        }
+    },
+    {
+        "test_case": {
+            "M": 256,
+            "K": 512,
+            "N": 2048,
+            "s": 4
+        },
+        "results": {
+            "BaseCSC_naive": {
+                "cycles": 110352000.0,
+                "fpc": 0.612885
+            },
+            "BaseCSC_unrolled_8": {
+                "cycles": 38449700.0,
+                "fpc": 1.759
+            },
+            "BaseCSR_naive": {
+                "cycles": 79956700.0,
+                "fpc": 0.845873
+            },
+            "BaseCSR_unrolled_8": {
+                "cycles": 53282900.0,
+                "fpc": 1.26932
+            },
+            "CompressedCSC_naive": {
+                "cycles": 120510000.0,
+                "fpc": 0.561223
+            },
+            "TernaryCSR_naive": {
+                "cycles": 78766100.0,
+                "fpc": 0.858658
+            },
+            "TernaryCSR_unrolled_tiled_8x8": {
+                "cycles": 58436600.0,
+                "fpc": 1.15738
+            },
+            "TernaryCSC_naive": {
+                "cycles": 109296000.0,
+                "fpc": 0.618807
+            },
+            "TernaryCSC_unrolled_tiled_8x8x8": {
+                "cycles": 47904200.0,
+                "fpc": 1.41184
+            }
+        }
+    },
+    {
+        "test_case": {
+            "M": 256,
+            "K": 1024,
+            "N": 4096,
+            "s": 4
+        },
+        "results": {
+            "BaseCSC_naive": {
+                "cycles": 511696000.0,
+                "fpc": 0.526649
+            },
+            "BaseCSC_unrolled_8": {
+                "cycles": 158389000.0,
+                "fpc": 1.7014
+            },
+            "BaseCSR_naive": {
+                "cycles": 295418000.0,
+                "fpc": 0.912212
+            },
+            "BaseCSR_unrolled_8": {
+                "cycles": 221650000.0,
+                "fpc": 1.21581
+            },
+            "CompressedCSC_naive": {
+                "cycles": 532754000.0,
+                "fpc": 0.505832
+            },
+            "TernaryCSR_naive": {
+                "cycles": 295190000.0,
+                "fpc": 0.912919
+            },
+            "TernaryCSR_unrolled_tiled_8x8": {
+                "cycles": 236522000.0,
+                "fpc": 1.13936
+            },
+            "TernaryCSC_naive": {
+                "cycles": 507580000.0,
+                "fpc": 0.53092
+            },
+            "TernaryCSC_unrolled_tiled_8x8x8": {
+                "cycles": 192313000.0,
+                "fpc": 1.40128
+            }
+        }
+    },
+    {
+        "test_case": {
+            "M": 256,
+            "K": 2048,
+            "N": 8192,
+            "s": 4
+        },
+        "results": {
+            "BaseCSC_naive": {
+                "cycles": 2434010000.0,
+                "fpc": 0.442003
+            },
+            "BaseCSC_unrolled_8": {
+                "cycles": 656145000.0,
+                "fpc": 1.63964
+            },
+            "BaseCSR_naive": {
+                "cycles": 1133620000.0,
+                "fpc": 0.94903
+            },
+            "BaseCSR_unrolled_8": {
+                "cycles": 858058000.0,
+                "fpc": 1.25381
+            },
+            "CompressedCSC_naive": {
+                "cycles": 2274930000.0,
+                "fpc": 0.472912
+            },
+            "TernaryCSR_naive": {
+                "cycles": 1132080000.0,
+                "fpc": 0.950324
+            },
+            "TernaryCSR_unrolled_tiled_8x8": {
+                "cycles": 927944000.0,
+                "fpc": 1.15938
+            },
+            "TernaryCSC_naive": {
+                "cycles": 2409060000.0,
+                "fpc": 0.44658
+            },
+            "TernaryCSC_unrolled_tiled_8x8x8": {
+                "cycles": 777687000.0,
+                "fpc": 1.38338
+            }
+        }
+    },
+    {
+        "test_case": {
+            "M": 256,
+            "K": 4096,
+            "N": 16384,
+            "s": 4
+        },
+        "results": {
+            "BaseCSC_naive": {
+                "cycles": 10624200000.0,
+                "fpc": 0.404658
+            },
+            "BaseCSC_unrolled_8": {
+                "cycles": 2537690000.0,
+                "fpc": 1.69412
+            },
+            "BaseCSR_naive": {
+                "cycles": 4458610000.0,
+                "fpc": 0.964238
+            },
+            "BaseCSR_unrolled_8": {
+                "cycles": 3386340000.0,
+                "fpc": 1.26956
+            },
+            "CompressedCSC_naive": {
+                "cycles": 9305380000.0,
+                "fpc": 0.462008
+            },
+            "TernaryCSR_naive": {
+                "cycles": 4444910000.0,
+                "fpc": 0.967211
+            },
+            "TernaryCSR_unrolled_tiled_8x8": {
+                "cycles": 3640860000.0,
+                "fpc": 1.18081
+            },
+            "TernaryCSC_naive": {
+                "cycles": 10442700000.0,
+                "fpc": 0.41169
+            },
+            "TernaryCSC_unrolled_tiled_8x8x8": {
+                "cycles": 3229330000.0,
+                "fpc": 1.33129
+            }
+        }
+    }
+]
