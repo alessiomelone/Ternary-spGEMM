@@ -1,89 +1,82 @@
 #pragma once
 #include <vector>
 #include <iostream>
-#include <utility> // For std::pair
-#include <numeric> // For std::iota, std::fill
-
-#include "DataStructureInterface.hpp" // Assuming you want it to conform
+#include <utility>
+#include <algorithm>
+#include "DataStructureInterface.hpp"
 
 class TCSCMatrix : public DataStructureInterface
 {
 public:
   int num_matrix_rows;
   int num_matrix_cols;
-  std::vector<int> col_offsets;  // Size: num_matrix_cols + 1. Start index in encoded_rows for each col.
-  std::vector<int> encoded_rows; // Stores encoded row_index (value is +/-1).
+  std::vector<int> col_offsets;
+  std::vector<int> encoded_rows;
+  std::vector<int> col_pos_counts;
 
   TCSCMatrix() : num_matrix_rows(0), num_matrix_cols(0) {}
-  TCSCMatrix(const int *W_raw, int K_rows, int N_cols)
+  TCSCMatrix(const int *W_raw, int K, int N) { init(W_raw, K, N); }
+
+  static int tcsc_encode_row(int r, int val)
   {
-    init(W_raw, K_rows, N_cols);
+    return val == 1 ? r : ~r;
   }
 
-  // Encodes a plain row index and its sign (+1 or -1)
-  static int tcsc_encode_row(int row_idx, int val)
-  {
-    // Assumes row_idx >= 0
-    if (val == 1)
-      return row_idx;
-
-    return ~row_idx;
-  }
-
-  // Decodes an encoded row index back to original row and its sign
   static std::pair<int, int> tcsc_decode_row(int encoded_r)
   {
-    if (encoded_r < 0)
-    {
-      return {-encoded_r - 1, -1}; // Original row, value -1
-    }
-    return {encoded_r, 1}; // Original row, value 1
+    return encoded_r < 0 ? std::make_pair(-encoded_r - 1, -1) : std::make_pair(encoded_r, 1);
   }
 
   void init(const int *matrix, int rows, int cols) override
   {
     num_matrix_rows = rows;
     num_matrix_cols = cols;
-
-    col_offsets.assign(num_matrix_cols + 1, 0);
+    col_offsets.assign(cols + 1, 0);
+    col_pos_counts.assign(cols, 0);
     encoded_rows.clear();
 
-    int current_nnz_count = 0;
-    for (int c = 0; c < num_matrix_cols; ++c)
-    { // Iterate column by column
-      col_offsets[c] = current_nnz_count;
-      for (int r = 0; r < num_matrix_rows; ++r)
+    std::vector<int> pos, neg;
+    int current_total = 0;
+
+    for (int c = 0; c < cols; ++c)
+    {
+      col_offsets[c] = current_total;
+      pos.clear();
+      neg.clear();
+
+      for (int r = 0; r < rows; ++r)
       {
-        int val = matrix[r * num_matrix_cols + c];
-        if (val == 1 || val == -1)
-        {
-          encoded_rows.push_back(tcsc_encode_row(r, val));
-          current_nnz_count++;
-        }
+        int val = matrix[r * cols + c];
+        if (val == 1)
+          pos.push_back(r);
+        else if (val == -1)
+          neg.push_back(tcsc_encode_row(r, val));
       }
+
+      col_pos_counts[c] = pos.size();
+      encoded_rows.insert(encoded_rows.end(), pos.begin(), pos.end());
+      encoded_rows.insert(encoded_rows.end(), neg.begin(), neg.end());
+      current_total += pos.size() + neg.size();
     }
-    col_offsets[num_matrix_cols] = current_nnz_count;
+    col_offsets[cols] = current_total;
   }
 
-  std::vector<int> getVectorRepresentation(size_t expected_rows, size_t expected_cols) override
+  std::vector<int> getVectorRepresentation(size_t, size_t) override
   {
     std::vector<int> M(num_matrix_rows * num_matrix_cols, 0);
-    if (num_matrix_rows == 0 || num_matrix_cols == 0)
-      return M;
 
     for (int c = 0; c < num_matrix_cols; ++c)
-    { // Iterate columns
-      int start_offset = col_offsets[c];
-      int end_offset = col_offsets[c + 1];
-      for (int i = start_offset; i < end_offset; ++i)
+    {
+      int offset = col_offsets[c];
+      int pos = col_pos_counts[c];
+
+      for (int i = 0; i < pos; ++i)
+        M[encoded_rows[offset + i] * num_matrix_cols + c] = 1;
+
+      for (int i = pos; i < col_offsets[c + 1] - offset; ++i)
       {
-        std::pair<int, int> decoded = tcsc_decode_row(encoded_rows[i]);
-        int r = decoded.first;
-        int val = decoded.second;
-        if (r >= 0 && r < num_matrix_rows)
-        {
-          M[r * num_matrix_cols + c] = val; // M[r][c] = val
-        }
+        auto [r, val] = tcsc_decode_row(encoded_rows[offset + i]);
+        M[r * num_matrix_cols + c] = val;
       }
     }
     return M;
@@ -92,20 +85,18 @@ public:
   int getNumRows() const { return num_matrix_rows; }
   int getNumCols() const { return num_matrix_cols; }
 
-  // For debugging
   void printVars() override
   {
-    std::cout << "\nTCSCMatrix (" << num_matrix_rows << "x" << num_matrix_cols << "):" << std::endl;
-    std::cout << "col_offsets (" << col_offsets.size() << "): ";
-    for (int off : col_offsets)
-      std::cout << off << " ";
-    std::cout << std::endl;
-    std::cout << "encoded_rows (" << encoded_rows.size() << "): ";
+    std::cout << "\nTCSCMatrix (" << num_matrix_rows << "x" << num_matrix_cols << "):\n";
+    std::cout << "col_offsets: ";
+    for (int o : col_offsets)
+      std::cout << o << " ";
+    std::cout << "\ncol_pos_counts: ";
+    for (int c : col_pos_counts)
+      std::cout << c << " ";
+    std::cout << "\nencoded_rows: ";
     for (int er : encoded_rows)
-    {
-      auto dec = tcsc_decode_row(er);
-      std::cout << er << "->(" << dec.first << "," << dec.second << ") ";
-    }
-    std::cout << std::endl;
+      std::cout << er << " ";
+    std::cout << "\n";
   }
 };

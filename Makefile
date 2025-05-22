@@ -1,6 +1,6 @@
 # Compiler and flags
 CXX = g++
-CXXFLAGS = -O2 -march=native -mtune=native -fstrict-aliasing -DNDEBUG -DPMU
+CXXFLAGS = -std=c++17 -O2 -march=native -mtune=native -fstrict-aliasing -DNDEBUG -DPMU
 LDFLAGS =
 
 # Source files and output
