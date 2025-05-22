@@ -7,7 +7,7 @@ LDFLAGS =
 SRCS = cpp_impl/main.cpp \
        cpp_impl/perf.cpp
 
-TARGET = sparseGEMM
+TARGET = sparseGEMM.out
 
 # Default rule: build the target
 all: $(TARGET)

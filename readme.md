@@ -17,7 +17,7 @@ This will create an executable named `sparseGEMM` in the root directory.
 
 To run the compiled program (example):
 ```bash
-./sparseGEMM -M 32 -K 1024 -N 4096 -s 4
+sudo ./sparseGEMM.out -M 32 -K 1024 -N 4096 -s 4
 ```
 
 ### Registering New Functions
