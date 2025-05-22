@@ -1,244 +1,130 @@
-
+/* 
+ *  Compile: 
+ *  $ g++ -O3 -DPMU -DNDEBUG -march=native -mtune=native -fstrict-aliasing  cpp_impl/main.cpp cpp_impl/comp.cpp cpp_impl/perf.cpp cpp_impl/data_structures/RSR/naive.cpp cpp_impl/data_structures/RSR/rsr*.cpp cpp_impl/data_structures/RSR/utils.cpp -o cpp_impl/SparseGEMM.out
+ *  Run (K must equal N!!):
+ *  $ sudo ./cpp_impl/SparseGEMM.out -M 128 -K 2048 -N 2048 -s 2
+ */
 #include <iostream>
 #include <vector>
 #include <cmath>
 #include <algorithm>
+#include <assert.h>
 #include "naive.h"
 #include "rsr.h"
 #include "rsrpp.h"
 #include "utils.h"
 #include "rsr_driver.h"
 
+
 using namespace std;
 
 static pair<vector<vector<int>>,vector<vector<int>>> convertSparseToTwoBinaryMatrices(vector<int> W_raw, int K, int N);
-static vector<vector<int>> generateBinaryMatrix2(int k);
+static vector<int> calc_indices(const vector<vector<int>>& permutations, const vector<vector<int>>& segments, int k);
 
-static void print_vector_of_ints(vector<int> &a) {
-    for (int i = 0; i < a.size(); i++)
-        cout << a[i] << ",";
-    cout << "EOV" << endl;
-}
-
-#if 1
-void MMPlusB(float *X_arg, RSR& rsr, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg) {
-    int n = rsr.n;
-    int perm_size = rsr.permutations_size;
-    auto& bin_k = rsr.bin_k;
-    auto& seg_size = rsr.seg_size;
-    int k = rsr.k;
-    auto& indices_Bplus = rsr.indices_Bplus;
-    auto& indices_Bminus = rsr.indices_Bminus;
-    auto& sz_and_idx = rsr.size_and_index;
-    for (int row = 0; row < M_arg; row++) {
-        float *v = X_arg + row * K_arg;
-        float *res = Y_arg + row * N_arg;
-        int index = 0, index1 = 0;
-        int sz_and_idx_index = 0;
-        for (int i = 0; i < perm_size; i++) {
-            for (int j = 0; j < seg_size; j++) {
-                float acc = 0;
-                int plus_size = sz_and_idx[sz_and_idx_index++];
-                for (int p = 0; p < plus_size; p++) {
-                    acc += v[sz_and_idx[sz_and_idx_index++]];
-                }
-                int minus_size = sz_and_idx[sz_and_idx_index++];
-                for (int p = 0; p < minus_size; p++) {
-                    acc -= v[sz_and_idx[sz_and_idx_index++]];
-                }
-                if (acc != 0) {
-                    for (int l=0; l < k; l++) {
-                        res[i*k + l] += acc * bin_k[j][l];
-                    }
-                }
-
-                // auto& local_indices = indices_Bplus[index++];
-                // auto& local_indices_min = indices_Bminus[index1++];
-
-                // int lisz = local_indices.size();
-                // int lisz_min = local_indices_min.size();
-                // if (lisz + lisz_min != 0) {
-                //     float acc = 0.0;
-                //     for (int l = 0; l < lisz; l++) {
-                //         acc += v[local_indices[l]];
-                //     }
-                //     for (int l = 0; l < lisz_min; l++) {
-                //         acc -= v[local_indices_min[l]];
-                //     }
-                //     for (int l=0; l < k; l++) {
-                //         res[i*k + l] += acc * bin_k[j][l];
-                //     }
-                // }
-            }
-        }
-
-        for (int i = 0; i < n; i++) {
-            res[i] += B_arg[i];
-        }
-    }
-}
-#else
-void MMPlusB(float *X_arg, RSR& rsr, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg) {
-    int n = rsr.n;
-    int perm_size = rsr.permutations_size;
-    auto& bin_k = rsr.bin_k;
-    auto& seg_size = rsr.seg_size;
-    int k = rsr.k;
-    auto& indices_Bplus = rsr.indices_Bplus;
-    auto& indices_Bminus = rsr.indices_Bminus;
-    for (int row = 0; row < M_arg; row++) {
-        float *v = X_arg + row * K_arg;
-        float *res = Y_arg + row * N_arg;
-        int index = 0, index1 = 0;
-        for (int i = 0; i < perm_size; i++) {
-            for (int j = 0; j < seg_size; j++) {
-                auto& local_indices = indices_Bplus[index++];
-                auto& local_indices_min = indices_Bminus[index1++];
-
-                int lisz = local_indices.size();
-                int lisz_min = local_indices_min.size();
-                if (lisz + lisz_min != 0) {
-                    float acc = 0.0;
-                    for (int l = 0; l < lisz; l++) {
-                        acc += v[local_indices[l]];
-                    }
-                    for (int l = 0; l < lisz_min; l++) {
-                        acc -= v[local_indices_min[l]];
-                    }
-                    for (int l=0; l < k; l++) {
-                        res[i*k + l] += acc * bin_k[j][l];
-                    }
-                }
-            }
-        }
-
-        for (int i = 0; i < n; i++) {
-            res[i] += B_arg[i];
-        }
-    }
-}
-#endif
+// X: MxK
+// W: KxN
 RSR::RSR(vector<int> W_raw, int K, int N) {
-    int n = K; // > N ? K : N; // TODO : Experiment with that
-    int k = static_cast<int>(ceil(log2(n) - log2(log2(n))));
+    int val_k = (int) (ceil(log2(K) - log2(log2(K))));  // TODO: Experiment with value of k
+    this->k = val_k;
+
     auto pr = convertSparseToTwoBinaryMatrices(W_raw, K, N);
-    auto pre_Bminus = preprocess(pr.first, k);
-    auto pre_Bplus = preprocess(pr.second, k);
-    this->bin_k = generateBinaryMatrix2(k);
-    this->k = k;
-    this->n = pre_Bminus.first[0].size();
-    this->seg_size = pre_Bminus.second[0].size();
-    this->permutations_size = pre_Bminus.first.size();
-    
-    auto& permutations = pre_Bminus.first;
-    auto& segments = pre_Bminus.second;
-    vector<int> sizes_Bminus(segments.size());
-    int sum_minus = 0;
-    // vector<vector<int>> start_end_idx(permutations.size(), vector<int>(2 * segments.size()));
-    for (int i = 0; i < permutations.size(); i++) {
-        auto& segment = segments[i];
-        auto& permutation = permutations[i];
-        int start, end;
-        // Each block
-        for (int j = 0; j < segment.size(); j++) {
-            start = segment[j];
-            if (j < segment.size() - 1) {
-                end = segment[j + 1];
-            } else {
-                end = n;
-            }
-            // Segmented sum
-            int id = end - start;
-            vector<int> local_indices(id > 0 ? id : 0);
-            int k = 0;
-            for (int index = start; index < end; index++) {
-                local_indices[k++] = permutation[index];
-            }
-            this->indices_Bminus.push_back(local_indices);
-            sizes_Bminus.push_back(k);
-            sum_minus += k;
-        }
-    }
-    permutations = pre_Bplus.first;
-    segments = pre_Bplus.second;
-    int sum_plus = 0;
-    vector<int> sizes_Bplus(segments.size());
-    // vector<vector<int>> start_end_idx(permutations.size(), vector<int>(2 * segments.size()));
-    for (int i = 0; i < permutations.size(); i++) {
-        auto& segment = segments[i];
-        auto& permutation = permutations[i];
-        int start, end;
-        // Each block
-        for (int j = 0; j < segment.size(); j++) {
-            start = segment[j];
-            if (j < segment.size() - 1) {
-                end = segment[j + 1];
-            } else {
-                end = n;
-            }
-            // Segmented sum
-            int id = end - start;
-            vector<int> local_indices(id > 0 ? id : 0);
-            int k = 0;
-            for (int index = start; index < end; index++) {
-                local_indices[k++] = permutation[index];
-            }
-            this->indices_Bplus.push_back(local_indices);
-            sizes_Bplus.push_back(k);
-            sum_plus += k;
-        }
-    }
+    auto Bminus = preprocess(pr.first, k);
+    auto Bplus = preprocess(pr.second, k);
 
-    int max_size = sizes_Bminus.size() + sizes_Bplus.size() + sum_plus + sum_minus;
-    vector<int> sz_and_idx(max_size);
-    int i = 0;
-    int idx_minus_ctr = 0, idx_plus_ctr = 0;
-    int siz_minus_ctr = 0, siz_plus_ctr = 0;
-    while (i < max_size) {
-        int sz_Bplus = sizes_Bplus[siz_plus_ctr++];
-        auto& idx_Bplus = this->indices_Bplus[idx_plus_ctr++];
-        sz_and_idx[i++] = sz_Bplus;
-        for (int j = 0; j < sz_Bplus; j++) {
-            sz_and_idx[i++] = idx_Bplus[j];
-        }
-        int sz_Bminus = sizes_Bminus[siz_minus_ctr++];
-        auto& idx_Bminus = this->indices_Bminus[idx_minus_ctr++];
-        sz_and_idx[i++] = sz_Bminus;
-        for (int j = 0; j < sz_Bminus; j++) {
-            sz_and_idx[i++] = idx_Bminus[j];
-        }
-
-        if (idx_minus_ctr > this->indices_Bminus.size() ||
-            idx_plus_ctr > this->indices_Bplus.size()   ||
-            siz_plus_ctr > sizes_Bplus.size()           ||
-            siz_minus_ctr > sizes_Bminus.size())
-        { break; }
-    }
-
-    cout << "\n\n [*] Printing sizes_Bplus vector:\n\n" << endl; 
-    print_vector_of_ints(sizes_Bplus);
-    cout << "\n\n [*] Printing indices_Bplus vectors:\n\n" << endl; 
-    for (int i = 0; i < this->indices_Bplus.size(); i++)
-    {
-        cout << " -- Vector " << endl;
-        print_vector_of_ints(this->indices_Bplus[i]);
+    auto Bmin_ind2_vec = calc_indices(Bminus.first, Bminus.second, k);
+    auto Bplu_ind2_vec = calc_indices(Bplus.first, Bplus.second, k);
+    int elements = Bmin_ind2_vec.size();
+    this->Bmin_ind2 = (int *) malloc(elements * sizeof(int));
+    for (int i = 0; i < elements; i++) {
+        this->Bmin_ind2[i] = Bmin_ind2_vec[i];
     }
     
-    cout << "\n\n [*] Printing sizes_Bminus vector:\n\n" << endl; 
-    print_vector_of_ints(sizes_Bminus);
-    cout << "\n\n [*] Printing indices_Bminus vectors:\n\n" << endl; 
-    for (int i = 0; i < this->indices_Bminus.size(); i++)
-    {
-        cout << " -- Vector " << endl;
-        print_vector_of_ints(this->indices_Bminus[i]);
+    elements = Bplu_ind2_vec.size();
+    this->Bplu_ind2 = (int *) malloc(elements * sizeof(int));
+    for (int i = 0; i < elements; i++) {
+        this->Bplu_ind2[i] = Bplu_ind2_vec[i];
     }
 
-
-    this->size_and_index = sz_and_idx;
-    cout << "\n\n [*] Printing size_and_index vector:\n\n" << endl; 
-    print_vector_of_ints(sz_and_idx);
-    this->powK = pow(2, k);
+    this->perm0_size = Bminus.first[0].size();
+    this->ssize = Bminus.second[0].size();
+    this->perm_size = Bminus.first.size();
+    
+    int us_buf_size = (int) pow(2, k);
+    this->us_buf_size_f = us_buf_size * sizeof(float);
+    this->us_buf = (float *) calloc(us_buf_size, sizeof(float));
+    this->result = (float *) malloc(perm0_size * sizeof(float));
 }
+
+RSR::~RSR() {
+    free(us_buf);
+    free(result);
+    free(Bmin_ind2);
+    free(Bplu_ind2);
+}
+
+void MMPlusB(float *X_arg, RSR& rsr, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg) {
+    int k = rsr.k;
+    auto Bmin_ind = rsr.Bmin_ind2;
+    auto Bplu_ind = rsr.Bplu_ind2;
+    int perm0_size = rsr.perm0_size;
+    int ssize = rsr.ssize;
+    int perm_size = rsr.perm_size;
+    float *us_buf = rsr.us_buf;
+    float *result = rsr.result;
+    int us_buf_size_f = rsr.us_buf_size_f;
+    int init_j0 = pow(2, k);
+    int init_j2 = init_j0 >> 1;
+
+    for (int row = 0; row < M_arg; row++) {
+        float *v = X_arg + row * K_arg;
+        float *res = Y_arg + row * N_arg;
+
+        int indices_plu_idx = 0, indices_min_idx = 0;
+        for (int i = 0; i < perm_size; i++) {
+            for (int j = 0; j < ssize; j++) {
+                float acc = 0;
+                int len = Bplu_ind[indices_plu_idx++];
+                for (int l = 0; l < len; l++) {
+                    acc += v[Bplu_ind[indices_plu_idx++]];
+                }
+                len = Bmin_ind[indices_min_idx++];
+                for (int l = 0; l < len; l++) {
+                    acc -= v[Bmin_ind[indices_min_idx++]];
+                }
+                us_buf[j] = acc;
+            }
+
+            int sum;
+            int init_max_j = init_j0;
+            int init_max_j_2 = init_j2;
+            for (int r = k; r > 0; r--) {
+                sum = 0;
+                for (int j = 1; j < init_max_j; j += 2) {
+                    sum += us_buf[j];
+                }
+                
+                res[i * k + r - 1] += sum;
+                for (int j = 0; j < init_max_j_2; j++) {
+                    us_buf[j] = us_buf[j * 2] + us_buf[j * 2 + 1];
+                }
+                init_max_j >>= 1;
+                init_max_j_2 >>= 1;
+            }
+        }
+
+        for (int i = 0; i < N_arg; i+=8) {
+            res[i] += B_arg[i];
+            res[i+1] += B_arg[i+1];
+            res[i+2] += B_arg[i+2];
+            res[i+3] += B_arg[i+3];
+            res[i+4] += B_arg[i+4];
+            res[i+5] += B_arg[i+5];
+            res[i+6] += B_arg[i+6];
+            res[i+7] += B_arg[i+7];
+        }
+    }
+}
+
 
 static pair<vector<vector<int>>,vector<vector<int>>> convertSparseToTwoBinaryMatrices(vector<int> W_raw, int K, int N) {
     vector<vector<int>> Bminus(K, vector<int>(N));
@@ -263,16 +149,34 @@ static pair<vector<vector<int>>,vector<vector<int>>> convertSparseToTwoBinaryMat
     return make_pair(Bminus, Bplus);
 }
 
-static vector<vector<int>> generateBinaryMatrix2(int k) {
-    int rows = pow(2, k);  // 2^k rows
-    vector<vector<int>> matrix(rows, vector<int>(k, 0));  // Initialize matrix with 0s
+static vector<int> calc_indices(const vector<vector<int>>& permutations, const vector<vector<int>>& segments, int k) {
+    int n = permutations[0].size();
+    vector<int> res;
 
-    for (int i = 0; i < rows; ++i) {
-        for (int j = 0; j < k; ++j) {
-            // Generate the binary value for each position
-            matrix[i][k - j - 1] = (i >> j) & 1;  // Extract the j-th bit from i
+    int start;
+    int end;
+    vector<int> segment;
+    vector<int> permutation;
+    for (int i = 0; i < permutations.size(); i++) {
+        segment = segments[i];
+        permutation = permutations[i];
+
+        // Each block
+        for (int j = 0; j < segment.size(); j++) {
+            start = segment[j];
+            if (j < segment.size() - 1) {
+                end = segment[j + 1];
+            } else {
+                end = n;
+            }
+            // Segmented sum
+            int length = (end - start) >= 0 ? (end - start) : 0;
+            vector<int> sequence(length);
+            res.push_back( length );
+            for (int index = start; index < end; index++) {
+                res.push_back( permutation[index] );
+            }
         }
     }
-
-    return matrix;
+    return res;
 }
