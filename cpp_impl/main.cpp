@@ -40,23 +40,38 @@ int main(int argc, char **argv)
     auto sf_csc = std::make_shared<BaseTCSC>(W_raw.data(), K, N);
     auto sf_csr = std::make_shared<BaseTCSR>(W_raw.data(), K, N);
     auto sf_ccsc = std::make_shared<CompressedCSC>(W_raw.data(), K, N);
-    auto sf_tcsr = std::make_shared<TCSRMatrix>(W_raw.data(), K, N);
-    auto sf_tcsc = std::make_shared<TCSCMatrix>(W_raw.data(), K, N);
+    auto sf_tcsr = std::make_shared<CompressedTCSR>(W_raw.data(), K, N);
+    auto sf_tcsc = std::make_shared<CompressedTCSC>(W_raw.data(), K, N);
 
     // Register functions using the shared instances
 
     add_function(
         [sf_csc](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
         {
-            CSC_base<float>(X_arg, *sf_csc, B_arg, Y_arg, M_arg, N_arg, K_arg);
+            BaseCSC<float>(X_arg, *sf_csc, B_arg, Y_arg, M_arg, N_arg, K_arg);
         },
-        "CSC_base");
-    // add_function(
-    //     [sf_ccsc](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
-    //     {
-    //         CCSC_base<float>(X_arg, *sf_ccsc, B_arg, Y_arg, M_arg, N_arg, K_arg);
-    //     },
-    //     "CSC_base_testing");
+        "BaseCSC");
+
+    add_function(
+        [sf_csc](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
+        {
+            BaseCSC_unr<float, 8>(X_arg, *sf_csc, B_arg, Y_arg, M_arg, N_arg, K_arg);
+        },
+        "BaseCSC_unr-8");
+
+    add_function(
+        [sf_csr](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
+        {
+            BaseCSR<float>(X_arg, *sf_csr, B_arg, Y_arg, M_arg, N_arg, K_arg);
+        },
+        "BaseCSR");
+
+    add_function(
+        [sf_csr](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
+        {
+            BaseCSR_unr<float, 8>(X_arg, *sf_csr, B_arg, Y_arg, M_arg, N_arg, K_arg);
+        },
+        "BaseCSR_unr-8");
 
     add_function(
         [sf_ccsc](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
@@ -77,7 +92,7 @@ int main(int argc, char **argv)
         {
             TCSR_unrolled_tiled<float, 8, 8>(X_arg, *sf_tcsr, B_arg, Y_arg, M_arg, N_arg, K_arg);
         },
-        "TCSR_unrolled_tiled-12-4-4");
+        "TCSR_unrolled_tiled-8-8");
 
     add_function(
         [sf_tcsc](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
@@ -86,19 +101,12 @@ int main(int argc, char **argv)
         },
         "TCSC_base");
 
-    // add_function(
-    //     [sf_tcsc](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
-    //     {
-    //         TCSC_unrolled<float, 12>(X_arg, *sf_tcsc, B_arg, Y_arg, M_arg, N_arg, K_arg);
-    //     },
-    //     "TCSC_unrolled-12");
-
     add_function(
         [sf_tcsc](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
         {
-            TCSC_unrolled_tiled<float, 12, 8, 8>(X_arg, *sf_tcsc, B_arg, Y_arg, M_arg, N_arg, K_arg);
+            TCSC_unrolled_tiled<float, 8, 8, 8>(X_arg, *sf_tcsc, B_arg, Y_arg, M_arg, N_arg, K_arg);
         },
-        "TCSC_unrolled_tiled-12-16-16");
+        "TCSC_unrolled_tiled-8-8-8");
 
     if (numFuncs == 0)
     {
@@ -121,12 +129,11 @@ int main(int argc, char **argv)
     {
         fill(Y_main.begin(), Y_main.end(), 0);
 
-        comp_func func = userFuncs[i_loop]; // func is std::function
+        comp_func func = userFuncs[i_loop];
 
-        Y_main.insert(Y_main.end(), 10, 0); // extend Y so we can modify unused pad values without bounds checking
-        X_main.insert(X_main.end(), 10, 0); // extend Y so we can modify unused pad values without bounds checking
+        Y_main.insert(Y_main.end(), 10, 0);
+        X_main.insert(X_main.end(), 10, 0);
 
-        // Call the std::function directly. Sparse data is captured in the lambda.
         func(X_main.data(), B_main.data(), Y_main.data(), M, N, K);
 
         Y_main.resize(Y_main.size() - 10);

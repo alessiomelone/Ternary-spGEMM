@@ -29,11 +29,11 @@
 
 // --- Prototypes for implementations defined & explicitly instantiated in comp.cpp ---
 template <typename T>
-void CSC_base(T *X, const BaseTCSC &W_csc, T *b, T *Y, int M, int N, int K);
+void BaseCSC(T *X, const BaseTCSC &W_csc, T *b, T *Y, int M, int N, int K);
 template <typename T>
 void CCSC_base(T *X, const CompressedCSC &W_csc, T *b, T *Y, int M, int N, int K);
 template <typename T, int UNROLL_FACTOR>
-void CSC_unrolled(T *X, const BaseTCSC &W_csc, T *b, T *Y, int M, int N, int K);
+void BaseCSC_unr(T *X, const BaseTCSC &W_csc, T *b, T *Y, int M, int N, int K);
 // -------------------------------------------------------------------------------
 
 using comp_func = std::function<void(float *, float *, float *, int, int, int)>;

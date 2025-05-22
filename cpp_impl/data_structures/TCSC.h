@@ -5,7 +5,7 @@
 #include <algorithm>
 #include "DataStructureInterface.hpp"
 
-class TCSCMatrix : public DataStructureInterface
+class CompressedTCSC : public DataStructureInterface
 {
 public:
   int num_matrix_rows;
@@ -14,8 +14,8 @@ public:
   std::vector<int> encoded_rows;
   std::vector<int> col_pos_counts;
 
-  TCSCMatrix() : num_matrix_rows(0), num_matrix_cols(0) {}
-  TCSCMatrix(const int *W_raw, int K, int N) { init(W_raw, K, N); }
+  CompressedTCSC() : num_matrix_rows(0), num_matrix_cols(0) {}
+  CompressedTCSC(const int *W_raw, int K, int N) { init(W_raw, K, N); }
 
   static int tcsc_encode_row(int r, int val)
   {
