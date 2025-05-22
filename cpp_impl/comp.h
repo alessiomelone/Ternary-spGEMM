@@ -65,7 +65,7 @@ void CCSC_base(T *X, const CompressedCSC &W, T *b, T *Y, int M, int N, int K)
 }
 
 template <typename T>
-void TCSR_base(T *X, const CompressedTCSR &W, T *b, T *Y, int M, int N, int K)
+void TCSR(T *X, const CompressedTCSR &W, T *b, T *Y, int M, int N, int K)
 {
     const int *row_offsets = W.row_offsets.data();
     const int *encoded_cols = W.encoded_cols.data();
@@ -177,7 +177,7 @@ void TCSR_unrolled_tiled(T *X, const CompressedTCSR &W, T *b, T *Y, int M, int N
 }
 
 template <typename T>
-void TCSC_base(T *X, const CompressedTCSC &W, T *b, T *Y, int M, int N, int K)
+void TCSC(T *X, const CompressedTCSC &W, T *b, T *Y, int M, int N, int K)
 {
     const int *col_offsets = W.col_offsets.data();
     const int *encoded_rows = W.encoded_rows.data();
