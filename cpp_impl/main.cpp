@@ -50,61 +50,82 @@ int main(int argc, char **argv)
 
     // Register functions using the shared instances
 
-    add_function(
-        [sf_csc](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
-        {
-            BaseCSC<float>(X_arg, *sf_csc, B_arg, Y_arg, M_arg, N_arg, K_arg);
-        },
-        "BaseCSC_naive");
+    // add_function(
+    //     [sf_csc](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
+    //     {
+    //         BaseCSC<float>(X_arg, *sf_csc, B_arg, Y_arg, M_arg, N_arg, K_arg);
+    //     },
+    //     "BaseCSC_naive");
+
+    // add_function(
+    //     [sf_csc](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
+    //     {
+    //         BaseCSC_unr<float, 8>(X_arg, *sf_csc, B_arg, Y_arg, M_arg, N_arg, K_arg);
+    //     },
+    //     "BaseCSC_unrolled_8");
 
     add_function(
         [sf_csc](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
         {
-            BaseCSC_unr<float, 8>(X_arg, *sf_csc, B_arg, Y_arg, M_arg, N_arg, K_arg);
+            BaseCSC_unr<float, 16>(X_arg, *sf_csc, B_arg, Y_arg, M_arg, N_arg, K_arg);
         },
-        "BaseCSC_unrolled_8");
+        "BaseCSC_unrolled_16");
 
     add_function(
-        [sf_csr](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
+        [sf_csc](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
         {
-            BaseCSR<float>(X_arg, *sf_csr, B_arg, Y_arg, M_arg, N_arg, K_arg);
+            BaseCSC_unr_tiled<float, 32, 32, 12>(X_arg, *sf_csc, B_arg, Y_arg, M_arg, N_arg, K_arg);
         },
-        "BaseCSR_naive");
+        "BaseCSC_unrolled_tiled_32x32x12");
 
-    add_function(
-        [sf_csr](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
-        {
-            BaseCSR_unr<float, 8>(X_arg, *sf_csr, B_arg, Y_arg, M_arg, N_arg, K_arg);
-        },
-        "BaseCSR_unrolled_8");
+    // add_function(
+    //     [sf_csr](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
+    //     {
+    //         BaseCSR<float>(X_arg, *sf_csr, B_arg, Y_arg, M_arg, N_arg, K_arg);
+    //     },
+    //     "BaseCSR_naive");
 
-    add_function(
-        [sf_ccsc](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
-        {
-            CCSC_base<float>(X_arg, *sf_ccsc, B_arg, Y_arg, M_arg, N_arg, K_arg);
-        },
-        "CompressedCSC_naive");
+    // add_function(
+    //     [sf_csr](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
+    //     {
+    //         BaseCSR_unr<float, 8>(X_arg, *sf_csr, B_arg, Y_arg, M_arg, N_arg, K_arg);
+    //     },
+    //     "BaseCSR_unrolled_8");
 
-    add_function(
-        [sf_tcsr](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
-        {
-            TCSR<float>(X_arg, *sf_tcsr, B_arg, Y_arg, M_arg, N_arg, K_arg);
-        },
-        "TernaryCSR_naive");
+    // add_function(
+    //     [sf_csr](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
+    //     {
+    //         BaseCSR_unr<float, 16>(X_arg, *sf_csr, B_arg, Y_arg, M_arg, N_arg, K_arg);
+    //     },
+    //     "BaseCSR_unrolled_16");
 
-    add_function(
-        [sf_tcsr](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
-        {
-            TCSR_unrolled_tiled<float, 8, 8>(X_arg, *sf_tcsr, B_arg, Y_arg, M_arg, N_arg, K_arg);
-        },
-        "TernaryCSR_unrolled_tiled_8x8");
+    // add_function(
+    //     [sf_ccsc](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
+    //     {
+    //         CCSC_base<float>(X_arg, *sf_ccsc, B_arg, Y_arg, M_arg, N_arg, K_arg);
+    //     },
+    //     "CompressedCSC_naive");
 
-    add_function(
-        [sf_tcsc](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
-        {
-            TCSC<float>(X_arg, *sf_tcsc, B_arg, Y_arg, M_arg, N_arg, K_arg);
-        },
-        "TernaryCSC_naive");
+    // add_function(
+    //     [sf_tcsr](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
+    //     {
+    //         TCSR<float>(X_arg, *sf_tcsr, B_arg, Y_arg, M_arg, N_arg, K_arg);
+    //     },
+    //     "TernaryCSR_naive");
+
+    // add_function(
+    //     [sf_tcsr](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
+    //     {
+    //         TCSR_unrolled_tiled<float, 8, 8>(X_arg, *sf_tcsr, B_arg, Y_arg, M_arg, N_arg, K_arg);
+    //     },
+    //     "TernaryCSR_unrolled_tiled_8x8");
+
+    // add_function(
+    //     [sf_tcsc](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
+    //     {
+    //         TCSC<float>(X_arg, *sf_tcsc, B_arg, Y_arg, M_arg, N_arg, K_arg);
+    //     },
+    //     "TernaryCSC_naive");
 
     add_function(
         [sf_tcsc](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
