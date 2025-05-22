@@ -334,6 +334,7 @@ double perf_test(comp_func f, int M_param, int K_param, int N_param, int nonZero
     vector<float> B_perf(N_param, 2);
 
     Y_perf.insert(Y_perf.end(), 10, 0);
+    X_perf.insert(X_perf.end(), 10, 0);
 
 #ifdef __x86_64__
     return rdtsc(f, X_perf.data(), B_perf.data(), Y_perf.data(), M_param, N_param, K_param);

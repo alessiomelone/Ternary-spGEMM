@@ -102,9 +102,6 @@ int main(int argc, char **argv)
         CCSC_base<float>(Xv, ccsc, Bv, Yv, m, n, k);
     };
 
-    /* --- Run kernel -------------------------------------------------------- */
-    kernel(X.data(), B.data(), Y.data(), M, N, K);
-
     /* --- Print matrices ---------------------------------------------------- */
     std::cout << "X matrix  |  W matrix\n";
     int maxRows = (M > K) ? M : K;
@@ -139,6 +136,9 @@ int main(int argc, char **argv)
             std::cout << std::setw(5) << refY[i * N + j] << ' ';
         std::cout << '\n';
     }
+
+    /* --- Run kernel -------------------------------------------------------- */
+    kernel(X.data(), B.data(), Y.data(), M, N, K);
 
     std::cout << "Actual Y matrix:\n";
     for (int i = 0; i < M; ++i)

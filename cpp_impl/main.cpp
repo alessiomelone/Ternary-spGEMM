@@ -26,6 +26,8 @@ using namespace std;
 template <typename T>
 void CSC_base(T *X, const SparseFormat &W_csc, T *b, T *Y, int M, int N, int K);
 template <typename T>
+void CSC_base_testing(T *X, const SparseFormat &W_csc, T *b, T *Y, int M, int N, int K);
+template <typename T>
 void CCSC_base(T *X, const CompressedCSC &W_csc, T *b, T *Y, int M, int N, int K);
 template <typename T>
 void TCSR_base(T *X, const TCSRMatrix &W_tcsr, T *b, T *Y, int M, int N, int K);
@@ -111,13 +113,19 @@ int main(int argc, char **argv)
             CSC_base<float>(X_arg, *sf_csc_data, B_arg, Y_arg, M_arg, N_arg, K_arg);
         },
         "CSC_base");
-
     // add_function(
-    //     [sf_ccsc_data](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
+    //     [sf_csc_data](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
     //     {
-    //         CCSC_base<float>(X_arg, *sf_ccsc_data, B_arg, Y_arg, M_arg, N_arg, K_arg);
+    //         CSC_base_testing<float>(X_arg, *sf_csc_data, B_arg, Y_arg, M_arg, N_arg, K_arg);
     //     },
-    //     "CCSC_base");
+    //     "CSC_base_testing");
+
+    add_function(
+        [sf_ccsc_data](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
+        {
+            CCSC_base<float>(X_arg, *sf_ccsc_data, B_arg, Y_arg, M_arg, N_arg, K_arg);
+        },
+        "CCSC_base");
 
     add_function(
         [sf_tcsr_data](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
@@ -126,12 +134,12 @@ int main(int argc, char **argv)
         },
         "TCSR_base");
 
-    add_function(
-        [sf_tcsr_unrolled_data](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
-        {
-            TCSR_unrolled<float, 12>(X_arg, *sf_tcsr_unrolled_data, B_arg, Y_arg, M_arg, N_arg, K_arg);
-        },
-        "TCSR_unrolled-12");
+    // add_function(
+    //     [sf_tcsr_unrolled_data](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
+    //     {
+    //         TCSR_unrolled<float, 12>(X_arg, *sf_tcsr_unrolled_data, B_arg, Y_arg, M_arg, N_arg, K_arg);
+    //     },
+    //     "TCSR_unrolled-12");
 
     add_function(
         [sf_tcsc_data](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
@@ -140,19 +148,19 @@ int main(int argc, char **argv)
         },
         "TCSC_base");
 
-    add_function(
-        [sf_tcsc_unrolled_data](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
-        {
-            TCSC_unrolled<float, 12>(X_arg, *sf_tcsc_unrolled_data, B_arg, Y_arg, M_arg, N_arg, K_arg);
-        },
-        "TCSC_unrolled-12");
+    // add_function(
+    //     [sf_tcsc_unrolled_data](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
+    //     {
+    //         TCSC_unrolled<float, 12>(X_arg, *sf_tcsc_unrolled_data, B_arg, Y_arg, M_arg, N_arg, K_arg);
+    //     },
+    //     "TCSC_unrolled-12");
 
-    add_function(
-        [sf_tcsc_unrolled_tiled_data](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
-        {
-            TCSC_unrolled_tiled<float, 12, 32, 32>(X_arg, *sf_tcsc_unrolled_tiled_data, B_arg, Y_arg, M_arg, N_arg, K_arg);
-        },
-        "TCSC_unrolled_tiled-12-32-32");
+    // add_function(
+    //     [sf_tcsc_unrolled_tiled_data](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
+    //     {
+    //         TCSC_unrolled_tiled<float, 12, 32, 32>(X_arg, *sf_tcsc_unrolled_tiled_data, B_arg, Y_arg, M_arg, N_arg, K_arg);
+    //     },
+    //     "TCSC_unrolled_tiled-12-32-32");
 
     // add_function(
     //     [sf_csc_data](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg) {
@@ -196,6 +204,7 @@ int main(int argc, char **argv)
         fill(Y_main.begin(), Y_main.end(), 0);
 
         Y_main.insert(Y_main.end(), 10, 0); // extend Y so we can modify unused pad values without bounds checking
+        X_main.insert(X_main.end(), 10, 0); // extend Y so we can modify unused pad values without bounds checking
         comp_func func = userFuncs[i_loop]; // func is std::function
 
         Y_main.resize(Y_main.size() - 10);

@@ -26,6 +26,10 @@ template <typename T>
 void CSR_base(T *X, const SparseFormat& W_csr, T *b, T *Y, int M, int N, int K);
 template <typename T, int UNROLL_FACTOR> // Provide default for UNROLL_FACTOR if used in declaration
 void CSR_unrolled(T *X, const SparseFormat& W_csr, T *b, T *Y, int M, int N, int K);
+template <typename T>
+void TCSR_base(T *X, const TCSRMatrix &W_tcsr, T *b, T *Y, int M, int N, int K);
+template <typename T>
+void TCSC_base(T *X, const TCSCMatrix &W_tcsc, T *b, T *Y, int M, int N, int K);
 // --- End Prototypes ---
 
 #ifndef M

@@ -311,6 +311,7 @@ public:
 				row_index.push_back(rows - (rows % 5));
 			}
 		}
+		col_start.push_back(vals.size()); // end col_start val
 	}
 
 	static constexpr uint8_t encode(int8_t v0, int8_t v1, int8_t v2,
