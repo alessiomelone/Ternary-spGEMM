@@ -262,33 +262,42 @@ constexpr uint8_t encode(int8_t v0, int8_t v1, int8_t v2, int8_t v3, int8_t v4) 
 class CompressedCSC : public DataStructureInterface
 {
 public:
-	int num_rows;
-	int num_cols;
-	std::vector<int> col_start; // Size = num_cols + 1. Start index in row_index for each column.
-	std::vector<int> row_index; // Stores row indices for non-zero elements.
-	std::vector<uint8_t> vals;	// Stores encoded values for non-zero elements.
+	// Each value is a byte representing 5 ternary values.
+	vector<uint8_t> vals;
 
-	CompressedCSC() : num_rows(0), num_cols(0) {}
+	// Contains indices in vals where the next matrix column starts, inclusive.
+	// Each byte is only in one column.
+	vector<int> col_start;
+	vector<int> row_index;
 
-	CompressedCSC(const int *matrix, int rows, int cols) : num_rows(rows), num_cols(cols)
+	CompressedCSC() {}
+	CompressedCSC(const int *W_raw, int K, int N)
 	{
-		init(matrix, rows, cols);
+		init(W_raw, K, N);
 	}
 
-	void init(const int *matrix, int rows, int cols) override
+	void init(const int *matrix, int rows, int cols)
 	{
-		num_rows = rows;
-		num_cols = cols;
-
-		col_start.assign(cols + 1, 0);
-		row_index.clear();
-		vals.clear();
-
-		int current_nnz_count = 0;
-		for (int c = 0; c < cols; ++c)
+		for (int col = 0; col < cols; ++col)
 		{
-			col_start[c] = current_nnz_count;
-			for (int r = 0; r < rows; ++r)
+			col_start.push_back(vals.size());
+			for (int row = 0; row <= rows - 5; row += 5)
+			{
+				const int *matrix_ptr = matrix + (row * cols) + col;
+				if (matrix_ptr[0] == 0 && matrix_ptr[1 * cols] == 0 && matrix_ptr[2 * cols] == 0 && matrix_ptr[3 * cols] == 0 && matrix_ptr[4 * cols] == 0)
+				{
+					continue; // Skip bytes that are fully zero
+				}
+
+				uint8_t bitstring = encode(matrix_ptr[0], matrix_ptr[1 * cols], matrix_ptr[2 * cols], matrix_ptr[3 * cols], matrix_ptr[4 * cols]);
+
+				vals.push_back(bitstring);
+				row_index.push_back(row);
+			}
+
+			// cleanup for last few bits
+			int pad_values[5] = {0, 0, 0, 0, 0};
+			for (int pad_pos = 0; pad_pos < rows % 5; ++pad_pos)
 			{
 				int val = matrix[r * cols + c];
 				if (val != 0)
@@ -306,7 +315,8 @@ public:
 >>>>>>> 00c090c (Add TCSR and TCSC base function prototypes; refactor CSC_base and CCSC_base implementations)
 	}
 
-	static constexpr uint8_t encode(int8_t v0, int8_t v1, int8_t v2, int8_t v3, int8_t v4) noexcept
+	static constexpr uint8_t encode(int8_t v0, int8_t v1, int8_t v2,
+									int8_t v3, int8_t v4) noexcept
 	{
 		return uint8_t((v0 + 1) * 81 +
 					   (v1 + 1) * 27 +
@@ -315,42 +325,70 @@ public:
 					   (v4 + 1) * 1);
 	}
 
-	void printVars() override
+	void printVars()
 	{
-		std::cout << "\nCompressedCSC (" << num_rows << "x" << num_cols << "):" << std::endl;
-		std::cout << "col_start: ";
-		for (int val : col_start)
-			std::cout << val << " ";
-		std::cout << "\nrow_index: ";
-		for (int val : row_index)
-			std::cout << val << " ";
 		std::cout << "\nvals: ";
 		for (uint8_t val : vals)
-			std::cout << static_cast<int>(val) << " ";
+		{
+			std::cout << int(val) << " ";
+		}
+		std::cout << std::endl;
+		std::cout << "vals decoded: ";
+		for (auto b : vals)
+		{
+			std::cout << "[";
+			for (int8_t val : decodeCCSC[b])
+			{
+				std::cout << int(val) << " ";
+			}
+			std::cout << "]";
+		}
+		std::cout << "\ncol_start: ";
+		for (auto idx : col_start)
+		{
+			std::cout << idx << " ";
+		}
+		std::cout << "\nrow_start: ";
+		for (auto idx : row_index)
+		{
+			std::cout << idx << " ";
+		}
 		std::cout << std::endl;
 	}
 
-	std::vector<int> getVectorRepresentation(size_t expected_rows, size_t expected_cols) override
+	vector<int> getVectorRepresentation(size_t rows, size_t cols)
 	{
-		std::vector<int> result(expected_rows * expected_cols, 0);
+		// allocate and zero-init output
+		vector<int> M(rows * cols, 0);
 
-		for (int c = 0; c < num_cols && c < expected_cols; ++c)
+		// for each column
+		for (size_t c = 0; c < cols; ++c)
 		{
-			int start_offset = col_start[c];
-			int end_offset = col_start[c + 1];
-			for (int i = start_offset; i < end_offset; ++i)
+			// where this column’s bytes start…
+			size_t start = col_start[c];
+			// …and end (next col’s start, or end of vals)
+			size_t end = (c + 1 < col_start.size()
+							  ? col_start[c + 1]
+							  : vals.size());
+
+			for (size_t idx = start; idx < end; ++idx)
 			{
-				int r = row_index[i];
-				if (r < expected_rows)
+				uint8_t code = vals[idx];
+				int baseRow = row_index[idx];
+				auto &dec = decodeCCSC[code]; // decoded 5-tuple
+
+				// assign each of the up-to-5 entries, skip past-end rows
+				for (int j = 0; j < 5; ++j)
 				{
-					result[r * expected_cols + c] = static_cast<int>(vals[i]);
+					size_t r = baseRow + j;
+					if (r < rows)
+					{
+						M[r * cols + c] = dec[j];
+					}
 				}
 			}
 		}
 
-		return result;
+		return M;
 	}
-
-	int getNumRows() const override { return num_rows; }
-	int getNumCols() const override { return num_cols; }
 };

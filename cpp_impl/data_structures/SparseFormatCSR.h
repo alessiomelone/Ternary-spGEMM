@@ -87,8 +87,8 @@ public:
         return result;
     }
 
-    int getNumRows() const override { return num_rows; }
-    int getNumCols() const override { return num_cols; }
+    int getNumRows() const { return num_rows; }
+    int getNumCols() const { return num_cols; }
 
     void printVars() override
     {

@@ -3,9 +3,9 @@
 
 #include "common.h"
 
-// Rename and modify sparseGEMM_base to be a specific implementation for SparseFormat
+// Rename and modify sparseGEMM_base to be a specific implementation for SparseFormatCSC
 template <typename T>
-void CSC_base(T *X, const SparseFormat &W_csr, T *b, T *Y, int M, int N, int K)
+void CSC_base(T *X, const SparseFormatCSC &W_csr, T *b, T *Y, int M, int N, int K)
 {
     const int *col_start_pos = W_csr.col_start_pos.data();
     const int *col_start_neg = W_csr.col_start_neg.data();
@@ -33,6 +33,7 @@ void CSC_base(T *X, const SparseFormat &W_csr, T *b, T *Y, int M, int N, int K)
 // comment out X or W memory access to see how much it's slowing it down
 template <typename T>
 <<<<<<< HEAD
+<<<<<<< HEAD
 <<<<<<< HEAD:cpp_impl/comp.h
 void CCSC_base(T *X, const CompressedCSC &W, T *b, T *Y, int M, int n_col, int N_Rows)
 // X: M rows, N_Rows cols
@@ -47,6 +48,9 @@ void CCSC_base(T *X, const CompressedCSC &W, T *b, T *Y, int M, int N, int K)
 // W: K rows, N cols
 // Y: M rows, N cols
 >>>>>>> 422cf16 (merge)
+=======
+void CSC_base_testing(T* X, const SparseFormatCSC &W_csr, T *b, T *Y, int M, int N, int K)
+>>>>>>> 6073638 (merge and fix bugs)
 {
     // grab the column‐pointer arrays once
     const int *col_start_pos = W_csr.col_start_pos.data();
@@ -90,6 +94,7 @@ void CCSC_base(T *X,                 // dense input X, row-major, size M×K
     for (int m = 0; m < M; ++m)            // for each row m of X and Y
     {
 <<<<<<< HEAD
+<<<<<<< HEAD
 <<<<<<< HEAD:cpp_impl/comp.h
         for (int n = 0; n < n_col; n++)
 =======
@@ -98,6 +103,9 @@ void CCSC_base(T *X,                 // dense input X, row-major, size M×K
 =======
         for (int n = 0; n < N; n++)
 >>>>>>> 422cf16 (merge)
+=======
+        for (int n = 0; n < N; ++n)        // for each column n of W and Y
+>>>>>>> 6073638 (merge and fix bugs)
         {
             // five partial sums for the 5 rows inside each block
             T y_val0 = 0;
@@ -106,22 +114,31 @@ void CCSC_base(T *X,                 // dense input X, row-major, size M×K
             T y_val3 = 0;
             T y_val4 = 0;
 <<<<<<< HEAD
+<<<<<<< HEAD
 <<<<<<< HEAD:cpp_impl/comp.h
             for (int N_Rows = col_start[n]; N_Rows < col_start[n + 1]; N_Rows++)
 =======
             for (int k = col_start[n]; k < col_start[n + 1]; k++)
 >>>>>>> 422cf16 (merge)
+=======
+
+            // scan through all blocks in column n
+            for (int k = col_start[n]; k < col_start[n + 1]; ++k)
+>>>>>>> 6073638 (merge and fix bugs)
             {
-                const int row = row_index[k];
-                const int8_t block = vals[k];
-                const int8_t *vals_decoded = decodeCCSC[block];
-                y_val0 += vals_decoded[0] * X[m * K + row_index[k] + 0];
-                y_val1 += vals_decoded[1] * X[m * K + row_index[k] + 1];
-                y_val2 += vals_decoded[2] * X[m * K + row_index[k] + 2];
-                y_val3 += vals_decoded[3] * X[m * K + row_index[k] + 3];
-                y_val4 += vals_decoded[4] * X[m * K + row_index[k] + 4];
+                // “row” is the first row index of 5 consecutive rows in W, comprising a block.
+                int          row = row_index[k];
+                const int8_t *d  = decodeCCSC[vals[k]];// decode byte into an array of 5 values (-1/0/1)
+
+                // multiply-add each of the 5 values with X’s corresponding entries
+                y_val0 += d[0] * X[m * K + row + 0];
+                y_val1 += d[1] * X[m * K + row + 1];
+                y_val2 += d[2] * X[m * K + row + 2];
+                y_val3 += d[3] * X[m * K + row + 3];
+                y_val4 += d[4] * X[m * K + row + 4];
             }
 
+<<<<<<< HEAD
 <<<<<<< HEAD
             Y[m * n_col + n + 0] = y_val0 + b[n];
             Y[m * n_col + n + 1] = y_val1 + b[n];
@@ -145,11 +162,14 @@ void CCSC_base(T *X,                 // dense input X, row-major, size M×K
                 y_val4 += d[4] * X[m * K + row + 4];
             }
 
+=======
+>>>>>>> 6073638 (merge and fix bugs)
             // combine partials into the full dot product
             T acc = y_val0 + y_val1 + y_val2 + y_val3 + y_val4;
 
             // add bias for column n and store in Y
             Y[m * N + n] = acc + b[n];
+<<<<<<< HEAD
 >>>>>>> 00c090c (Add TCSR and TCSC base function prototypes; refactor CSC_base and CCSC_base implementations):cpp_impl/comp.cpp
 =======
             Y[m * N + n + 0] = y_val0 + b[n];
@@ -158,6 +178,8 @@ void CCSC_base(T *X,                 // dense input X, row-major, size M×K
             Y[m * N + n + 3] = y_val3 + b[n];
             Y[m * N + n + 4] = y_val4 + b[n];
 >>>>>>> 422cf16 (merge)
+=======
+>>>>>>> 6073638 (merge and fix bugs)
         }
     }
 }
@@ -411,10 +433,10 @@ void TCSC_unrolled_tiled(T *X_arg, const TCSCMatrix &W_tcsc, T *B_arg, T *Y_arg,
     }
 }
 
-// Rename and modify sparseGEMM_unrolled to be a specific implementation for SparseFormat
+// Rename and modify sparseGEMM_unrolled to be a specific implementation for SparseFormatCSC
 template <typename T, int UNROLL_FACTOR>
 void CSC_unrolled(
-    T *X, const SparseFormat &W_csr, T *b, T *Y,
+    T *X, const SparseFormatCSC &W_csr, T *b, T *Y,
     int M, int N, int K)
 {
     const int *col_start_pos = W_csr.col_start_pos.data();
@@ -495,6 +517,7 @@ void sparseGEMM_csc_base_impl(T *X, const SparseFormatCSC &W_csc, T *b, T *Y, in
 =======
 // --- Explicit Instantiations ---
 // This tells the compiler to generate code for these specific versions in comp.o
+<<<<<<< HEAD
 template void CSC_base<float>(float *, const SparseFormat &, float *, float *, int, int, int);
 template void CSC_base_testing<float>(float *, const SparseFormat &, float *, float *, int, int, int);
 =======
@@ -502,18 +525,28 @@ template void CSC_base_testing<float>(float *, const SparseFormat &, float *, fl
 // This tells the compiler to generate code for these specific versions in comp.o
 template void CSC_base<float>(float *, const SparseFormat &, float *, float *, int, int, int);
 >>>>>>> 422cf16 (merge)
+=======
+template void CSC_base<float>(float *, const SparseFormatCSC &, float *, float *, int, int, int);
+template void CSC_base_testing<float>(float *, const SparseFormatCSC &, float *, float *, int, int, int);
+>>>>>>> 6073638 (merge and fix bugs)
 template void CCSC_base<float>(float *, const CompressedCSC &, float *, float *, int, int, int);
 template void TCSR_base<float>(float *, const TCSRMatrix &, float *, float *, int, int, int);
 template void TCSC_base<float>(float *, const TCSCMatrix &, float *, float *, int, int, int);
-template void CSC_unrolled<float, 2>(float *, const SparseFormat &, float *, float *, int, int, int);
+template void CSC_unrolled<float, 2>(float *, const SparseFormatCSC &, float *, float *, int, int, int);
 // If you use other unroll factors or other types for T, you'd add them here.
+<<<<<<< HEAD
 template void CSC_unrolled<float, 12>(float *, const SparseFormat &, float *, float *, int, int, int);
 <<<<<<< HEAD
 >>>>>>> 00c090c (Add TCSR and TCSC base function prototypes; refactor CSC_base and CCSC_base implementations):cpp_impl/comp.cpp
 =======
 >>>>>>> 422cf16 (merge)
+=======
+template void CSC_unrolled<float, 12>(float *, const SparseFormatCSC &, float *, float *, int, int, int);
+>>>>>>> 6073638 (merge and fix bugs)
 
 template void TCSR_unrolled<float, 12>(float *, const TCSRMatrix &, float *, float *, int, int, int);
 template void TCSC_unrolled<float, 12>(float *, const TCSCMatrix &, float *, float *, int, int, int);
 
 template void TCSC_unrolled_tiled<float, 12, 32, 32>(float *, const TCSCMatrix &, float *, float *, int, int, int);
+
+#endif
