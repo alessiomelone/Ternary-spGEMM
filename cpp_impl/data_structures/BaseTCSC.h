@@ -135,7 +135,7 @@ public:
         std::cout << std::endl;
     }
 
-    int getDataStructureSize() {
+    int getDataStructureSize() const {
         return sizeof(int) * (
             col_start_pos.size() +
             col_start_neg.size() +

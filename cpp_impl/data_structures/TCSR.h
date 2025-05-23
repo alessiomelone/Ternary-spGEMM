@@ -96,7 +96,7 @@ public:
     std::cout << "\n";
   }
 
-  int getDataStructureSize() {
+  int getDataStructureSize() const {
     return sizeof(int) * (2 +
       row_offsets.size() +
       encoded_cols.size() +
