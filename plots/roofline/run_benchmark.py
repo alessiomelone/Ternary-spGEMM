@@ -53,8 +53,39 @@ def run_and_parse_benchmark(save_results=False):
             correctness_status = {fn.strip(): status for fn, status in correctness_matches}
  
             # Regex to find function name and its cycle count
-            regex = r"Running: (.*?)\s*\n\s*([\d\.eE+-]+) cycles\s*\n\s*Performance: ([\d\.eE+-]+) flops/cycle"
+            # regex = r"Running: (.*?)\s*\n\s*([\d\.eE+-]+) cycles\s*\n\s*Performance: ([\d\.eE+-]+) flops/cycle"
+
+    # Regex to capture the values after "Running:", "Performance:", and "Operational Intensity:"
+    # It uses re.DOTALL to make '.' match newlines, allowing us to skip intermediate lines easily.
+            regex = re.compile(
+        r"Running:\s*(.*?)\s*\n"           # Capture Group 1: Text after "Running:"
+        r".*?"                             # Non-greedy match for any lines in between
+        r"Performance:\s*([\d\.eE+-]+)"    # Capture Group 2: Number after "Performance:"
+        r".*?"                             # Non-greedy match for any lines in between
+        r"Operational Intensity:\s*([\d\.eE+-]+)", # Capture Group 3: Number after "Operational Intensity:"
+        re.DOTALL  # Make '.' match newline characters as well
+    )
             matches = re.findall(regex, stdout_output)
+
+    # results = []
+    # for match in regex.finditer(text):
+    #     running_value = match.group(1).strip()
+    #     performance_value = match.group(2).strip()
+    #     operational_intensity_value = match.group(3).strip()
+    #     results.append({
+    #         "Running": running_value,
+    #         "Performance": performance_value,
+    #         "Operational Intensity": operational_intensity_value
+    #     })
+
+    # if results:
+    #     for i, res in enumerate(results):
+    #         print(f"--- Match {i+1} ---")
+    #         print(f"  Running: {res['Running']}")
+    #         print(f"  Performance: {res['Performance']}")
+    #         print(f"  Operational Intensity: {res['Operational Intensity']}")
+    # else:
+    #     print("No matches found.")
 
             current_test_results = {}
             if matches:
