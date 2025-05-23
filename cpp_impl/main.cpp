@@ -56,14 +56,14 @@ int main(int argc, char **argv)
             BaseCSC<float>(X_arg, *sf_csc, B_arg, Y_arg, M_arg, N_arg, K_arg);
         },
         "BaseCSC_naive");
-    
+    #if 0
+
         add_function(
         [sf_csc](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
         {
             BaseCSC_unroll5<float>(X_arg, *sf_csc, B_arg, Y_arg, M_arg, N_arg, K_arg);
         },
         "BaseCSC_unroll5");
-#if 1
     add_function(
         [sf_csc](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
         {
@@ -113,7 +113,7 @@ int main(int argc, char **argv)
         },
         "CompressedCSC_naive");
 
-#if 1
+#if 0
     add_function(
         [sf_tcsr](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
         {

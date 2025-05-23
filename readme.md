@@ -10,6 +10,10 @@ To build the C++ implementation, run:
 ```bash
 make
 ```
+In order to instrument the build and get stats about memory and performance, run:
+```bash
+make INSTRUMENT=1
+```
 
 This will create an executable named `sparseGEMM` in the root directory.
 
