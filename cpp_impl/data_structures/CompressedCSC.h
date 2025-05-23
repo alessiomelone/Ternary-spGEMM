@@ -393,7 +393,7 @@ public:
 		return M;
 	}
 
-    int getDataStructureSize() {
+    int getDataStructureSize() const {
         return sizeof(uint8_t) * vals.size() +
 			   sizeof(short) * col_start.size() +
 			   sizeof(short) * row_index.size() +

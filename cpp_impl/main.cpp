@@ -189,12 +189,13 @@ int main(int argc, char **argv)
     for (i_loop = 0; i_loop < numFuncs; i_loop++)
     {
         perf_val = perf_test(userFuncs[i_loop], M, K, N, nonZero);
-        std::cout << std::endl
-                  << "Running: " << funcNames[i_loop] << std::endl;
+        std::cout << "\nRunning: " << "\x1b[31m" << funcNames[i_loop] << "\x1b[0m" << std::endl;
         std::cout << perf_val << " cycles" << std::endl;
     #ifdef INSTRUMENTATION_RUN
         std::cout << "Flops: " << getTotalFlops() << std::endl;
         std::cout << "Performance: " << (double) getTotalFlops() / perf_val << " flops/cycle" << std::endl;
+        std::cout << "Data Structure Size: " << getDataStructureSizeInBytes() << " Bytes" << std::endl;
+        std::cout << "Operational Intensity: " << (double) getTotalFlops() / (double) getDataStructureSizeInBytes() << " Flops/Byte" << std::endl;
     #endif
         // std::cout << "Performance: " << static_cast<double>(M * N) * (1.0 + static_cast<double>(K) / nonZero) / perf_val << " flops/cycle" << std::endl;
     }

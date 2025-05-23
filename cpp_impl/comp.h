@@ -5,9 +5,14 @@
 
 #ifdef INSTRUMENTATION_RUN
 long long flops = 0;
+int ds_size = 0;
 
 long long getTotalFlops() {
     return flops;
+}
+
+int getDataStructureSizeInBytes() {
+    return ds_size;
 }
 #endif
 
@@ -16,6 +21,7 @@ void BaseCSC(T *X, const BaseTCSC &W_csc, T *b, T *Y, int M, int N, int K)
 {
 #ifdef INSTRUMENTATION_RUN
     flops = 0;
+    ds_size = W_csc.getDataStructureSize();
 #endif
     const int *col_start_pos = W_csc.col_start_pos.data();
     const int *col_start_neg = W_csc.col_start_neg.data();
@@ -56,6 +62,7 @@ void BaseCSC_unroll5(T *X, const BaseTCSC &W_csc,
 {
 #ifdef INSTRUMENTATION_RUN
     flops = 0;
+    ds_size = W_csc.getDataStructureSize();
 #endif
     const int *col_start_pos = W_csc.col_start_pos.data();
     const int *col_start_neg = W_csc.col_start_neg.data();
@@ -130,6 +137,7 @@ void CCSC_base(T *X, const CompressedCSC &W, T *b, T *Y, int M, int N, int K)
 {
 #ifdef INSTRUMENTATION_RUN
     flops = 0;
+    ds_size = W.getDataStructureSize();
 #endif
     const short *col_start = W.col_start.data();
     const short *row_index = W.row_index.data();
@@ -174,6 +182,7 @@ void TCSR(T *X, const CompressedTCSR &W, T *b, T *Y, int M, int N, int K)
 {
 #ifdef INSTRUMENTATION_RUN
     flops = 0;
+    ds_size = W.getDataStructureSize();
 #endif
     const int *row_offsets = W.row_offsets.data();
     const int *encoded_cols = W.encoded_cols.data();
@@ -218,6 +227,7 @@ void TCSR_unrolled_tiled(T *X, const CompressedTCSR &W, T *b, T *Y, int M, int N
 {
 #ifdef INSTRUMENTATION_RUN
     flops = 0;
+    ds_size = W.getDataStructureSize();
 #endif
     const int *row_offsets = W.row_offsets.data();
     const int *encoded_cols = W.encoded_cols.data();
@@ -312,6 +322,7 @@ void TCSC(T *X, const CompressedTCSC &W, T *b, T *Y, int M, int N, int K)
 {
 #ifdef INSTRUMENTATION_RUN
     flops = 0;
+    ds_size = W.getDataStructureSize();
 #endif
     const int *col_offsets = W.col_offsets.data();
     const int *encoded_rows = W.encoded_rows.data();
@@ -356,6 +367,7 @@ void TCSC_unrolled_tiled(T *X, const CompressedTCSC &W, T *b, T *Y, int M, int N
 {
 #ifdef INSTRUMENTATION_RUN
     flops = 0;
+    ds_size = W.getDataStructureSize();
 #endif
     const int *col_offsets = W.col_offsets.data();
     const int *encoded_rows = W.encoded_rows.data();
@@ -448,6 +460,7 @@ void BaseCSC_unr(T *X, const BaseTCSC &W_csc, T *b, T *Y, int M, int N, int K)
 {
 #ifdef INSTRUMENTATION_RUN
     flops = 0;
+    ds_size = W_csc.getDataStructureSize();
 #endif
     const int *col_start_pos = W_csc.col_start_pos.data();
     const int *col_start_neg = W_csc.col_start_neg.data();
@@ -535,6 +548,7 @@ void BaseCSR(T *X, const BaseTCSR &W_csr, T *b, T *Y, int M, int N, int K)
 {
 #ifdef INSTRUMENTATION_RUN
     flops = 0;
+    ds_size = W_csr.getDataStructureSize();
 #endif
     const int *row_start_pos = W_csr.row_start_pos.data();
     const int *row_start_neg = W_csr.row_start_neg.data();
@@ -583,6 +597,7 @@ void BaseCSR_unr(T *X, const BaseTCSR &W_csr, T *b, T *Y, int M, int N, int K)
 {
 #ifdef INSTRUMENTATION_RUN
     flops = 0;
+    ds_size = W_csr.getDataStructureSize();
 #endif
     const int *row_start_pos = W_csr.row_start_pos.data();
     const int *row_start_neg = W_csr.row_start_neg.data();
@@ -659,6 +674,7 @@ void BaseCSC_unr_tiled(T *X, const BaseTCSC &W_csc, T *b, T *Y, int M, int N, in
 {
 #ifdef INSTRUMENTATION_RUN
     flops = 0;
+    ds_size = W_csc.getDataStructureSize();
 #endif
     const int *col_start_pos = W_csc.col_start_pos.data();
     const int *col_start_neg = W_csc.col_start_neg.data();
