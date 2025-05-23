@@ -44,7 +44,8 @@ def run_and_parse_benchmark(save_results=False):
                 "-M", str(m_val),
                 "-K", str(k_val),
                 "-N", str(n_val),
-                "-s", str(non_zero_s)
+                "-s", str(non_zero_s),
+                "-correctness"
             ]
 
             try:
