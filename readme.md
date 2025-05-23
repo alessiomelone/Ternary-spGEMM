@@ -15,6 +15,16 @@ In order to instrument the build and get stats about memory and performance, run
 make INSTRUMENT=1
 ```
 
+By default, the build includes calibration code that dynamically adjusts the number of runs to ensure accurate timing measurements. To disable calibration, run:
+```bash
+make NO_CALIBRATE=1
+```
+
+You can combine these options:
+```bash
+make INSTRUMENT=1 NO_CALIBRATE=1
+```
+
 This will create an executable named `sparseGEMM` in the root directory.
 
 ### Running the Program

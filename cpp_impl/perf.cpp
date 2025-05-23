@@ -28,7 +28,6 @@
 #define NUM_RUNS 1
 #define CYCLES_REQUIRED 1e8
 #define FREQUENCY 3.2e9
-#define CALIBRATE
 
 using namespace std;
 
@@ -80,6 +79,7 @@ double rdvct(comp_func func_to_test, float *X_buf, float *B_buf, float *Y_buf, i
     num_runs_actual = NUM_RUNS;
 
 #ifdef CALIBRATE
+
     while (num_runs_actual < (1 << 14))
     {
         start_val = start_vct();

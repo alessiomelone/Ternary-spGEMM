@@ -5,7 +5,14 @@ CXXFLAGS_BASE = -std=c++17 -O2 -march=native -mtune=native -fstrict-aliasing -DN
 
 # Initialize CXXFLAGS with the base flags
 CXXFLAGS = $(CXXFLAGS_BASE)
-LDFLAGS =
+
+# Add CALIBRATE by default unless NO_CALIBRATE is specified
+ifndef NO_CALIBRATE
+    CXXFLAGS += -DCALIBRATE
+    BUILD_INFO = (Calibrated Build)
+else
+    BUILD_INFO = (Non-Calibrated Build)
+endif
 
 # This is where the conditional logic is added:
 # Check if the 'INSTRUMENT' variable is defined when make is run
@@ -17,10 +24,10 @@ ifdef INSTRUMENT
     # endif
     # For simplicity, if INSTRUMENT is defined to any non-empty value, we add the flag.
 	CXXFLAGS += -DINSTRUMENTATION_RUN
-	BUILD_INFO = (Instrumented Build)
-else
-	BUILD_INFO = (Standard Build)
+	BUILD_INFO := $(BUILD_INFO) (Instrumented)
 endif
+
+LDFLAGS =
 
 # Source files and output
 SRCS = cpp_impl/main.cpp \
