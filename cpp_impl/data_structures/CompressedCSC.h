@@ -267,8 +267,8 @@ public:
 
 	// Contains indices in vals where the next matrix column starts, inclusive.
 	// Each byte is only in one column.
-	vector<short> col_start;
-	vector<short> row_index;
+	vector<int> col_start;
+	vector<int> row_index;
 
 	CompressedCSC() {}
 	CompressedCSC(const int *W_raw, int K, int N)
@@ -278,12 +278,12 @@ public:
 
 	void init(const int *matrix, int rows_int, int cols_int)
 	{
-		short rows = static_cast<short>(rows_int);
-		short cols = static_cast<short>(cols_int);
-		for (short col = 0; col < cols; ++col)
+		int rows = static_cast<int>(rows_int);
+		int cols = static_cast<int>(cols_int);
+		for (int col = 0; col < cols; ++col)
 		{
 			col_start.push_back(vals.size());
-			for (short row = 0; row <= rows - 5; row += 5)
+			for (int row = 0; row <= rows - 5; row += 5)
 			{
 				const int *matrix_ptr = matrix + (row * cols) + col;
 				if (matrix_ptr[0] == 0 && matrix_ptr[1 * cols] == 0 && matrix_ptr[2 * cols] == 0 && matrix_ptr[3 * cols] == 0 && matrix_ptr[4 * cols] == 0)
@@ -299,9 +299,9 @@ public:
 
 			// cleanup for last few bits
 			int pad_values[5] = {0, 0, 0, 0, 0};
-			for (short pad_pos = 0; pad_pos < rows % 5; ++pad_pos)
+			for (int pad_pos = 0; pad_pos < rows % 5; ++pad_pos)
 			{
-				short row = (rows - (rows % 5)) + pad_pos;
+				int row = (rows - (rows % 5)) + pad_pos;
 				const int *matrix_ptr = matrix + (row * cols) + col;
 				pad_values[pad_pos] = *matrix_ptr;
 			}
@@ -395,8 +395,8 @@ public:
 
     int getDataStructureSize() const {
         return sizeof(uint8_t) * vals.size() +
-			   sizeof(short) * col_start.size() +
-			   sizeof(short) * row_index.size() +
+			   sizeof(int) * col_start.size() +
+			   sizeof(int) * row_index.size() +
 			   256 * 5 * sizeof(uint8_t);
 	}
 };
