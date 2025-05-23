@@ -1,0 +1,332 @@
+[
+    {
+        "test_case": {
+            "M": 128,
+            "K": 512,
+            "N": 1024,
+            "s": 8
+        },
+        "results": {
+            "BaseCSC_naive": {
+                "total_input_size": 1060880,
+                "operational_intensity": 8.03077,
+                "performance": 0.645459
+            },
+            "BaseCSC_unrolled_8": {
+                "total_input_size": 1060880,
+                "operational_intensity": 10.1311,
+                "performance": 2.15383
+            },
+            "BaseCSR_naive": {
+                "total_input_size": 1056780,
+                "operational_intensity": 7.92878,
+                "performance": 0.739271
+            },
+            "BaseCSR_unrolled_8": {
+                "total_input_size": 1056780,
+                "operational_intensity": 7.93023,
+                "performance": 1.14376
+            },
+            "CompressedCSC_naive": {
+                "total_input_size": 1051100,
+                "operational_intensity": 31.7003,
+                "performance": 1.62889
+            },
+            "TernaryCSR_naive": {
+                "total_input_size": 1056780,
+                "operational_intensity": 7.93026,
+                "performance": 0.769397
+            },
+            "TernaryCSR_unrolled_tiled_8x8": {
+                "total_input_size": 1056780,
+                "operational_intensity": 7.93026,
+                "performance": 1.08933
+            },
+            "TernaryCSC_naive": {
+                "total_input_size": 1060880,
+                "operational_intensity": 8.0308,
+                "performance": 0.6605
+            },
+            "TernaryCSC_unrolled_tiled_8x8x8": {
+                "total_input_size": 1060880,
+                "operational_intensity": 9.88406,
+                "performance": 1.71984
+            }
+        }
+    },
+    {
+        "test_case": {
+            "M": 128,
+            "K": 1024,
+            "N": 1024,
+            "s": 8
+        },
+        "results": {
+            "BaseCSC_naive": {
+                "total_input_size": 1585170,
+                "operational_intensity": 10.6666,
+                "performance": 0.606756
+            },
+            "BaseCSC_unrolled_8": {
+                "total_input_size": 1585170,
+                "operational_intensity": 12.0722,
+                "performance": 1.99737
+            },
+            "BaseCSR_naive": {
+                "total_input_size": 1585170,
+                "operational_intensity": 10.5729,
+                "performance": 0.74203
+            },
+            "BaseCSR_unrolled_8": {
+                "total_input_size": 1585170,
+                "operational_intensity": 10.5729,
+                "performance": 1.15866
+            },
+            "CompressedCSC_naive": {
+                "total_input_size": 1568970,
+                "operational_intensity": 42.0993,
+                "performance": 1.55734
+            },
+            "TernaryCSR_naive": {
+                "total_input_size": 1585160,
+                "operational_intensity": 10.5729,
+                "performance": 0.774637
+            },
+            "TernaryCSR_unrolled_tiled_8x8": {
+                "total_input_size": 1585160,
+                "operational_intensity": 10.5729,
+                "performance": 1.12167
+            },
+            "TernaryCSC_naive": {
+                "total_input_size": 1585160,
+                "operational_intensity": 10.6666,
+                "performance": 0.613566
+            },
+            "TernaryCSC_unrolled_tiled_8x8x8": {
+                "total_input_size": 1585160,
+                "operational_intensity": 11.9069,
+                "performance": 1.5816
+            }
+        }
+    },
+    {
+        "test_case": {
+            "M": 128,
+            "K": 2048,
+            "N": 1024,
+            "s": 8
+        },
+        "results": {
+            "BaseCSC_naive": {
+                "total_input_size": 2633740,
+                "operational_intensity": 12.79,
+                "performance": 0.520843
+            },
+            "BaseCSC_unrolled_8": {
+                "total_input_size": 2633740,
+                "operational_intensity": 13.636,
+                "performance": 1.90479
+            },
+            "BaseCSR_naive": {
+                "total_input_size": 2641940,
+                "operational_intensity": 12.6891,
+                "performance": 0.744467
+            },
+            "BaseCSR_unrolled_8": {
+                "total_input_size": 2641940,
+                "operational_intensity": 12.6891,
+                "performance": 1.17079
+            },
+            "CompressedCSC_naive": {
+                "total_input_size": 2604660,
+                "operational_intensity": 50.4912,
+                "performance": 1.43561
+            },
+            "TernaryCSR_naive": {
+                "total_input_size": 2641930,
+                "operational_intensity": 12.6891,
+                "performance": 0.776524
+            },
+            "TernaryCSR_unrolled_tiled_8x8": {
+                "total_input_size": 2641930,
+                "operational_intensity": 12.6881,
+                "performance": 1.131
+            },
+            "TernaryCSC_naive": {
+                "total_input_size": 2633740,
+                "operational_intensity": 12.79,
+                "performance": 0.520392
+            },
+            "TernaryCSC_unrolled_tiled_8x8x8": {
+                "total_input_size": 2633740,
+                "operational_intensity": 13.5365,
+                "performance": 1.50449
+            }
+        }
+    },
+    {
+        "test_case": {
+            "M": 128,
+            "K": 4096,
+            "N": 1024,
+            "s": 8
+        },
+        "results": {
+            "BaseCSC_naive": {
+                "total_input_size": 4730900,
+                "operational_intensity": 14.2129,
+                "performance": 0.442182
+            },
+            "BaseCSC_unrolled_8": {
+                "total_input_size": 4730900,
+                "operational_intensity": 14.6839,
+                "performance": 1.78593
+            },
+            "BaseCSR_naive": {
+                "total_input_size": 4755470,
+                "operational_intensity": 14.0982,
+                "performance": 0.744361
+            },
+            "BaseCSR_unrolled_8": {
+                "total_input_size": 4755470,
+                "operational_intensity": 14.0982,
+                "performance": 1.16145
+            },
+            "CompressedCSC_naive": {
+                "total_input_size": 4676140,
+                "operational_intensity": 56.1241,
+                "performance": 1.37649
+            },
+            "TernaryCSR_naive": {
+                "total_input_size": 4755470,
+                "operational_intensity": 14.0982,
+                "performance": 0.77268
+            },
+            "TernaryCSR_unrolled_tiled_8x8": {
+                "total_input_size": 4755470,
+                "operational_intensity": 14.0982,
+                "performance": 1.1214
+            },
+            "TernaryCSC_naive": {
+                "total_input_size": 4730890,
+                "operational_intensity": 14.213,
+                "performance": 0.443497
+            },
+            "TernaryCSC_unrolled_tiled_8x8x8": {
+                "total_input_size": 4730890,
+                "operational_intensity": 14.6285,
+                "performance": 1.36271
+            }
+        }
+    },
+    {
+        "test_case": {
+            "M": 128,
+            "K": 8192,
+            "N": 1024,
+            "s": 8
+        },
+        "results": {
+            "BaseCSC_naive": {
+                "total_input_size": 8925200,
+                "operational_intensity": 15.0527,
+                "performance": 0.410157
+            },
+            "BaseCSC_unrolled_8": {
+                "total_input_size": 8925200,
+                "operational_intensity": 15.3024,
+                "performance": 1.70292
+            },
+            "BaseCSR_naive": {
+                "total_input_size": 8982540,
+                "operational_intensity": 14.9264,
+                "performance": 0.742664
+            },
+            "BaseCSR_unrolled_8": {
+                "total_input_size": 8982540,
+                "operational_intensity": 14.9274,
+                "performance": 1.11553
+            },
+            "CompressedCSC_naive": {
+                "total_input_size": 8814560,
+                "operational_intensity": 59.416,
+                "performance": 1.35097
+            },
+            "TernaryCSR_naive": {
+                "total_input_size": 8982540,
+                "operational_intensity": 14.9274,
+                "performance": 0.774782
+            },
+            "TernaryCSR_unrolled_tiled_8x8": {
+                "total_input_size": 8982540,
+                "operational_intensity": 14.9274,
+                "performance": 1.09359
+            },
+            "TernaryCSC_naive": {
+                "total_input_size": 8925200,
+                "operational_intensity": 15.0528,
+                "performance": 0.411517
+            },
+            "TernaryCSC_unrolled_tiled_8x8x8": {
+                "total_input_size": 8925200,
+                "operational_intensity": 15.273,
+                "performance": 1.21381
+            }
+        }
+    },
+    {
+        "test_case": {
+            "M": 128,
+            "K": 16384,
+            "N": 1024,
+            "s": 8
+        },
+        "results": {
+            "BaseCSC_naive": {
+                "total_input_size": 17313800,
+                "operational_intensity": 15.5117,
+                "performance": 0.396278
+            },
+            "BaseCSC_unrolled_8": {
+                "total_input_size": 17313800,
+                "operational_intensity": 15.6404,
+                "performance": 1.73482
+            },
+            "BaseCSR_naive": {
+                "total_input_size": 17436700,
+                "operational_intensity": 15.3799,
+                "performance": 0.749406
+            },
+            "BaseCSR_unrolled_8": {
+                "total_input_size": 17436700,
+                "operational_intensity": 15.3799,
+                "performance": 1.0904
+            },
+            "CompressedCSC_naive": {
+                "total_input_size": 17091500,
+                "operational_intensity": 61.2178,
+                "performance": 1.33958
+            },
+            "TernaryCSR_naive": {
+                "total_input_size": 17436700,
+                "operational_intensity": 15.38,
+                "performance": 0.77136
+            },
+            "TernaryCSR_unrolled_tiled_8x8": {
+                "total_input_size": 17436700,
+                "operational_intensity": 15.38,
+                "performance": 1.06933
+            },
+            "TernaryCSC_naive": {
+                "total_input_size": 17313800,
+                "operational_intensity": 15.5117,
+                "performance": 0.39851
+            },
+            "TernaryCSC_unrolled_tiled_8x8x8": {
+                "total_input_size": 17313800,
+                "operational_intensity": 15.6253,
+                "performance": 1.19662
+            }
+        }
+    }
+]

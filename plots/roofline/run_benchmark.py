@@ -3,16 +3,18 @@ import re
 import json
 import argparse
 
-def run_and_parse_benchmark(save_results=False):
+def run_and_parse_benchmark(save_results=False, outname=''):
     test_cases = [
-        (   128,  512,  2048),
-        (   128, 1024,  4096),
-        (   128, 2048,  8192),
-        (   128, 4096, 16384),
-        ( 256,  512,  2048),
-        ( 256, 1024,  4096),
-        ( 256, 2048,  8192),
-        ( 256, 4096, 16384),
+        (   256, 1024,  1024),
+        (   1024, 1024,  1024),
+        (   2048, 1024,  1024),
+        (   4096, 1024, 1024),
+        (   8192, 1024, 1024),
+        (   16384, 1024, 1024),
+        # ( 256,  512,  2048),
+        # ( 256, 1024,  4096),
+        # ( 256, 2048,  8192),
+        # ( 256, 4096, 16384),
     ]
     non_zero_s = 8
     executable_path = "../../SparseGEMM.out" 
@@ -62,6 +64,8 @@ def run_and_parse_benchmark(save_results=False):
         r".*?"                             # Non-greedy match for any lines in between
         r"Performance:\s*([\d\.eE+-]+)"    # Capture Group 2: Number after "Performance:"
         r".*?"                             # Non-greedy match for any lines in between
+        r"Total Input Size:\s*([\d\.eE+-]+)"    # Capture Group 2: Number after "Performance:"
+        r".*?"                             # Non-greedy match for any lines in between
         r"Operational Intensity:\s*([\d\.eE+-]+)", # Capture Group 3: Number after "Operational Intensity:"
         re.DOTALL  # Make '.' match newline characters as well
     )
@@ -70,19 +74,20 @@ def run_and_parse_benchmark(save_results=False):
 
             current_test_results = {}
             if matches:
-                for func_name, fpc, oi in matches:
+                for func_name, fpc, total_input_size, oi in matches:
                     stripped_func_name = func_name.strip()
                     stripped_func_name = stripped_func_name.split('31m')[1]
                     stripped_func_name = stripped_func_name.split('\u001b')[0]
                     try:
                         fpc = float(fpc)
                         oi = float(oi)
-                        current_test_results[stripped_func_name] = { 'operational_intensity' : oi, 'performance' : fpc }
-                        print(f"  {stripped_func_name}: {fpc} flops/cycle , {oi} flops/Byte")
+                        total_input_sz = int(float(total_input_size))
+                        current_test_results[stripped_func_name] = { 'total_input_size' : total_input_sz, 'operational_intensity' : oi, 'performance' : fpc }
+                        print(f"  {stripped_func_name}: {total_input_sz} Bytes input, {fpc} flops/cycle, {oi} flops/Byte")
                         if correctness_status.get(stripped_func_name) == "failed":
                             print(f"  WARNING: {stripped_func_name} failed correctness check!")
                     except ValueError:
-                        print(f"  Could not parse cycle count for {stripped_func_name}: {oi}")
+                        print(f"  Could not parse cycle count for {stripped_func_name}: {oi} : {total_input_size}")
                         current_test_results[stripped_func_name] = "Error parsing cycles"
             else:
                 print("  No performance results found in output.")
@@ -111,7 +116,7 @@ def run_and_parse_benchmark(save_results=False):
 
     # Optionally, save all results to a JSON file
     if save_results:
-        output_file = "benchmark_results.json"
+        output_file = outname
         with open(output_file, 'w') as f:
             json.dump(all_results, f, indent=4)
         print(f"\nAll benchmark results saved to {output_file}")
@@ -119,5 +124,6 @@ def run_and_parse_benchmark(save_results=False):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Run SparseGEMM benchmarks')
     parser.add_argument('-s', '--save', action='store_true', help='Save benchmark results to JSON file')
+    parser.add_argument('--output', type=str, default='benchmark_results.json', help='Name of JSON file')
     args = parser.parse_args()
-    run_and_parse_benchmark(save_results=args.save) 
+    run_and_parse_benchmark(args.save, args.output) 
