@@ -1,0 +1,370 @@
+[
+    {
+        "test_case": {
+            "M": 128,
+            "K": 512,
+            "N": 2048,
+            "s": 1
+        },
+        "results": {
+            "BaseCSC_naive": {
+                "operational_intensity": 24.3199,
+                "performance": 0.442308
+            },
+            "BaseCSC_unrolled_8": {
+                "operational_intensity": 25.1259,
+                "performance": 1.79262
+            },
+            "BaseCSR_naive": {
+                "operational_intensity": 24.3006,
+                "performance": 0.947181
+            },
+            "BaseCSR_unrolled_8": {
+                "operational_intensity": 24.3006,
+                "performance": 1.21343
+            },
+            "CompressedCSC_naive": {
+                "operational_intensity": 57.2005,
+                "performance": 1.55907
+            },
+            "TernaryCSR_naive": {
+                "operational_intensity": 24.3006,
+                "performance": 0.946973
+            },
+            "TernaryCSR_unrolled_tiled_8x8": {
+                "operational_intensity": 24.3006,
+                "performance": 1.1632
+            },
+            "TernaryCSC_naive": {
+                "operational_intensity": 24.3199,
+                "performance": 0.443239
+            },
+            "TernaryCSC_unrolled_tiled_8x8x8": {
+                "operational_intensity": 25.0311,
+                "performance": 1.44922
+            }
+        }
+    },
+    {
+        "test_case": {
+            "M": 128,
+            "K": 1024,
+            "N": 4096,
+            "s": 1
+        },
+        "results": {
+            "BaseCSC_naive": {
+                "operational_intensity": 27.6327,
+                "performance": 0.410947
+            },
+            "BaseCSC_unrolled_8": {
+                "operational_intensity": 28.091,
+                "performance": 1.75304
+            },
+            "BaseCSR_naive": {
+                "operational_intensity": 27.6117,
+                "performance": 0.965924
+            },
+            "BaseCSR_unrolled_8": {
+                "operational_intensity": 27.6117,
+                "performance": 1.22945
+            },
+            "CompressedCSC_naive": {
+                "operational_intensity": 78.7898,
+                "performance": 1.42543
+            },
+            "TernaryCSR_naive": {
+                "operational_intensity": 27.6196,
+                "performance": 0.96234
+            },
+            "TernaryCSR_unrolled_tiled_8x8": {
+                "operational_intensity": 27.6196,
+                "performance": 1.18461
+            },
+            "TernaryCSC_naive": {
+                "operational_intensity": 27.6327,
+                "performance": 0.411358
+            },
+            "TernaryCSC_unrolled_tiled_8x8x8": {
+                "operational_intensity": 28.0371,
+                "performance": 1.40959
+            }
+        }
+    },
+    {
+        "test_case": {
+            "M": 128,
+            "K": 2048,
+            "N": 8192,
+            "s": 1
+        },
+        "results": {
+            "BaseCSC_naive": {
+                "operational_intensity": 29.6554,
+                "performance": 0.396425
+            },
+            "BaseCSC_unrolled_8": {
+                "operational_intensity": 29.9014,
+                "performance": 1.77438
+            },
+            "BaseCSR_naive": {
+                "operational_intensity": 29.6272,
+                "performance": 0.976545
+            },
+            "BaseCSR_unrolled_8": {
+                "operational_intensity": 29.6312,
+                "performance": 1.24418
+            },
+            "CompressedCSC_naive": {
+                "operational_intensity": 97.4888,
+                "performance": 1.37546
+            },
+            "TernaryCSR_naive": {
+                "operational_intensity": 29.6312,
+                "performance": 0.972284
+            },
+            "TernaryCSR_unrolled_tiled_8x8": {
+                "operational_intensity": 29.6303,
+                "performance": 1.19248
+            },
+            "TernaryCSC_naive": {
+                "operational_intensity": 29.6554,
+                "performance": 0.398002
+            },
+            "TernaryCSC_unrolled_tiled_8x8x8": {
+                "operational_intensity": 29.8725,
+                "performance": 1.39256
+            }
+        }
+    },
+    {
+        "test_case": {
+            "M": 128,
+            "K": 4096,
+            "N": 16384,
+            "s": 1
+        },
+        "results": {
+            "BaseCSC_naive": {
+                "operational_intensity": 30.7828,
+                "performance": 0.390429
+            },
+            "BaseCSC_unrolled_8": {
+                "operational_intensity": 30.9105,
+                "performance": 1.80446
+            },
+            "BaseCSR_naive": {
+                "operational_intensity": 30.755,
+                "performance": 0.975328
+            },
+            "BaseCSR_unrolled_8": {
+                "operational_intensity": 30.7569,
+                "performance": 1.23698
+            },
+            "CompressedCSC_naive": {
+                "operational_intensity": 110.664,
+                "performance": 1.35054
+            },
+            "TernaryCSR_naive": {
+                "operational_intensity": 30.7534,
+                "performance": 0.976608
+            },
+            "TernaryCSR_unrolled_tiled_8x8": {
+                "operational_intensity": 30.7568,
+                "performance": 1.19818
+            },
+            "TernaryCSC_naive": {
+                "operational_intensity": 30.7828,
+                "performance": 0.390928
+            },
+            "TernaryCSC_unrolled_tiled_8x8x8": {
+                "operational_intensity": 30.8955,
+                "performance": 1.35289
+            }
+        }
+    },
+    {
+        "test_case": {
+            "M": 256,
+            "K": 512,
+            "N": 2048,
+            "s": 1
+        },
+        "results": {
+            "BaseCSC_naive": {
+                "operational_intensity": 39.3197,
+                "performance": 0.441983
+            },
+            "BaseCSC_unrolled_8": {
+                "operational_intensity": 40.6227,
+                "performance": 1.7811
+            },
+            "BaseCSR_naive": {
+                "operational_intensity": 39.2708,
+                "performance": 0.943678
+            },
+            "BaseCSR_unrolled_8": {
+                "operational_intensity": 39.2708,
+                "performance": 1.20835
+            },
+            "CompressedCSC_naive": {
+                "operational_intensity": 73.8068,
+                "performance": 1.55283
+            },
+            "TernaryCSR_naive": {
+                "operational_intensity": 39.2813,
+                "performance": 0.945906
+            },
+            "TernaryCSR_unrolled_tiled_8x8": {
+                "operational_intensity": 39.2813,
+                "performance": 1.15732
+            },
+            "TernaryCSC_naive": {
+                "operational_intensity": 39.3197,
+                "performance": 0.442881
+            },
+            "TernaryCSC_unrolled_tiled_8x8x8": {
+                "operational_intensity": 40.4694,
+                "performance": 1.44648
+            }
+        }
+    },
+    {
+        "test_case": {
+            "M": 256,
+            "K": 1024,
+            "N": 4096,
+            "s": 1
+        },
+        "results": {
+            "BaseCSC_naive": {
+                "operational_intensity": 48.7008,
+                "performance": 0.410628
+            },
+            "BaseCSC_unrolled_8": {
+                "operational_intensity": 49.5085,
+                "performance": 1.7473
+            },
+            "BaseCSR_naive": {
+                "operational_intensity": 48.6622,
+                "performance": 0.96438
+            },
+            "BaseCSR_unrolled_8": {
+                "operational_intensity": 48.6622,
+                "performance": 1.23111
+            },
+            "CompressedCSC_naive": {
+                "operational_intensity": 113.984,
+                "performance": 1.42611
+            },
+            "TernaryCSR_naive": {
+                "operational_intensity": 48.6609,
+                "performance": 0.963716
+            },
+            "TernaryCSR_unrolled_tiled_8x8": {
+                "operational_intensity": 48.6624,
+                "performance": 1.15102
+            },
+            "TernaryCSC_naive": {
+                "operational_intensity": 48.7008,
+                "performance": 0.41114
+            },
+            "TernaryCSC_unrolled_tiled_8x8x8": {
+                "operational_intensity": 49.4135,
+                "performance": 1.41528
+            }
+        }
+    },
+    {
+        "test_case": {
+            "M": 256,
+            "K": 2048,
+            "N": 8192,
+            "s": 1
+        },
+        "results": {
+            "BaseCSC_naive": {
+                "operational_intensity": 55.3083,
+                "performance": 0.395967
+            },
+            "BaseCSC_unrolled_8": {
+                "operational_intensity": 55.7672,
+                "performance": 1.76166
+            },
+            "BaseCSR_naive": {
+                "operational_intensity": 55.2664,
+                "performance": 0.973976
+            },
+            "BaseCSR_unrolled_8": {
+                "operational_intensity": 55.2615,
+                "performance": 1.24394
+            },
+            "CompressedCSC_naive": {
+                "operational_intensity": 157.596,
+                "performance": 1.37326
+            },
+            "TernaryCSR_naive": {
+                "operational_intensity": 55.265,
+                "performance": 0.970535
+            },
+            "TernaryCSR_unrolled_tiled_8x8": {
+                "operational_intensity": 55.2601,
+                "performance": 1.19401
+            },
+            "TernaryCSC_naive": {
+                "operational_intensity": 55.3083,
+                "performance": 0.398095
+            },
+            "TernaryCSC_unrolled_tiled_8x8x8": {
+                "operational_intensity": 55.7132,
+                "performance": 1.39169
+            }
+        }
+    },
+    {
+        "test_case": {
+            "M": 256,
+            "K": 4096,
+            "N": 16384,
+            "s": 1
+        },
+        "results": {
+            "BaseCSC_naive": {
+                "operational_intensity": 59.3365,
+                "performance": 0.390208
+            },
+            "BaseCSC_unrolled_8": {
+                "operational_intensity": 59.5827,
+                "performance": 1.77846
+            },
+            "BaseCSR_naive": {
+                "operational_intensity": 59.2818,
+                "performance": 0.97595
+            },
+            "BaseCSR_unrolled_8": {
+                "operational_intensity": 59.2842,
+                "performance": 1.24241
+            },
+            "CompressedCSC_naive": {
+                "operational_intensity": 195.038,
+                "performance": 1.34918
+            },
+            "TernaryCSR_naive": {
+                "operational_intensity": 59.284,
+                "performance": 0.977416
+            },
+            "TernaryCSR_unrolled_tiled_8x8": {
+                "operational_intensity": 59.2854,
+                "performance": 1.19902
+            },
+            "TernaryCSC_naive": {
+                "operational_intensity": 59.3365,
+                "performance": 0.391842
+            },
+            "TernaryCSC_unrolled_tiled_8x8x8": {
+                "operational_intensity": 59.5537,
+                "performance": 1.34811
+            }
+        }
+    }
+]

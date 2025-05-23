@@ -1,8 +1,10 @@
 # Run:
 ```
-$ sudo python3 run_benchmark.py --save
-$ python3 plot_roofline.py benchmark_results.json [--per_test]
+$ sudo python3 run_benchmark.py -s --output benchmarks_whatevername.json
+$ python3 plot_roofline.py benchmarks_whatevername.json
+$ python3 plot_perf.py benchmarks_whatevername.json --title="Performance vs Input Size"
 ```
 # TODO: 
-Search for: `memory_CHANGE_ME` in `plot_roofline.py`.
-Right now it's the hardcoded value for what should be the total memory requirements for each data structure.
+* Maybe fix axis points
+* Save roofline plots
+<!-- Right now it's the hardcoded value for what should be the total memory requirements for each data structure. -->
