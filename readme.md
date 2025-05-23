@@ -77,10 +77,10 @@ $MN\left(1 + \frac{K}{\text{nonZero}}\right)$
 ### Memory Usage
 
 - **X**: $MK \cdot \text{sizeof}(T)$ — One row at a time is accessed then never used again ($K \cdot \text{sizeof}(T)$)
-- **B**: $MN \cdot \text{sizeof}(T)$ — In the inner loop, one row is accessed then never used again ($N \cdot \text{sizeof}(T)$)
+- **B**: $N \cdot \text{sizeof}(T)$ — In the inner loop, one row is accessed then never used again ($N \cdot \text{sizeof}(T)$)
 - **Y**: $MN \cdot \text{sizeof}(T)$ — In the inner loop, one row is accessed then never used again ($N \cdot \text{sizeof}(T)$)
 
-**Total**: $M(K + 2N) \cdot \text{sizeof}(T)$
+**Total**: $(MK + MN + N) \cdot \text{sizeof}(T)$
 
 ### Data Structure Formats
 
