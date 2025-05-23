@@ -620,6 +620,15 @@ void BaseCSR(T *X, const BaseTCSR &W_csr, T *b, T *Y, int M, int N, int K)
     const int *col_index_pos = W_csr.col_index_pos.data();
     const int *col_index_neg = W_csr.col_index_neg.data();
 
+    // Initialise Y with bias
+    for (int m = 0; m < M; ++m)
+    {
+        for (int n = 0; n < N; ++n)
+        {
+            Y[m * N + n] = b[n];
+        }
+    }
+
     // For each row in X
     for (int m = 0; m < M; ++m)
     {
