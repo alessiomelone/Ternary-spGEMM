@@ -5,16 +5,16 @@ import argparse
 
 def run_and_parse_benchmark(save_results=False):
     test_cases = [
-        (   1,  512,  2048),
-        (   1, 1024,  4096),
-        (   1, 2048,  8192),
-        (   1, 4096, 16384),
+        (   128,  512,  2048),
+        (   128, 1024,  4096),
+        (   128, 2048,  8192),
+        (   128, 4096, 16384),
         ( 256,  512,  2048),
         ( 256, 1024,  4096),
         ( 256, 2048,  8192),
         ( 256, 4096, 16384),
     ]
-    non_zero_s = 4
+    non_zero_s = 8
     executable_path = "../../SparseGEMM.out" 
     base_command = ["sudo", executable_path]
 
@@ -55,8 +55,8 @@ def run_and_parse_benchmark(save_results=False):
             # Regex to find function name and its cycle count
             # regex = r"Running: (.*?)\s*\n\s*([\d\.eE+-]+) cycles\s*\n\s*Performance: ([\d\.eE+-]+) flops/cycle"
 
-    # Regex to capture the values after "Running:", "Performance:", and "Operational Intensity:"
-    # It uses re.DOTALL to make '.' match newlines, allowing us to skip intermediate lines easily.
+            # Regex to capture the values after "Running:", "Performance:", and "Operational Intensity:"
+            # It uses re.DOTALL to make '.' match newlines, allowing us to skip intermediate lines easily.
             regex = re.compile(
         r"Running:\s*(.*?)\s*\n"           # Capture Group 1: Text after "Running:"
         r".*?"                             # Non-greedy match for any lines in between
@@ -67,39 +67,22 @@ def run_and_parse_benchmark(save_results=False):
     )
             matches = re.findall(regex, stdout_output)
 
-    # results = []
-    # for match in regex.finditer(text):
-    #     running_value = match.group(1).strip()
-    #     performance_value = match.group(2).strip()
-    #     operational_intensity_value = match.group(3).strip()
-    #     results.append({
-    #         "Running": running_value,
-    #         "Performance": performance_value,
-    #         "Operational Intensity": operational_intensity_value
-    #     })
-
-    # if results:
-    #     for i, res in enumerate(results):
-    #         print(f"--- Match {i+1} ---")
-    #         print(f"  Running: {res['Running']}")
-    #         print(f"  Performance: {res['Performance']}")
-    #         print(f"  Operational Intensity: {res['Operational Intensity']}")
-    # else:
-    #     print("No matches found.")
 
             current_test_results = {}
             if matches:
-                for func_name, cycles_str, fpc in matches:
+                for func_name, fpc, oi in matches:
                     stripped_func_name = func_name.strip()
+                    stripped_func_name = stripped_func_name.split('31m')[1]
+                    stripped_func_name = stripped_func_name.split('\u001b')[0]
                     try:
-                        cycles = float(cycles_str)
                         fpc = float(fpc)
-                        current_test_results[stripped_func_name] = { 'cycles' : cycles, 'fpc' : fpc }
-                        print(f"  {stripped_func_name}: {cycles:.2e} cycles, {fpc:.2e} flops/cycle")
+                        oi = float(oi)
+                        current_test_results[stripped_func_name] = { 'operational_intensity' : oi, 'performance' : fpc }
+                        print(f"  {stripped_func_name}: {fpc} flops/cycle , {oi} flops/Byte")
                         if correctness_status.get(stripped_func_name) == "failed":
                             print(f"  WARNING: {stripped_func_name} failed correctness check!")
                     except ValueError:
-                        print(f"  Could not parse cycle count for {stripped_func_name}: {cycles_str}")
+                        print(f"  Could not parse cycle count for {stripped_func_name}: {oi}")
                         current_test_results[stripped_func_name] = "Error parsing cycles"
             else:
                 print("  No performance results found in output.")
