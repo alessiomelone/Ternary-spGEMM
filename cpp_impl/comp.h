@@ -124,8 +124,6 @@ void TCSR(T *X, const CompressedTCSR &W, T *b, T *Y, int M, int N, int K)
         for (int k = 0; k < K; ++k)
         {
             T x = X_row[k];
-            if (x == static_cast<T>(0))
-                continue;
 
             int row_start = row_offsets[k];
             int pos_count = row_pos_counts[k];
@@ -487,38 +485,35 @@ void BaseCSR(T *X, const BaseTCSR &W_csr, T *b, T *Y, int M, int N, int K)
     const int *col_index_pos = W_csr.col_index_pos.data();
     const int *col_index_neg = W_csr.col_index_neg.data();
 
+    // For each row in X
     for (int m = 0; m < M; ++m)
     {
-        for (int n = 0; n < N; ++n)
-        {
-            Y[m * N + n] = b[n];
-        }
-    }
+        T *X_row = X + m * K;
+        T *Y_row = Y + m * N;
 
-    for (int m = 0; m < M; ++m)
-    {
+        // For each row in W
         for (int k = 0; k < K; ++k)
         {
-            T x_val = X[m * K + k];
-            if (x_val == static_cast<T>(0))
-                continue;
+            T x_val = X_row[k];
+            // printf("Accessing X[%d][%d] = %f\n", m, k, x_val);
 
             for (int j = row_start_pos[k]; j < row_start_pos[k + 1]; ++j)
             {
 #ifdef INSTRUMENTATION_RUN
                 flops++;
 #endif
-                int n_col = col_index_pos[j];
-                Y[m * N + n_col] += x_val;
+                Y_row[col_index_pos[j]] += x_val;
+                // printf("\t\t\t\t\tAccessing Y[%d][%d] = %f\n", m, col_index_pos[j], Y_row[col_index_pos[j]]);
             }
 
+            // Process negative values
             for (int j = row_start_neg[k]; j < row_start_neg[k + 1]; ++j)
             {
 #ifdef INSTRUMENTATION_RUN
                 flops++;
 #endif
-                int n_col = col_index_neg[j];
-                Y[m * N + n_col] -= x_val;
+                Y_row[col_index_neg[j]] -= x_val;
+                // printf("\t\t\t\t\tAccessing Y[%d][%d] = %f\n", m, col_index_neg[j], Y_row[col_index_neg[j]]);
             }
         }
     }
