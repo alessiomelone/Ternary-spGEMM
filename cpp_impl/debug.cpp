@@ -24,6 +24,7 @@
 #include <cstdlib>
 #include <cstring>
 
+#include "comp.h"
 #include "common.h"
 #include "sparseUtils.h"
 

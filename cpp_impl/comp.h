@@ -156,7 +156,7 @@ void CCSC_base(T *X, const CompressedCSC &W, T *b, T *Y, int M, int N, int K)
             for (int k = col_start[n]; k < col_start[n + 1]; ++k)
             {
                 int row = row_index[k];
-                const int8_t *d = decodeCCSC[vals[k]];
+                const int8_t *d = decode5[vals[k]];
 
                 y_val0 += d[0] * X[m * K + row + 0];
                 y_val1 += d[1] * X[m * K + row + 1];
@@ -177,6 +177,54 @@ void CCSC_base(T *X, const CompressedCSC &W, T *b, T *Y, int M, int N, int K)
     }
 }
 
+/*
+template <typename T>
+void CCSR_base(T *X, const CompressedCSR &W, T *b, T *Y, int M, int N, int K)
+{
+#ifdef INSTRUMENTATION_RUN
+    flops = 0;
+    ds_size = W_csr.getDataStructureSize();
+#endif
+    const int *row_start = W_csr.row_start.data();
+    const int *col_index = W_csr.col_index.data();
+
+    for (int m = 0; m < M; ++m)
+    {
+        for (int n = 0; n < N; ++n)
+        {
+            Y[m * N + n] = b[n];
+        }
+    }
+
+    for (int m = 0; m < M; ++m)
+    {
+        for (int k = 0; k < K; ++k)
+        {
+            T x_val = X[m * K + k];
+            if (x_val == static_cast<T>(0))
+                continue;
+
+            for (int j = row_start_pos[k]; j < row_start_pos[k + 1]; ++j)
+            {
+            #ifdef INSTRUMENTATION_RUN
+                flops++;
+            #endif
+                int n_col = col_index_pos[j];
+                Y[m * N + n_col] += x_val;
+            }
+
+            for (int j = row_start_neg[k]; j < row_start_neg[k + 1]; ++j)
+            {
+            #ifdef INSTRUMENTATION_RUN
+                flops++;
+            #endif
+                int n_col = col_index_neg[j];
+                Y[m * N + n_col] -= x_val;
+            }
+        }
+    }
+}
+*/
 template <typename T>
 void TCSR(T *X, const CompressedTCSR &W, T *b, T *Y, int M, int N, int K)
 {

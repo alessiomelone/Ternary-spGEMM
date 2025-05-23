@@ -117,7 +117,7 @@ public:
     int getNumRows() const { return num_rows; }
     int getNumCols() const { return num_cols; }
 
-    void printVars() override
+    void printVars()
     {
         std::cout << "\nSparseFormatCSC (" << num_rows << "x" << num_cols << "):" << std::endl;
         std::cout << "col_start_pos: ";

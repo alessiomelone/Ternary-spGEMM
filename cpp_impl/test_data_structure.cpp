@@ -1,4 +1,4 @@
-#include "data_structures/CompressedCSC.h"
+#include "data_structures/CompressedCSR.h"
 #include "sparseUtils.h"
 #include <iomanip>
 
@@ -23,6 +23,8 @@ void printMatrix(const std::vector<T> &mat,
         std::cout << '\n';
     }
 }
+
+
 
 bool vecsEqual(const vector<int> &v1, const vector<int> &v2)
 {
@@ -59,6 +61,7 @@ bool test(int K, int N, int nonZero, int seed, bool verbose = false)
     if (verbose)
         printMatrix<int>(M, K, N, 2);
 
+    // printf(M == W_truth ? "Pass\n" : "Fail\n");/
     return M == W_truth;
 }
 
@@ -89,11 +92,13 @@ bool testMany(int K, int N, int nonZero, int variants, bool verbose = false)
                     break;
                 }
             }
+            if (mismatch_flag) break;
         }
+        if (mismatch_flag) break;
     }
     if (!mismatch_flag)
         printf("All vectors match!\n");
-    return 0;
+    return !mismatch_flag;
 }
 
 template <typename T>
@@ -130,16 +135,21 @@ bool testRequired(int variants, bool verbose = false)
     }
     if (!mismatch_flag)
         printf("All vectors match!\n");
-    return 0;
+    return !mismatch_flag;
 }
 
 int main()
 {
+    // test<CompressedCSR>(1, 5, 2, 0, true);
+    // return 0;
+
     // Sizes you'll probably use debugging
     printf("(1/2)\n");
-    testMany<CompressedCSC>(40, 40, 2, 20, false);
+    if (!testMany<CompressedCSR>(40, 40, 2, 20, false)) {
+        return 0;
+    }
 
     // Required sizes
     printf("(2/2)\n");
-    testRequired<CompressedCSC>(10, true);
+    testRequired<CompressedCSR>(10, true);
 }

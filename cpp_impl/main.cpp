@@ -45,6 +45,7 @@ int main(int argc, char **argv)
     auto sf_csc = std::make_shared<BaseTCSC>(W_raw.data(), K, N);
     auto sf_csr = std::make_shared<BaseTCSR>(W_raw.data(), K, N);
     auto sf_ccsc = std::make_shared<CompressedCSC>(W_raw.data(), K, N);
+    auto sf_ccsr = std::make_shared<CompressedCSR>(W_raw.data(), K, N);
     auto sf_tcsr = std::make_shared<CompressedTCSR>(W_raw.data(), K, N);
     auto sf_tcsc = std::make_shared<CompressedTCSC>(W_raw.data(), K, N);
 
@@ -112,6 +113,12 @@ int main(int argc, char **argv)
             CCSC_base<float>(X_arg, *sf_ccsc, B_arg, Y_arg, M_arg, N_arg, K_arg);
         },
         "CompressedCSC_naive");
+    add_function(
+        [sf_ccsr](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
+        {
+            CCSR_base<float>(X_arg, *sf_ccsr, B_arg, Y_arg, M_arg, N_arg, K_arg);
+        },
+        "CompressedCSR_naive");
 
 #if 0
     add_function(

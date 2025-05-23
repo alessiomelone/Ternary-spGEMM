@@ -85,7 +85,7 @@ public:
   int getNumRows() const { return num_matrix_rows; }
   int getNumCols() const { return num_matrix_cols; }
 
-  void printVars() override
+  void printVars()
   {
     std::cout << "\nTCSCMatrix (" << num_matrix_rows << "x" << num_matrix_cols << "):\n";
     std::cout << "col_offsets: ";
