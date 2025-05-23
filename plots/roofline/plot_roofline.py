@@ -385,7 +385,7 @@ def generate_roofline_csvs_from_json(input_json_path, output_directory, beta_bw,
                         print(f"Warning: Skipping result '{result_key}' for M={m},K={k},N={n},s={s_val} due to non-numeric performance value: '{res_dict['fpc']}'.", file=sys.stderr)
                         continue
 
-                    oi_value = (cycles_val_float * perf_val_float) / (memory_CHANGE_ME / 1e9) # Cycles / GB
+                    oi_value = (cycles_val_float * perf_val_float) / (memory_CHANGE_ME) # Cycles / B
 
                     label = f"{result_key}_{m}x{k}x{n}"
                     writer.writerow([oi_value, perf_val_float, label])
@@ -399,7 +399,7 @@ def generate_roofline_csvs_from_json(input_json_path, output_directory, beta_bw,
                         beta, pi_cpu, 
                         point_labels=point_labels, 
                         plot_title=title,
-                        oi_label='Operational Intensity (Flops/GB)',
+                        oi_label='Operational Intensity (Flops/Byte)',
                         perf_label='Performance (Flops/Cycle)')
 
         except (TypeError, ValueError) as e:
@@ -539,7 +539,7 @@ def aggregate_and_write_prefix_csvs(input_json_path, output_directory, beta_bw, 
                         beta, pi_cpu, 
                         point_labels=point_labels, 
                         plot_title=f'Roofline plot for: {prefix}',
-                        oi_label='Operational Intensity (Flops/GB)',
+                        oi_label='Operational Intensity (Flops/Byte)',
                         perf_label='Performance (Flops/Cycle)')
             
             # print(f"Successfully created '{output_csv_filepath}' for prefix '{prefix}'")
@@ -593,7 +593,7 @@ oi,performance,label
     # parser.add_argument("--title", help="Optional title for the plot.", default="Roofline Plot")
     # parser.add_argument("--oi_label", help="Optional label for the OI axis.", default="Operational Intensity (Flops/GB)")
     # parser.add_argument("--perf_label", help="Optional label for the Performance axis.", default="Performance (Flops/Cycle)")
-    parser.add_argument("--beta", type=float, default=100.0, help="Beta (memory bandwidth) value (e.g., Bytes/Cycle).")
+    parser.add_argument("--beta", type=float, default=24.0, help="Beta (memory bandwidth) value (e.g., Bytes/Cycle).")
     parser.add_argument("--pi", type=float, default=4.0, help="Pi (max CPU performance) value (e.g., Flops/Cycle).")
     parser.add_argument("--per_test", action='store_true', help="Group results by test.")
     args = parser.parse_args()
