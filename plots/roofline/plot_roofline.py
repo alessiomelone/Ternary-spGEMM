@@ -81,11 +81,12 @@ def plot_roofline(measured_op_intensities, measured_performances,
         else: # No valid labels at all, or point_labels was None from start
             ax.plot(measured_op_intensities, measured_performances, 'o', markersize=9, label='Measured Kernels/Points')
 
-
-    if ridge_point_oi != float('inf') and ridge_point_oi <= max_oi and ridge_point_oi >= min_oi:
-        ax.plot(ridge_point_oi, pi_max_cpu_perf, 'rX', markersize=12, label=f'Ridge Point ({ridge_point_oi:.2f} F/B)')
-        ax.text(ridge_point_oi * 0.95, pi_max_cpu_perf * 0.90, f'({ridge_point_oi:.2f}, {pi_max_cpu_perf:.2f})',
-                 color='red', fontsize=9, horizontalalignment='right', verticalalignment='top')
+    # NOTE: Enable if you wanna show ridge point
+    if 0:
+        if ridge_point_oi != float('inf') and ridge_point_oi <= max_oi and ridge_point_oi >= min_oi:
+            ax.plot(ridge_point_oi, pi_max_cpu_perf, 'rX', markersize=12, label=f'Ridge Point ({ridge_point_oi:.2f} F/B)')
+            ax.text(ridge_point_oi * 0.95, pi_max_cpu_perf * 0.90, f'({ridge_point_oi:.2f}, {pi_max_cpu_perf:.2f})',
+                     color='red', fontsize=9, horizontalalignment='right', verticalalignment='top')
 
     # Annotation for Peak Performance (π)
     idx_pi_label = int(len(oi_range) * 0.85)
@@ -379,13 +380,13 @@ def generate_roofline_csvs_from_json(input_json_path, output_directory, beta_bw,
                     #     continue
                     
                     try:
-                        cycles_val_float = float(res_dict['cycles'])
-                        perf_val_float = float(res_dict['fpc'])
+                        oi_value = float(res_dict['operational_intensity'])
+                        perf_val_float = float(res_dict['performance'])
                     except (ValueError, TypeError):
                         print(f"Warning: Skipping result '{result_key}' for M={m},K={k},N={n},s={s_val} due to non-numeric performance value: '{res_dict['fpc']}'.", file=sys.stderr)
                         continue
 
-                    oi_value = (cycles_val_float * perf_val_float) / (memory_CHANGE_ME) # Cycles / B
+                    # oi_value = (cycles_val_float * perf_val_float) / (memory_CHANGE_ME) # Cycles / B
 
                     label = f"{result_key}_{m}x{k}x{n}"
                     writer.writerow([oi_value, perf_val_float, label])
@@ -475,27 +476,30 @@ def aggregate_and_write_prefix_csvs(input_json_path, output_directory, beta_bw, 
             product_m_n_k = m * n * k
 
             for original_key, result_data in results_dict.items():
-                if not isinstance(result_data, dict) or "fpc" not in result_data:
+                if not isinstance(result_data, dict) or "performance" not in result_data:
                     print(f"Warning: Skipping result '{original_key}' for M{m}K{k}N{n}s{s} due to missing 'fpc' or invalid format.", file=sys.stderr)
                     continue
                 
-                fpc = result_data.get("fpc")
+                fpc = result_data.get("performance")
                 if fpc is None:
                     print(f"Warning: Skipping result '{original_key}' for M{m}K{k}N{n}s{s} due to null 'fpc' value.", file=sys.stderr)
                     continue
                 
                 try:
                     fpc_float = float(fpc)
+                    oi = result_data.get("operational_intensity")
+                    oi_float = float(oi)
                 except (ValueError, TypeError):
-                    print(f"Warning: Skipping result '{original_key}' for M{m}K{k}N{n}s{s} due to non-numeric 'fpc': '{fpc}'.", file=sys.stderr)
+                    print(f"Warning: Skipping result '{original_key}' for M{m}K{k}N{n}s{s} due to non-numeric 'fpc': '{fpc}' or {oi}.", file=sys.stderr)
                     continue
 
                 prefix = original_key.split('_')[0]
                 # New label format: <original_key>(prod:<M*N*K>_s:<s>)
                 label = f"{original_key}(prod:{product_m_n_k}_s:{s})"
-                
+                label = f'{original_key}_{m}x{k}x{n}_s:{s}'
+
                 aggregated_data_by_prefix[prefix].append({
-                    "oi": memory_CHANGE_ME,
+                    "oi": oi_float,
                     "performance": fpc_float,
                     "label": label
                 })
