@@ -99,4 +99,12 @@ public:
       std::cout << er << " ";
     std::cout << "\n";
   }
+
+  int getDataStructureSize() {
+    return sizeof(int) * (2 +
+           col_offsets.size() +
+           encoded_rows.size() +
+           col_pos_counts.size()
+    );
+  }
 };

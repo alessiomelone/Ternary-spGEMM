@@ -392,4 +392,11 @@ public:
 
 		return M;
 	}
+
+    int getDataStructureSize() {
+        return sizeof(uint8_t) * vals.size() +
+			   sizeof(short) * col_start.size() +
+			   sizeof(short) * row_index.size() +
+			   256 * 5 * sizeof(uint8_t);
+	}
 };
