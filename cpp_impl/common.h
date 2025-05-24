@@ -3,8 +3,8 @@
 #include <string>
 #include <functional>
 #include "data_structures/CompressedCSC.h"
-#include "data_structures/TCSC.h"
-#include "data_structures/TCSR.h"
+#include "data_structures/ICSC.h"
+#include "data_structures/ICSR.h"
 #include "data_structures/BaseTCSC.h"
 #include "data_structures/BaseTCSR.h"
 #include "data_structures/BlockedTCSC.h"

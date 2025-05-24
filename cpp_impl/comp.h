@@ -275,289 +275,256 @@ void CCSC_unr(T *X, const CompressedCSC &W, T *b, T *Y, int M, int N, int K)
 }
 
 template <typename T>
-void TCSR(T *X, const CompressedTCSR &W, T *b, T *Y, int M, int N, int K)
+void ICSR_base(const T *X, const ICSR &W_icsr, const T *B, T *Y, int M, int N, int K)
 {
 #ifdef INSTRUMENTATION_RUN
     flops = 0;
-    ds_size = W.getDataStructureSize();
+    ds_size = W_icsr.getDataStructureSize();
 #endif
-    const int *row_offsets = W.row_offsets.data();
-    const int *encoded_cols = W.encoded_cols.data();
-    const int *row_pos_counts = W.row_pos_counts.data();
+
+    const int *const row_offsets_data = W_icsr.row_offsets.data();
+    const int *const encoded_cols_data = W_icsr.encoded_cols.data();
 
     for (int m = 0; m < M; ++m)
     {
-        T *X_row = X + m * K;
-        T *Y_row = Y + m * N;
+        const T *const X_row_m = X + m * K;
+        T *const Y_row_m = Y + m * N;
 
-        for (int n = 0; n < N; ++n)
-            Y_row[n] = b[n];
+        // Initialize Y with bias
+        // faster than looping
+        std::copy(B, B + N, Y_row_m);
 
+#ifdef INSTRUMENTATION_RUN
+        flops += N;
+#endif
         for (int k = 0; k < K; ++k)
         {
-            T x = X_row[k];
+            const T x_mk_val = X_row_m[k];
 
-            int row_start = row_offsets[k];
-            int pos_count = row_pos_counts[k];
+            const int W_k_row_start = row_offsets_data[k];
+            const int W_k_row_end = row_offsets_data[k + 1];
 
-            for (int i = row_start; i < row_start + pos_count; ++i)
+            for (int nz_idx = W_k_row_start; nz_idx < W_k_row_end; ++nz_idx)
             {
-                Y_row[encoded_cols[i]] += x;
+                const int encoded_col_W = encoded_cols_data[nz_idx];
+                const int final_col_idx = (encoded_col_W >= 0) ? encoded_col_W : ~encoded_col_W;
+                const T val_to_add = (encoded_col_W >= 0) ? x_mk_val : -x_mk_val;
+
+                Y_row_m[final_col_idx] += val_to_add;
 #ifdef INSTRUMENTATION_RUN
                 flops++;
 #endif
-            }
-
-            for (int i = row_start + pos_count; i < row_offsets[k + 1]; ++i)
-            {
-                Y_row[-encoded_cols[i] - 1] -= x;
-#ifdef INSTRUMENTATION_RUN
-                flops++;
-#endif
-            }
-        }
-    }
-}
-
-template <typename T, int TILE_M, int UNROLL_W_NNZ>
-void TCSR_unrolled_tiled(T *X, const CompressedTCSR &W, T *b, T *Y, int M, int N, int K)
-{
-#ifdef INSTRUMENTATION_RUN
-    flops = 0;
-    ds_size = W.getDataStructureSize();
-#endif
-    const int *row_offsets = W.row_offsets.data();
-    const int *encoded_cols = W.encoded_cols.data();
-    const int *row_pos_counts = W.row_pos_counts.data();
-
-    std::vector<T> y_row_accumulator_storage;
-    if (N > 0)
-    {
-        y_row_accumulator_storage.resize(N); // TODO: Why is this not in the init code ?
-    }
-    T *y_row_accumulator = y_row_accumulator_storage.data();
-
-    for (int m_tile_start = 0; m_tile_start < M; m_tile_start += TILE_M)
-    {
-        const int m_tile_end = std::min(m_tile_start + TILE_M, M);
-
-        for (int m = m_tile_start; m < m_tile_end; ++m)
-        {
-            const T *X_row_m = X + (size_t)m * K;
-            T *Y_row_m = Y + (size_t)m * N;
-
-            for (int n = 0; n < N; ++n)
-            {
-                y_row_accumulator[n] = b[n];
-            }
-
-            for (int k = 0; k < K; ++k)
-            {
-                const T x_mk_val = X_row_m[k];
-
-                if (x_mk_val == static_cast<T>(0))
-                {
-                    continue;
-                }
-
-                const int W_k_row_start_offset = row_offsets[k];
-                const int W_k_pos_count = row_pos_counts[k];
-                const int W_k_pos_entries_end_offset = W_k_row_start_offset + W_k_pos_count;
-                const int W_k_row_end_offset = row_offsets[k + 1];
-
-                int nnz_ptr_W;
-
-                nnz_ptr_W = W_k_row_start_offset;
-                for (; nnz_ptr_W + UNROLL_W_NNZ <= W_k_pos_entries_end_offset; nnz_ptr_W += UNROLL_W_NNZ)
-                {
-                    for (int u = 0; u < UNROLL_W_NNZ; ++u)
-                    {
-#ifdef INSTRUMENTATION_RUN
-                        flops++;
-#endif
-                        y_row_accumulator[encoded_cols[nnz_ptr_W + u]] += x_mk_val;
-                    }
-                }
-                for (; nnz_ptr_W < W_k_pos_entries_end_offset; ++nnz_ptr_W)
-                {
-#ifdef INSTRUMENTATION_RUN
-                    flops++;
-#endif
-                    y_row_accumulator[encoded_cols[nnz_ptr_W]] += x_mk_val;
-                }
-
-                nnz_ptr_W = W_k_pos_entries_end_offset;
-                for (; nnz_ptr_W + UNROLL_W_NNZ <= W_k_row_end_offset; nnz_ptr_W += UNROLL_W_NNZ)
-                {
-                    for (int u = 0; u < UNROLL_W_NNZ; ++u)
-                    {
-#ifdef INSTRUMENTATION_RUN
-                        flops++;
-#endif
-                        y_row_accumulator[-encoded_cols[nnz_ptr_W + u] - 1] -= x_mk_val;
-                    }
-                }
-                for (; nnz_ptr_W < W_k_row_end_offset; ++nnz_ptr_W)
-                {
-#ifdef INSTRUMENTATION_RUN
-                    flops++;
-#endif
-                    y_row_accumulator[-encoded_cols[nnz_ptr_W] - 1] -= x_mk_val;
-                }
-            }
-
-            for (int n = 0; n < N; ++n)
-            {
-                Y_row_m[n] = y_row_accumulator[n];
             }
         }
     }
 }
 
 template <typename T>
-void TCSC(T *X, const CompressedTCSC &W, T *b, T *Y, int M, int N, int K)
+void ICSC_base(const T *X, const ICSC &W_icsc, const T *B, T *Y, int M, int N, int K)
 {
 #ifdef INSTRUMENTATION_RUN
     flops = 0;
-    ds_size = W.getDataStructureSize();
+    ds_size = W_icsc.getDataStructureSize();
 #endif
-    const int *col_offsets = W.col_offsets.data();
-    const int *encoded_rows = W.encoded_rows.data();
-    const int *col_pos_counts = W.col_pos_counts.data();
 
-    for (int m = 0; m < M; m++)
+    const int *const col_offsets_data = W_icsc.col_offsets.data();
+    const int *const encoded_rows_data = W_icsc.encoded_rows.data();
+
+    for (int m = 0; m < M; ++m)
     {
-        T *X_row = X + m * K;
-        T *Y_row = Y + m * N;
+        const T *const X_row_m = X + m * K;
+        T *const Y_row_m = Y + m * N;
 
-        for (int n = 0; n < N; n++)
+        std::copy(B, B + N, Y_row_m);
+
+#ifdef INSTRUMENTATION_RUN
+        flops += N;
+#endif
+
+        for (int n = 0; n < N; ++n)
         {
-            T y = 0;
-            int col_start = col_offsets[n];
-            int pos_count = col_pos_counts[n];
+            const int W_col_n_start_idx = col_offsets_data[n];
+            const int W_col_n_end_idx = col_offsets_data[n + 1];
 
-            // Process positive values
-            for (int k = col_start; k < col_start + pos_count; k++)
+            for (int nz_idx = W_col_n_start_idx; nz_idx < W_col_n_end_idx; ++nz_idx)
             {
-                T x_val = X_row[encoded_rows[k]];
-                y += x_val;
+                const int encoded_row_W = encoded_rows_data[nz_idx];
+                const int k = (encoded_row_W >= 0) ? encoded_row_W : ~encoded_row_W;
+                const T x_mk_val = X_row_m[k];
+                const T val_to_add = (encoded_row_W >= 0) ? x_mk_val : -x_mk_val;
+
+                Y_row_m[n] += val_to_add;
+
 #ifdef INSTRUMENTATION_RUN
                 flops++;
 #endif
             }
-
-            // Process negative values
-            for (int k = col_start + pos_count; k < col_offsets[n + 1]; k++)
-            {
-                T x_val = X_row[-encoded_rows[k] - 1];
-                y -= x_val;
-#ifdef INSTRUMENTATION_RUN
-                flops++;
-#endif
-            }
-
-            Y_row[n] = y + b[n];
-#ifdef INSTRUMENTATION_RUN
-            flops++;
-#endif
         }
     }
 }
 
-template <typename T, int TILE_M, int TILE_N, int UNROLL_K>
-void TCSC_unrolled_tiled(T *X, const CompressedTCSC &W, T *b, T *Y, int M, int N, int K)
+template <typename T>
+void TCSR_inter(const T *X, const BaseTCSR &W_tcsr, const T *B, T *Y,
+                int M, int N, int K)
+{
+
+#ifdef INSTRUMENTATION_RUN
+    flops = 0;
+    ds_size = W_tcsr.getDataStructureSize();
+#endif
+
+    const int *const row_start_pos_data = W_tcsr.row_start_pos.data();
+    const int *const col_index_pos_data = W_tcsr.col_index_pos.data();
+    const int *const row_start_neg_data = W_tcsr.row_start_neg.data();
+    const int *const col_index_neg_data = W_tcsr.col_index_neg.data();
+
+    const int W_num_rows = W_tcsr.getNumRows();
+
+    for (int m = 0; m < M; ++m)
+    {
+        const T *const X_row_m = X + m * K; // Current row of X
+        T *const Y_row_m = Y + m * N;       // Current row of Y
+
+        // Initialize Y with bias
+        // faster than looping
+        std::copy(B, B + N, Y_row_m);
+
+#ifdef INSTRUMENTATION_RUN
+        flops += N;
+#endif
+
+        // Iterate over rows of W (r corresponds to columns of X_row_m)
+        for (int r = 0; r < W_num_rows; ++r)
+        {
+            T x_mr_val = X_row_m[r];
+
+            if (x_mr_val == static_cast<T>(0))
+            {
+                continue;
+            }
+
+            // Get pointers/indices for +1 column indices in row r of W
+            int p_pos_col_idx = row_start_pos_data[r];
+            const int end_pos_col_idx = row_start_pos_data[r + 1];
+
+            // Get pointers/indices for -1 column indices in row r of W
+            int p_neg_col_idx = row_start_neg_data[r];
+            const int end_neg_col_idx = row_start_neg_data[r + 1];
+
+            int len_pos_cols = end_pos_col_idx - p_pos_col_idx;
+            int len_neg_cols = end_neg_col_idx - p_neg_col_idx;
+
+            int common_len_cols = std::min(len_pos_cols, len_neg_cols);
+
+            for (int i = 0; i < common_len_cols - 1; i += 2)
+            {
+                int c_pos = col_index_pos_data[p_pos_col_idx++];
+                Y_row_m[c_pos] += x_mr_val;
+                c_pos = col_index_pos_data[p_pos_col_idx++];
+                Y_row_m[c_pos] += x_mr_val;
+
+                int c_neg = col_index_neg_data[p_neg_col_idx++];
+                Y_row_m[c_neg] -= x_mr_val;
+                c_neg = col_index_neg_data[p_neg_col_idx++];
+                Y_row_m[c_neg] -= x_mr_val;
+
+#ifdef INSTRUMENTATION_RUN
+                flops += 4;
+#endif
+            }
+
+            while (p_pos_col_idx < end_pos_col_idx)
+            {
+                const int c_pos = col_index_pos_data[p_pos_col_idx++];
+                Y_row_m[c_pos] += x_mr_val;
+#ifdef INSTRUMENTATION_RUN
+                flops++;
+#endif
+            }
+
+            while (p_neg_col_idx < end_neg_col_idx)
+            {
+                const int c_neg = col_index_neg_data[p_neg_col_idx++];
+                Y_row_m[c_neg] -= x_mr_val;
+#ifdef INSTRUMENTATION_RUN
+                flops++;
+#endif
+            }
+        }
+    }
+}
+
+template <typename T>
+void TCSC_inter(T *X, const BaseTCSC &W_csc, T *b, T *Y, int M, int N, int K)
 {
 #ifdef INSTRUMENTATION_RUN
     flops = 0;
-    ds_size = W.getDataStructureSize();
+    ds_size = W_csc.getDataStructureSize();
 #endif
-    const int *col_offsets = W.col_offsets.data();
-    const int *encoded_rows = W.encoded_rows.data();
-    const int *col_pos_counts = W.col_pos_counts.data();
+    const int *col_start_pos = W_csc.col_start_pos.data();
+    const int *col_start_neg = W_csc.col_start_neg.data();
+    const int *row_index_pos = W_csc.row_index_pos.data();
+    const int *row_index_neg = W_csc.row_index_neg.data();
 
-    for (int m_start = 0; m_start < M; m_start += TILE_M)
+    for (int m = 0; m < M; m++)
     {
-        int m_end = std::min(m_start + TILE_M, M);
-
-        for (int n_start = 0; n_start < N; n_start += TILE_N)
+        const T *X_row_m = X + m * K;
+        for (int n = 0; n < N; n++)
         {
-            int n_end = std::min(n_start + TILE_N, N);
+            T y_val = 0;
 
-            for (int m = m_start; m < m_end; ++m)
+            int p_pos_k_idx = col_start_pos[n];
+            const int end_pos_k_idx = col_start_pos[n + 1];
+
+            int p_neg_k_idx = col_start_neg[n];
+            const int end_neg_k_idx = col_start_neg[n + 1];
+
+            int len_pos_entries = end_pos_k_idx - p_pos_k_idx;
+            int len_neg_entries = end_neg_k_idx - p_neg_k_idx;
+
+            int common_len_entries = std::min(len_pos_entries, len_neg_entries);
+
+            for (int i = 0; i + 1 < common_len_entries; i += 2)
             {
-                const T *X_row = X + m * K;
-                T *Y_row = Y + m * N;
+                T x_val_p1 = X_row_m[row_index_pos[p_pos_k_idx++]];
+                y_val += x_val_p1;
+                T x_val_p2 = X_row_m[row_index_pos[p_pos_k_idx++]];
+                y_val += x_val_p2;
 
-                for (int n = n_start; n < n_end; ++n)
-                {
-                    T acc = b[n];
-                    int off = col_offsets[n];
-                    int pos = col_pos_counts[n];
-                    int pos_end = off + pos;
-                    int col_end = col_offsets[n + 1];
+                T x_val_n1 = X_row_m[row_index_neg[p_neg_k_idx++]];
+                y_val -= x_val_n1;
+                T x_val_n2 = X_row_m[row_index_neg[p_neg_k_idx++]];
+                y_val -= x_val_n2;
 
-                    int k = off;
-                    if (UNROLL_K > 1)
-                    {
-                        T partials[UNROLL_K] = {0};
-                        for (; k + UNROLL_K <= pos_end; k += UNROLL_K)
-                        {
-                            for (int u = 0; u < UNROLL_K; ++u)
-                            {
-                                partials[u] += X_row[encoded_rows[k + u]];
 #ifdef INSTRUMENTATION_RUN
-                                flops++;
+                flops += 4; // 2 additions, 2 subtractions
 #endif
-                            }
-                        }
-                        for (int u = 0; u < UNROLL_K; ++u)
-                        {
-                            acc += partials[u];
-#ifdef INSTRUMENTATION_RUN
-                            flops++;
-#endif
-                        }
-                    }
-                    for (; k < pos_end; ++k)
-                    {
-                        acc += X_row[encoded_rows[k]];
-#ifdef INSTRUMENTATION_RUN
-                        flops++;
-#endif
-                    }
-
-                    k = pos_end;
-                    if (UNROLL_K > 1)
-                    {
-                        T partials[UNROLL_K] = {0};
-                        for (; k + UNROLL_K <= col_end; k += UNROLL_K)
-                        {
-                            for (int u = 0; u < UNROLL_K; ++u)
-                            {
-                                partials[u] -= X_row[-encoded_rows[k + u] - 1];
-#ifdef INSTRUMENTATION_RUN
-                                flops++;
-#endif
-                            }
-                        }
-                        for (int u = 0; u < UNROLL_K; ++u)
-                        {
-                            acc += partials[u];
-#ifdef INSTRUMENTATION_RUN
-                            flops++;
-#endif
-                        }
-                    }
-                    for (; k < col_end; ++k)
-                    {
-                        acc -= X_row[-encoded_rows[k] - 1];
-#ifdef INSTRUMENTATION_RUN
-                        flops++;
-#endif
-                    }
-                    Y_row[n] = acc;
-                }
             }
+
+            while (p_pos_k_idx < end_pos_k_idx)
+            {
+                T x_val = X_row_m[row_index_pos[p_pos_k_idx++]];
+                y_val += x_val;
+
+#ifdef INSTRUMENTATION_RUN
+                flops++;
+#endif
+            }
+
+            while (p_neg_k_idx < end_neg_k_idx)
+            {
+                T x_val = X_row_m[row_index_neg[p_neg_k_idx++]];
+                y_val -= x_val;
+
+#ifdef INSTRUMENTATION_RUN
+                flops++;
+#endif
+            }
+
+            Y[m * N + n] = y_val + b[n];
+#ifdef INSTRUMENTATION_RUN
+            flops++;
+#endif
         }
     }
 }

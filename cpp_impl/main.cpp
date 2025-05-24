@@ -44,9 +44,11 @@ int main(int argc, char **argv)
     // Initialize one instance per format
     auto sf_csc = std::make_shared<BaseTCSC>(W_raw.data(), K, N);
     auto sf_csr = std::make_shared<BaseTCSR>(W_raw.data(), K, N);
+    auto sf_tcsc = std::make_shared<BaseTCSC>(W_raw.data(), K, N);
+    auto sf_tcsr = std::make_shared<BaseTCSR>(W_raw.data(), K, N);
     auto sf_ccsc = std::make_shared<CompressedCSC>(W_raw.data(), K, N);
-    auto sf_tcsr = std::make_shared<CompressedTCSR>(W_raw.data(), K, N);
-    auto sf_tcsc = std::make_shared<CompressedTCSC>(W_raw.data(), K, N);
+    auto sf_icsr = std::make_shared<ICSR>(W_raw.data(), K, N);
+    auto sf_icsc = std::make_shared<ICSC>(W_raw.data(), K, N);
     auto sf_blocked = std::make_shared<BlockedTCSC<1024>>(W_raw.data(), K, N);
 
     add_function(
@@ -57,25 +59,38 @@ int main(int argc, char **argv)
         "BaseCSC_naive");
 
     add_function(
-        [sf_blocked](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
+        [sf_tcsc](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
         {
-            BlockedCSC<float, 1024>(X_arg, *sf_blocked, B_arg, Y_arg, M_arg, N_arg, K_arg);
+            TCSC_inter<float>(X_arg, *sf_tcsc, B_arg, Y_arg, M_arg, N_arg, K_arg);
         },
-        "BlockedCSC_1024");
-
+        "TCSC_interleaf");
     // add_function(
-    //     [sf_csr](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
+    //     [sf_blocked](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
     //     {
-    //         BaseCSR<float>(X_arg, *sf_csr, B_arg, Y_arg, M_arg, N_arg, K_arg);
+    //         BlockedCSC<float, 1024>(X_arg, *sf_blocked, B_arg, Y_arg, M_arg, N_arg, K_arg);
     //     },
-    //     "BaseCSR_naive");
+    //     "BlockedCSC_1024");
 
     add_function(
-        [sf_csc](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
+        [sf_csr](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
         {
-            BaseCSC_unr<float, 5>(X_arg, *sf_csc, B_arg, Y_arg, M_arg, N_arg, K_arg);
+            BaseCSR<float>(X_arg, *sf_csr, B_arg, Y_arg, M_arg, N_arg, K_arg);
         },
-        "BaseCSC_unrolled_5");
+        "BaseCSR_naive");
+
+    add_function(
+        [sf_tcsr](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
+        {
+            TCSR_inter<float>(X_arg, *sf_tcsr, B_arg, Y_arg, M_arg, N_arg, K_arg);
+        },
+        "TCSR_interleaf");
+
+    // add_function(
+    //     [sf_csc](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
+    //     {
+    //         BaseCSC_unr<float, 5>(X_arg, *sf_csc, B_arg, Y_arg, M_arg, N_arg, K_arg);
+    //     },
+    //     "BaseCSC_unrolled_5");
 
     // add_function(
     //     [sf_csc](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
@@ -104,46 +119,34 @@ int main(int argc, char **argv)
     //         BaseCSR_unr<float, 16>(X_arg, *sf_csr, B_arg, Y_arg, M_arg, N_arg, K_arg);
     //     },
     //     "BaseCSR_unrolled_16");
-    add_function(
-        [sf_ccsc](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
-        {
-            CCSC_base<float>(X_arg, *sf_ccsc, B_arg, Y_arg, M_arg, N_arg, K_arg);
-        },
-        "CompressedCSC_naive");
-    add_function(
-        [sf_ccsc](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
-        {
-            CCSC_unr<float>(X_arg, *sf_ccsc, B_arg, Y_arg, M_arg, N_arg, K_arg);
-        },
-        "CompressedCSC_unrolled_5");
 
     // add_function(
-    //     [sf_tcsr](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
+    //     [sf_ccsc](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
     //     {
-    //         TCSR<float>(X_arg, *sf_tcsr, B_arg, Y_arg, M_arg, N_arg, K_arg);
+    //         CCSC_base<float>(X_arg, *sf_ccsc, B_arg, Y_arg, M_arg, N_arg, K_arg);
     //     },
-    //     "TernaryCSR_naive");
+    //     "CompressedCSC_naive");
 
     // add_function(
-    //     [sf_tcsr](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
+    //     [sf_ccsc](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
     //     {
-    //         TCSR_unrolled_tiled<float, 8, 8>(X_arg, *sf_tcsr, B_arg, Y_arg, M_arg, N_arg, K_arg);
+    //         CCSC_unr<float>(X_arg, *sf_ccsc, B_arg, Y_arg, M_arg, N_arg, K_arg);
     //     },
-    //     "TernaryCSR_unrolled_tiled_8x8");
+    //     "CompressedCSC_unrolled_5");
 
     // add_function(
-    //     [sf_tcsc](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
+    //     [sf_icsr](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
     //     {
-    //         TCSC<float>(X_arg, *sf_tcsc, B_arg, Y_arg, M_arg, N_arg, K_arg);
+    //         ICSR_base<float>(X_arg, *sf_icsr, B_arg, Y_arg, M_arg, N_arg, K_arg);
     //     },
-    //     "TernaryCSC_naive");
+    //     "ICSR_naive");
 
     // add_function(
-    //     [sf_tcsc](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
+    //     [sf_icsc](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
     //     {
-    //         TCSC_unrolled_tiled<float, 8, 8, 8>(X_arg, *sf_tcsc, B_arg, Y_arg, M_arg, N_arg, K_arg);
+    //         ICSC_base<float>(X_arg, *sf_icsc, B_arg, Y_arg, M_arg, N_arg, K_arg);
     //     },
-    //     "TernaryCSC_unrolled_tiled_8x8x8");
+    //     "ICSC_naive");
 
     if (numFuncs == 0)
     {
@@ -196,8 +199,8 @@ int main(int argc, char **argv)
 #ifdef INSTRUMENTATION_RUN
         std::cout << "Flops: " << getTotalFlops() << std::endl;
         std::cout << "Performance: " << (double)getTotalFlops() / perf_val << " flops/cycle" << std::endl;
-        double total_bytes = sizeof(float) * ((double) (M * K + M * N + N)) + (double) getDataStructureSizeInBytes();
-        std::cout << "Total Input Size: " << (int) total_bytes << " Bytes" << std::endl;
+        double total_bytes = sizeof(float) * ((double)(M * K + M * N + N)) + (double)getDataStructureSizeInBytes();
+        std::cout << "Total Input Size: " << (int)total_bytes << " Bytes" << std::endl;
         std::cout << "Operational Intensity: " << (double)getTotalFlops() / total_bytes << " Flops/Byte" << std::endl;
         std::cout << "Data Structure Size: " << getDataStructureSizeInBytes() << " Bytes" << std::endl;
 #endif
