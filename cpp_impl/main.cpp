@@ -58,9 +58,9 @@ int main(int argc, char **argv)
     add_function(
         [sf_csc](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
         {
-            BaseCSC_unr<float, 8>(X_arg, *sf_csc, B_arg, Y_arg, M_arg, N_arg, K_arg);
+            BaseCSC_unr<float, 4>(X_arg, *sf_csc, B_arg, Y_arg, M_arg, N_arg, K_arg);
         },
-        "BaseCSC_unrolled_8");
+        "BaseCSC_unrolled_4");
 
     // add_function(
     //     [sf_blocked](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
@@ -74,7 +74,7 @@ int main(int argc, char **argv)
         {
             BlockedCSC_unr4<float, 1024>(X_arg, *sf_blocked, B_arg, Y_arg, M_arg, N_arg, K_arg);
         },
-        "BlockedCSC_unr_8192");
+        "BlockedCSC_unr_1024");
 
     // add_function(
     //     [sf_csr](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
@@ -202,8 +202,8 @@ int main(int argc, char **argv)
 #ifdef INSTRUMENTATION_RUN
         std::cout << "Flops: " << getTotalFlops() << std::endl;
         std::cout << "Performance: " << (double)getTotalFlops() / perf_val << " flops/cycle" << std::endl;
-        double total_bytes = sizeof(float) * ((double) (M * K + M * N + N)) + (double) getDataStructureSizeInBytes();
-        std::cout << "Total Input Size: " << (int) total_bytes << " Bytes" << std::endl;
+        double total_bytes = sizeof(float) * ((double)(M * K + M * N + N)) + (double)getDataStructureSizeInBytes();
+        std::cout << "Total Input Size: " << (int)total_bytes << " Bytes" << std::endl;
         std::cout << "Operational Intensity: " << (double)getTotalFlops() / total_bytes << " Flops/Byte" << std::endl;
         std::cout << "Data Structure Size: " << getDataStructureSizeInBytes() << " Bytes" << std::endl;
 #endif

@@ -892,15 +892,6 @@ void BlockedCSC(T *X, const BlockedTCSC<B> &W_csc, T *b, T *Y, int M, int N, int
     const int *row_index_pos = W_csc.row_index_pos.data();
     const int *row_index_neg = W_csc.row_index_neg.data();
 
-    // Initialize Y with bias
-    for (int m = 0; m < M; m++)
-    {
-        for (int n = 0; n < N; n++)
-        {
-            Y[m * N + n] = b[n];
-        }
-    }
-
     // Process each row of Y
     for (int m = 0; m < M; m++)
     {
@@ -921,6 +912,15 @@ void BlockedCSC(T *X, const BlockedTCSC<B> &W_csc, T *b, T *Y, int M, int N, int
                 Y[m * N + n % N] += y;
             }
         }
+
+        // Add bias after processing the entire row
+        for (int n = 0; n < N; n++)
+        {
+            Y[m * N + n] += b[n];
+#ifdef INSTRUMENTATION_RUN
+            flops++;
+#endif
+        }
     }
 }
 
@@ -935,15 +935,6 @@ void BlockedCSC_unr4(T *X, const BlockedTCSC<B> &W_csc, T *b, T *Y, int M, int N
     const int *col_start_neg = W_csc.col_start_neg.data();
     const int *row_index_pos = W_csc.row_index_pos.data();
     const int *row_index_neg = W_csc.row_index_neg.data();
-
-    // Initialize Y with bias
-    for (int m = 0; m < M; m++)
-    {
-        for (int n = 0; n < N; n++)
-        {
-            Y[m * N + n] = b[n];
-        }
-    }
 
     // Process each row of Y
     for (int m = 0; m < M; m++)
@@ -1021,6 +1012,15 @@ void BlockedCSC_unr4(T *X, const BlockedTCSC<B> &W_csc, T *b, T *Y, int M, int N
                 flops++;
 #endif
             }
+        }
+
+        // Add bias after processing the entire row
+        for (int n = 0; n < N; n++)
+        {
+            Y[m * N + n] += b[n];
+#ifdef INSTRUMENTATION_RUN
+            flops++;
+#endif
         }
     }
 }
