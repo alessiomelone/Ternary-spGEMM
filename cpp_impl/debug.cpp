@@ -98,56 +98,56 @@ int main(int argc, char **argv)
     /* --- Dispatch to requested kernel ------------------------------------- */
     comp_func kernel;
 
-    kernel = [&sf_blocked](float *Xv, float *Bv, float *Yv, int m, int n, int k)
+    kernel = [&ccsc](float *Xv, float *Bv, float *Yv, int m, int n, int k)
     {
-        BlockedCSC<float, 2>(Xv, sf_blocked, Bv, Yv, m, n, k);
+        CCSC_base<float>(Xv, ccsc, Bv, Yv, m, n, k);
     };
 
     /* --- Print matrices ---------------------------------------------------- */
-    std::cout << "X matrix  |  W matrix\n";
-    int maxRows = (M > K) ? M : K;
-    for (int i = 0; i < maxRows; ++i)
-    {
-        if (i < M)
-        {
-            for (int j = 0; j < K; ++j)
-                std::cout << std::setw(5) << X[i * K + j] << ' ';
-        }
-        else
-        {
-            for (int j = 0; j < K; ++j)
-                std::cout << std::setw(5) << ' ' << ' ';
-        }
-        std::cout << "| ";
-        if (i < K)
-        {
-            for (int j = 0; j < N; ++j)
-                std::cout << std::setw(5) << W_FP32[i * N + j] << ' ';
-        }
-        std::cout << '\n';
-    }
+    // std::cout << "X matrix  |  W matrix\n";
+    // int maxRows = (M > K) ? M : K;
+    // for (int i = 0; i < maxRows; ++i)
+    // {
+    //     if (i < M)
+    //     {
+    //         for (int j = 0; j < K; ++j)
+    //             std::cout << std::setw(5) << X[i * K + j] << ' ';
+    //     }
+    //     else
+    //     {
+    //         for (int j = 0; j < K; ++j)
+    //             std::cout << std::setw(5) << ' ' << ' ';
+    //     }
+    //     std::cout << "| ";
+    //     if (i < K)
+    //     {
+    //         for (int j = 0; j < N; ++j)
+    //             std::cout << std::setw(5) << W_FP32[i * N + j] << ' ';
+    //     }
+    //     std::cout << '\n';
+    // }
 
-    std::cout << "B vector:\n";
-    for (float b : B)
-        std::cout << b << ' ';
-    std::cout << "\nExpected Y matrix:\n";
-    for (int i = 0; i < M; ++i)
-    {
-        for (int j = 0; j < N; ++j)
-            std::cout << std::setw(5) << refY[i * N + j] << ' ';
-        std::cout << '\n';
-    }
+    // std::cout << "B vector:\n";
+    // for (float b : B)
+    //     std::cout << b << ' ';
+    // std::cout << "\nExpected Y matrix:\n";
+    // for (int i = 0; i < M; ++i)
+    // {
+    //     for (int j = 0; j < N; ++j)
+    //         std::cout << std::setw(5) << refY[i * N + j] << ' ';
+    //     std::cout << '\n';
+    // }
 
     /* --- Run kernel -------------------------------------------------------- */
     kernel(X.data(), B.data(), Y.data(), M, N, K);
 
-    std::cout << "Actual Y matrix:\n";
-    for (int i = 0; i < M; ++i)
-    {
-        for (int j = 0; j < N; ++j)
-            std::cout << std::setw(5) << Y[i * N + j] << ' ';
-        std::cout << '\n';
-    }
+    // std::cout << "Actual Y matrix:\n";
+    // for (int i = 0; i < M; ++i)
+    // {
+    //     for (int j = 0; j < N; ++j)
+    //         std::cout << std::setw(5) << Y[i * N + j] << ' ';
+    //     std::cout << '\n';
+    // }
 
     /* --- Correctness check ------------------------------------------------- */
     bool ok = compare_results(Y.data(), refY.data(), M, N);
