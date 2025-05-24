@@ -267,8 +267,8 @@ public:
 
 	// Contains indices in vals where the next matrix column starts, inclusive.
 	// Each byte is only in one column.
-	vector<int> col_start;
-	vector<int> row_index;
+	vector<short> col_start;
+	vector<short> row_index;
 
 	CompressedCSC() {}
 	CompressedCSC(const int *W_raw, int K, int N)
@@ -276,12 +276,14 @@ public:
 		init(W_raw, K, N);
 	}
 
-	void init(const int *matrix, int rows, int cols)
+	void init(const int *matrix, int rows_int, int cols_int)
 	{
-		for (int col = 0; col < cols; ++col)
+		short rows = static_cast<short>(rows_int);
+		short cols = static_cast<short>(cols_int);
+		for (short col = 0; col < cols; ++col)
 		{
 			col_start.push_back(vals.size());
-			for (int row = 0; row <= rows - 5; row += 5)
+			for (short row = 0; row <= rows - 5; row += 5)
 			{
 				const int *matrix_ptr = matrix + (row * cols) + col;
 				if (matrix_ptr[0] == 0 && matrix_ptr[1 * cols] == 0 && matrix_ptr[2 * cols] == 0 && matrix_ptr[3 * cols] == 0 && matrix_ptr[4 * cols] == 0)
@@ -297,8 +299,9 @@ public:
 
 			// cleanup for last few bits
 			int pad_values[5] = {0, 0, 0, 0, 0};
-			for (int pad_pos = 0; pad_pos < rows % 5; ++pad_pos)
+			for (short pad_pos = 0; pad_pos < rows % 5; ++pad_pos)
 			{
+<<<<<<< HEAD
 				int val = matrix[r * cols + c];
 				if (val != 0)
 				{
@@ -306,6 +309,18 @@ public:
 					vals.push_back(static_cast<uint8_t>(val));
 					current_nnz_count++;
 				}
+=======
+				short row = (rows - (rows % 5)) + pad_pos;
+				const int *matrix_ptr = matrix + (row * cols) + col;
+				pad_values[pad_pos] = *matrix_ptr;
+			}
+			uint8_t bitstring;
+			if (pad_values[0] != 0 || pad_values[1] != 0 || pad_values[2] != 0 || pad_values[3] != 0 || pad_values[4] != 0)
+			{
+				bitstring = encode(pad_values[0], pad_values[1], pad_values[2], pad_values[3], pad_values[4]);
+				vals.push_back(bitstring);
+				row_index.push_back(rows - (rows % 5));
+>>>>>>> 82b3402 (use shorts in CCSC & run unroll test)
 			}
 		}
 <<<<<<< HEAD

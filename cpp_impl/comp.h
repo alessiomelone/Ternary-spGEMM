@@ -86,10 +86,67 @@ void CSC_base_testing(T *X, const BaseTCSC &W_csr, T *b, T *Y, int M, int N, int
 }
 
 template <typename T>
+void BaseCSC_unroll5(T *X, const BaseTCSC &W_csc,
+                     T *b, T *Y,
+                     int M, int N, int K)
+{
+    const int *col_start_pos = W_csc.col_start_pos.data();
+    const int *col_start_neg = W_csc.col_start_neg.data();
+    const int *row_index_pos = W_csc.row_index_pos.data();
+    const int *row_index_neg = W_csc.row_index_neg.data();
+
+    for (int m = 0; m < M; ++m)
+    {
+        const T *x_row = X + m * K;                 // pointer to X[m,0]
+
+        for (int n = 0; n < N; ++n)
+        {
+            T y_val = 0;
+
+            /* ---------- positive coefficients ---------- */
+            int k0   = col_start_pos[n];
+            int kEnd = col_start_pos[n + 1];
+
+            /* main body: 5 nz per batch */
+            for ( ; k0 + 4 < kEnd; k0 += 5)
+            {
+                y_val += x_row[row_index_pos[k0    ]];
+                y_val += x_row[row_index_pos[k0 + 1]];
+                y_val += x_row[row_index_pos[k0 + 2]];
+                y_val += x_row[row_index_pos[k0 + 3]];
+                y_val += x_row[row_index_pos[k0 + 4]];
+            }
+            /* tail */
+            for ( ; k0 < kEnd; ++k0)
+                y_val += x_row[row_index_pos[k0]];
+
+            /* ---------- negative coefficients ---------- */
+            k0   = col_start_neg[n];
+            kEnd = col_start_neg[n + 1];
+
+            for ( ; k0 + 4 < kEnd; k0 += 5)
+            {
+                y_val -= x_row[row_index_neg[k0    ]];
+                y_val -= x_row[row_index_neg[k0 + 1]];
+                y_val -= x_row[row_index_neg[k0 + 2]];
+                y_val -= x_row[row_index_neg[k0 + 3]];
+                y_val -= x_row[row_index_neg[k0 + 4]];
+            }
+            for ( ; k0 < kEnd; ++k0)
+                y_val -= x_row[row_index_neg[k0]];
+
+            /* bias + store */
+            Y[m * N + n] = y_val + b[n];
+        }
+    }
+}
+
+
+template <typename T>
 void CCSC_base(T *X, const CompressedCSC &W, T *b, T *Y, int M, int N, int K)
 {
-    const int *col_start = W.col_start.data();
-    const int *row_index = W.row_index.data();
+    const short *col_start = W.col_start.data();
+    const short *row_index = W.row_index.data();
     const uint8_t *vals = W.vals.data();
 
     for (int m = 0; m < M; ++m)
@@ -155,9 +212,9 @@ void CCSC_base(T *X, const CompressedCSC &W, T *b, T *Y, int M, int N, int K)
             Y[m * n_col + n + 4] = y_val4 + b[n];
 =======
 
-            for (int k = col_start[n]; k < col_start[n + 1]; ++k)
+            for (short k = col_start[n]; k < col_start[n + 1]; ++k)
             {
-                int row = row_index[k];
+                short row = row_index[k];
                 const int8_t *d = decodeCCSC[vals[k]];
 
                 y_val0 += d[0] * X[m * K + row + 0];

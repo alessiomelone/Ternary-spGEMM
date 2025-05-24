@@ -110,6 +110,7 @@ int main(int argc, char **argv)
         "BaseCSC");
 =======
         "BaseCSC_naive");
+<<<<<<< HEAD
 >>>>>>> 1d668b2 (renaming)
 =======
     // add_function(
@@ -121,6 +122,15 @@ int main(int argc, char **argv)
 =======
         "BaseCSC_naive");
 >>>>>>> 914d53d (change readme)
+=======
+    
+        add_function(
+        [sf_csc](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
+        {
+            BaseCSC_unroll5<float>(X_arg, *sf_csc, B_arg, Y_arg, M_arg, N_arg, K_arg);
+        },
+        "BaseCSC_unroll5");
+>>>>>>> 82b3402 (use shorts in CCSC & run unroll test)
 
     // add_function(
     //     [sf_csc](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
@@ -181,6 +191,7 @@ int main(int argc, char **argv)
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     add_function(
         [sf_tcsr](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
         {
@@ -219,6 +230,14 @@ int main(int argc, char **argv)
     //     },
     //     "CompressedCSC_naive");
 >>>>>>> 5ab0bc5 (added 1000x4096x16384 and 4000x4096x16384 to run_benchmark.py)
+=======
+    add_function(
+        [sf_ccsc](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
+        {
+            CCSC_base<float>(X_arg, *sf_ccsc, B_arg, Y_arg, M_arg, N_arg, K_arg);
+        },
+        "CompressedCSC_naive");
+>>>>>>> 82b3402 (use shorts in CCSC & run unroll test)
 
     // add_function(
     //     [sf_tcsr](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
@@ -235,12 +254,16 @@ int main(int argc, char **argv)
     //     "TernaryCSR_unrolled_tiled_8x8");
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 82b3402 (use shorts in CCSC & run unroll test)
     // add_function(
     //     [sf_tcsc](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
     //     {
     //         TCSC<float>(X_arg, *sf_tcsc, B_arg, Y_arg, M_arg, N_arg, K_arg);
     //     },
     //     "TernaryCSC_naive");
+<<<<<<< HEAD
 
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -300,6 +323,8 @@ int main(int argc, char **argv)
 >>>>>>> 1d668b2 (renaming)
 =======
         "TernaryCSC_naive");
+=======
+>>>>>>> 82b3402 (use shorts in CCSC & run unroll test)
 
     // add_function(
     //     [sf_tcsc](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
