@@ -7,6 +7,7 @@
 #include "data_structures/TCSR.h"
 #include "data_structures/BaseTCSC.h"
 #include "data_structures/BaseTCSR.h"
+#include "data_structures/BlockedTCSC.h"
 
 using comp_func = std::function<void(float *X, float *B, float *Y, int M, int N, int K)>;
 

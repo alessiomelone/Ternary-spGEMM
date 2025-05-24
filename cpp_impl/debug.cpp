@@ -93,14 +93,14 @@ int main(int argc, char **argv)
     /* --- Prepare sparse formats once -------------------------------------- */
     BaseTCSC sf(W_raw.data(), K, N);
     CompressedCSC ccsc(W_raw.data(), K, N);
-    BaseTCSR sf_csr(W_raw.data(), K, N);
+    BlockedTCSC<2> sf_blocked(W_raw.data(), K, N);
 
     /* --- Dispatch to requested kernel ------------------------------------- */
     comp_func kernel;
 
-    kernel = [&sf_csr](float *Xv, float *Bv, float *Yv, int m, int n, int k)
+    kernel = [&sf_blocked](float *Xv, float *Bv, float *Yv, int m, int n, int k)
     {
-        BaseCSR<float>(Xv, sf_csr, Bv, Yv, m, n, k);
+        BlockedCSC<float, 2>(Xv, sf_blocked, Bv, Yv, m, n, k);
     };
 
     /* --- Print matrices ---------------------------------------------------- */
