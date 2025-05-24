@@ -98,9 +98,9 @@ int main(int argc, char **argv)
     /* --- Dispatch to requested kernel ------------------------------------- */
     comp_func kernel;
 
-    kernel = [&sf_csr](float *Xv, float *Bv, float *Yv, int m, int n, int k)
+    kernel = [&ccsc](float *Xv, float *Bv, float *Yv, int m, int n, int k)
     {
-        BaseCSR<float>(Xv, sf_csr, Bv, Yv, m, n, k);
+        CCSC_base<float>(Xv, ccsc, Bv, Yv, m, n, k);
     };
 
     /* --- Print matrices ---------------------------------------------------- */

@@ -96,12 +96,12 @@ int main(int argc, char **argv)
     //         BaseCSR_unr<float, 16>(X_arg, *sf_csr, B_arg, Y_arg, M_arg, N_arg, K_arg);
     //     },
     //     "BaseCSR_unrolled_16");
-    // add_function(
-    //     [sf_ccsc](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
-    //     {
-    //         CCSC_base<float>(X_arg, *sf_ccsc, B_arg, Y_arg, M_arg, N_arg, K_arg);
-    //     },
-    //     "CompressedCSC_naive");
+    add_function(
+        [sf_ccsc](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
+        {
+            CCSC_base<float>(X_arg, *sf_ccsc, B_arg, Y_arg, M_arg, N_arg, K_arg);
+        },
+        "CompressedCSC_naive");
 
     // add_function(
     //     [sf_tcsr](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)

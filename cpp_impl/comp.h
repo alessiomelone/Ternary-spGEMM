@@ -64,9 +64,16 @@ void CCSC_base(T *X, const CompressedCSC &W, T *b, T *Y, int M, int N, int K)
     flops = 0;
     ds_size = W.getDataStructureSize();
 #endif
-    const int *col_start = W.col_start.data();
-    const int *row_index = W.row_index.data();
-    const uint8_t *vals = W.vals.data();
+    const int *col_start_5 = W.col_start_5.data();
+    const int *row_index_5 = W.row_index_5.data();
+
+    const int *row_index_pos = W.row_index_pos.data();
+    const int *row_index_neg = W.row_index_neg.data();
+
+    const int *col_start_pos = W.col_start_pos.data();
+    const int *col_start_neg = W.col_start_neg.data();
+
+    const uint8_t *vals_5 = W.vals_5.data();
 
     for (int m = 0; m < M; ++m)
     {
@@ -78,10 +85,11 @@ void CCSC_base(T *X, const CompressedCSC &W, T *b, T *Y, int M, int N, int K)
             T y_val3 = 0;
             T y_val4 = 0;
 
-            for (int k = col_start[n]; k < col_start[n + 1]; ++k)
+            // blocks of 5
+            for (int k = col_start_5[n]; k < col_start_5[n + 1]; ++k)
             {
-                int row = row_index[k];
-                const int8_t *d = decodeCCSC[vals[k]];
+                int row = row_index_5[k];
+                const int8_t *d = decode5[vals_5[k]];
 
                 y_val0 += d[0] * X[m * K + row + 0];
                 y_val1 += d[1] * X[m * K + row + 1];
@@ -92,6 +100,26 @@ void CCSC_base(T *X, const CompressedCSC &W, T *b, T *Y, int M, int N, int K)
                 flops += 5;
 #endif
             }
+
+            // positive
+            for (int k = col_start_pos[n]; k < col_start_pos[n + 1]; ++k)
+            {
+                int row = row_index_pos[k];
+                y_val0 += X[m * K + row];
+            }
+#ifdef INSTRUMENTATION_RUN
+            flops += col_start_pos[n + 1] - col_start_pos[n];
+#endif
+
+            // negative
+            for (int k = col_start_neg[n]; k < col_start_neg[n + 1]; ++k)
+            {
+                int row = row_index_neg[k];
+                y_val0 -= X[m * K + row];
+            }
+#ifdef INSTRUMENTATION_RUN
+            flops += col_start_neg[n + 1] - col_start_neg[n];
+#endif
 
             T acc = y_val0 + y_val1 + y_val2 + y_val3 + y_val4;
             Y[m * N + n] = acc + b[n];

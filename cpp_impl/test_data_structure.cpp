@@ -57,7 +57,10 @@ bool test(int K, int N, int nonZero, int seed, bool verbose = false)
     auto M = matrix_representation.getVectorRepresentation(K, N);
 
     if (verbose)
+    {
         printMatrix<int>(M, K, N, 2);
+        printf(M == W_truth ? "pass\n" : "fail\n");
+    }
 
     return M == W_truth;
 }
@@ -86,14 +89,14 @@ bool testMany(int K, int N, int nonZero, int variants, bool verbose = false)
                 {
                     printf("Mismatch at k=%d, n=%d, seed=%d\n", k, n, seed);
                     mismatch_flag = true;
-                    break;
+                    return false;
                 }
             }
         }
     }
     if (!mismatch_flag)
         printf("All vectors match!\n");
-    return 0;
+    return true;
 }
 
 template <typename T>
@@ -135,6 +138,8 @@ bool testRequired(int variants, bool verbose = false)
 
 int main()
 {
+    // test<CompressedCSC>(1, 1, 2, 1, true);
+
     // Sizes you'll probably use debugging
     printf("(1/2)\n");
     testMany<CompressedCSC>(40, 40, 2, 20, false);
