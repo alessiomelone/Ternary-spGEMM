@@ -80,7 +80,7 @@ int main(int argc, char **argv)
     }
 
     /* --- Generate matrices ------------------------------------------------- */
-    std::vector<int> W_raw = generateSparseMatrix<int>(K, N, nonZero, false, 0);
+    std::vector<int> W_raw = generateSparseMatrix<int>(K, N, 1, false, 1);
     std::vector<float> W_FP32(W_raw.begin(), W_raw.end());
 
     std::vector<float> X = initX<float>(M * K, 512);

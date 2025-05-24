@@ -47,7 +47,7 @@ int main(int argc, char **argv)
     auto sf_ccsc = std::make_shared<CompressedCSC>(W_raw.data(), K, N);
     auto sf_tcsr = std::make_shared<CompressedTCSR>(W_raw.data(), K, N);
     auto sf_tcsc = std::make_shared<CompressedTCSC>(W_raw.data(), K, N);
-    auto sf_blocked = std::make_shared<BlockedTCSC<32>>(W_raw.data(), K, N);
+    auto sf_blocked = std::make_shared<BlockedTCSC<1024>>(W_raw.data(), K, N);
 
     add_function(
         [sf_csc](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
@@ -59,9 +59,9 @@ int main(int argc, char **argv)
     add_function(
         [sf_blocked](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
         {
-            BlockedCSC<float, 32>(X_arg, *sf_blocked, B_arg, Y_arg, M_arg, N_arg, K_arg);
+            BlockedCSC<float, 1024>(X_arg, *sf_blocked, B_arg, Y_arg, M_arg, N_arg, K_arg);
         },
-        "BlockedCSC_32");
+        "BlockedCSC_1024");
 
     // add_function(
     //     [sf_csr](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)

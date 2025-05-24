@@ -3,6 +3,7 @@
 
 #include "common.h"
 #include "data_structures/BlockedTCSC.h"
+#include <iostream>
 
 #ifdef INSTRUMENTATION_RUN
 long long flops = 0;
@@ -36,24 +37,31 @@ void BaseCSC(T *X, const BaseTCSC &W_csc, T *b, T *Y, int M, int N, int K)
         for (int n = 0; n < N; n++)
         {
             T y_val = 0;
+
+            // Process positive values
             for (int k = col_start_pos[n]; k < col_start_pos[n + 1]; k++)
             {
+                T x_val = X[m * K + row_index_pos[k]];
+                y_val += x_val;
 #ifdef INSTRUMENTATION_RUN
                 flops++;
 #endif
-                y_val += X[m * K + row_index_pos[k]];
             }
+
+            // Process negative values
             for (int k = col_start_neg[n]; k < col_start_neg[n + 1]; k++)
             {
+                T x_val = X[m * K + row_index_neg[k]];
+                y_val -= x_val;
 #ifdef INSTRUMENTATION_RUN
                 flops++;
 #endif
-                y_val -= X[m * K + row_index_neg[k]];
             }
+
+            Y[m * N + n] = y_val + b[n];
 #ifdef INSTRUMENTATION_RUN
             flops++;
 #endif
-            Y[m * N + n] = y_val + b[n];
         }
     }
 }
@@ -265,25 +273,30 @@ void TCSC(T *X, const CompressedTCSC &W, T *b, T *Y, int M, int N, int K)
             int col_start = col_offsets[n];
             int pos_count = col_pos_counts[n];
 
+            // Process positive values
             for (int k = col_start; k < col_start + pos_count; k++)
             {
+                T x_val = X_row[encoded_rows[k]];
+                y += x_val;
 #ifdef INSTRUMENTATION_RUN
                 flops++;
 #endif
-                y += X_row[encoded_rows[k]];
             }
 
+            // Process negative values
             for (int k = col_start + pos_count; k < col_offsets[n + 1]; k++)
             {
+                T x_val = X_row[-encoded_rows[k] - 1];
+                y -= x_val;
 #ifdef INSTRUMENTATION_RUN
                 flops++;
 #endif
-                y -= X_row[-encoded_rows[k] - 1];
             }
+
+            Y_row[n] = y + b[n];
 #ifdef INSTRUMENTATION_RUN
             flops++;
 #endif
-            Y_row[n] = y + b[n];
         }
     }
 }
@@ -486,7 +499,7 @@ void BaseCSR(T *X, const BaseTCSR &W_csr, T *b, T *Y, int M, int N, int K)
     const int *col_index_pos = W_csr.col_index_pos.data();
     const int *col_index_neg = W_csr.col_index_neg.data();
 
-    // Initialise Y with bias
+    // Initialize Y with bias
     for (int m = 0; m < M; ++m)
     {
         for (int n = 0; n < N; ++n)
@@ -505,25 +518,25 @@ void BaseCSR(T *X, const BaseTCSR &W_csr, T *b, T *Y, int M, int N, int K)
         for (int k = 0; k < K; ++k)
         {
             T x_val = X_row[k];
-            // printf("Accessing X[%d][%d] = %f\n", m, k, x_val);
-
-            for (int j = row_start_pos[k]; j < row_start_pos[k + 1]; ++j)
+            if (x_val != static_cast<T>(0))
             {
+                // Process positive values
+                for (int j = row_start_pos[k]; j < row_start_pos[k + 1]; ++j)
+                {
+                    Y_row[col_index_pos[j]] += x_val;
 #ifdef INSTRUMENTATION_RUN
-                flops++;
+                    flops++;
 #endif
-                Y_row[col_index_pos[j]] += x_val;
-                // printf("\t\t\t\t\tAccessing Y[%d][%d] = %f\n", m, col_index_pos[j], Y_row[col_index_pos[j]]);
-            }
+                }
 
-            // Process negative values
-            for (int j = row_start_neg[k]; j < row_start_neg[k + 1]; ++j)
-            {
+                // Process negative values
+                for (int j = row_start_neg[k]; j < row_start_neg[k + 1]; ++j)
+                {
+                    Y_row[col_index_neg[j]] -= x_val;
 #ifdef INSTRUMENTATION_RUN
-                flops++;
+                    flops++;
 #endif
-                Y_row[col_index_neg[j]] -= x_val;
-                // printf("\t\t\t\t\tAccessing Y[%d][%d] = %f\n", m, col_index_neg[j], Y_row[col_index_neg[j]]);
+                }
             }
         }
     }
@@ -728,30 +741,22 @@ void BlockedCSC(T *X, const BlockedTCSC<B> &W_csc, T *b, T *Y, int M, int N, int
     // Process each row of Y
     for (int m = 0; m < M; m++)
     {
-        // Process each column
-        for (int n = 0; n < N; n++)
+        // Process each block of K
+        for (int k_block = 0; k_block < K / B; k_block++)
         {
-            T y_val = 0;
-
-            // Process positive values
-            for (int k = col_start_pos[n]; k < col_start_pos[n + 1]; k++)
+            for (int n = k_block * N; n < k_block * N + N; n++)
             {
-                y_val += X[m * K + row_index_pos[k]];
-#ifdef INSTRUMENTATION_RUN
-                flops++;
-#endif
+                T y = 0;
+                for (int k = col_start_pos[n]; k < col_start_pos[n + 1]; k++)
+                {
+                    y += X[m * K + row_index_pos[k]];
+                }
+                for (int k = col_start_neg[n]; k < col_start_neg[n + 1]; k++)
+                {
+                    y -= X[m * K + row_index_neg[k]];
+                }
+                Y[m * N + n % N] += y;
             }
-
-            // Process negative values
-            for (int k = col_start_neg[n]; k < col_start_neg[n + 1]; k++)
-            {
-                y_val -= X[m * K + row_index_neg[k]];
-#ifdef INSTRUMENTATION_RUN
-                flops++;
-#endif
-            }
-
-            Y[m * N + n] = y_val;
         }
     }
 }
