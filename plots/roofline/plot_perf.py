@@ -4,6 +4,7 @@ from datetime import datetime
 import matplotlib.pyplot as plt
 import matplotlib.ticker # For FixedLocator, FixedFormatter, NullLocator
 import pandas as pd
+import os
 
 def round_size(size):
     millions = size / 1_000_000.0
@@ -144,7 +145,9 @@ def create_performance_plot(json_filepath, title, outname):
     dt = datetime.now()
     ts = datetime.timestamp(dt) * 100
     ts = int(ts)
-    plot_filename = f"{outname}_{ts}.png"
+    output_dir = os.path.join("plots", "roofline", "plot_images")
+    os.makedirs(output_dir, exist_ok=True)
+    plot_filename = os.path.join(output_dir, f"{outname}_{ts}.png")
     try:
         plt.savefig(plot_filename, dpi=300)
         print(f"Plot saved as {plot_filename}")

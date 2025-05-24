@@ -1,0 +1,92 @@
+[
+    {
+        "test_case": {
+            "M": 256,
+            "K": 1024,
+            "N": 1024,
+            "s": 8
+        },
+        "results": {
+            "BaseCSC_unrolled_": {
+                "total_input_size": 2633744,
+                "operational_intensity": 13.7355,
+                "performance": 1.43403
+            }
+        }
+    },
+    {
+        "test_case": {
+            "M": 1024,
+            "K": 1024,
+            "N": 1024,
+            "s": 8
+        },
+        "results": {
+            "BaseCSC_unrolled_": {
+                "total_input_size": 8925200,
+                "operational_intensity": 16.2129,
+                "performance": 1.40899
+            }
+        }
+    },
+    {
+        "test_case": {
+            "M": 2048,
+            "K": 1024,
+            "N": 1024,
+            "s": 8
+        },
+        "results": {
+            "BaseCSC_unrolled_": {
+                "total_input_size": 17313808,
+                "operational_intensity": 16.7154,
+                "performance": 1.4431
+            }
+        }
+    },
+    {
+        "test_case": {
+            "M": 4096,
+            "K": 1024,
+            "N": 1024,
+            "s": 8
+        },
+        "results": {
+            "BaseCSC_unrolled_": {
+                "total_input_size": 34091024,
+                "operational_intensity": 16.9785,
+                "performance": 1.44993
+            }
+        }
+    },
+    {
+        "test_case": {
+            "M": 8192,
+            "K": 1024,
+            "N": 1024,
+            "s": 8
+        },
+        "results": {
+            "BaseCSC_unrolled_": {
+                "total_input_size": 67645456,
+                "operational_intensity": 17.1132,
+                "performance": 1.47437
+            }
+        }
+    },
+    {
+        "test_case": {
+            "M": 16384,
+            "K": 1024,
+            "N": 1024,
+            "s": 8
+        },
+        "results": {
+            "BaseCSC_unrolled_": {
+                "total_input_size": 134754320,
+                "operational_intensity": 17.1813,
+                "performance": 1.47418
+            }
+        }
+    }
+]

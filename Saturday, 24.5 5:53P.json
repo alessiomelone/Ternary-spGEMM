@@ -1,0 +1,62 @@
+[
+    {
+        "test_case": {
+            "M": 256,
+            "K": 1024,
+            "N": 1024,
+            "s": 8
+        },
+        "error": "sudo: ./SparseGEMM.out: command not found\n",
+        "results": {}
+    },
+    {
+        "test_case": {
+            "M": 1024,
+            "K": 1024,
+            "N": 1024,
+            "s": 8
+        },
+        "error": "sudo: ./SparseGEMM.out: command not found\n",
+        "results": {}
+    },
+    {
+        "test_case": {
+            "M": 2048,
+            "K": 1024,
+            "N": 1024,
+            "s": 8
+        },
+        "error": "sudo: ./SparseGEMM.out: command not found\n",
+        "results": {}
+    },
+    {
+        "test_case": {
+            "M": 4096,
+            "K": 1024,
+            "N": 1024,
+            "s": 8
+        },
+        "error": "sudo: ./SparseGEMM.out: command not found\n",
+        "results": {}
+    },
+    {
+        "test_case": {
+            "M": 8192,
+            "K": 1024,
+            "N": 1024,
+            "s": 8
+        },
+        "error": "sudo: ./SparseGEMM.out: command not found\n",
+        "results": {}
+    },
+    {
+        "test_case": {
+            "M": 16384,
+            "K": 1024,
+            "N": 1024,
+            "s": 8
+        },
+        "error": "sudo: ./SparseGEMM.out: command not found\n",
+        "results": {}
+    }
+]
