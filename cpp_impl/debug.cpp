@@ -94,14 +94,19 @@ int main(int argc, char **argv)
     BaseTCSC sf(W_raw.data(), K, N);
     CompressedCSC ccsc(W_raw.data(), K, N);
 <<<<<<< HEAD
+<<<<<<< HEAD
     BlockedTCSC<2> sf_blocked(W_raw.data(), K, N);
 =======
     BaseTCSR sf_csr(W_raw.data(), K, N);
 >>>>>>> 53eafc8 (fixed csr. Understood why it's faster:)
+=======
+    BlockedTCSC<2> sf_blocked(W_raw.data(), K, N);
+>>>>>>> 205dd08 (BlockedCSC is still wrong, I need some sleep)
 
     /* --- Dispatch to requested kernel ------------------------------------- */
     comp_func kernel;
 
+<<<<<<< HEAD
 <<<<<<< HEAD
     kernel = [&sf_blocked](float *Xv, float *Bv, float *Yv, int m, int n, int k)
     {
@@ -111,6 +116,11 @@ int main(int argc, char **argv)
     {
         BaseCSR<float>(Xv, sf_csr, Bv, Yv, m, n, k);
 >>>>>>> 53eafc8 (fixed csr. Understood why it's faster:)
+=======
+    kernel = [&sf_blocked](float *Xv, float *Bv, float *Yv, int m, int n, int k)
+    {
+        BlockedCSC<float, 2>(Xv, sf_blocked, Bv, Yv, m, n, k);
+>>>>>>> 205dd08 (BlockedCSC is still wrong, I need some sleep)
     };
 
     /* --- Print matrices ---------------------------------------------------- */

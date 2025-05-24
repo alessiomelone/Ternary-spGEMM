@@ -1040,8 +1040,11 @@ template void TCSC_unrolled_tiled<float, 12, 8, 8>(float *, const TCSCMatrix &, 
 }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 5ab0bc5 (added 1000x4096x16384 and 4000x4096x16384 to run_benchmark.py)
 =======
+=======
+>>>>>>> 205dd08 (BlockedCSC is still wrong, I need some sleep)
 template <typename T, int B>
 void BlockedCSC(T *X, const BlockedTCSC<B> &W_csc, T *b, T *Y, int M, int N, int K)
 {
@@ -1094,5 +1097,8 @@ void BlockedCSC(T *X, const BlockedTCSC<B> &W_csc, T *b, T *Y, int M, int N, int
     }
 }
 
+<<<<<<< HEAD
 >>>>>>> 0005d02 (BlockedCSC is still wrong, I need some sleep)
+=======
+>>>>>>> 205dd08 (BlockedCSC is still wrong, I need some sleep)
 #endif

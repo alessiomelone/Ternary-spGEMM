@@ -137,6 +137,7 @@ int main(int argc, char **argv)
 =======
     #if 0
 
+<<<<<<< HEAD
 >>>>>>> 896ba57 (Add instrumentation directives to makefile and readme)
         add_function(
         [sf_csc](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
@@ -147,6 +148,21 @@ int main(int argc, char **argv)
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> 82b3402 (use shorts in CCSC & run unroll test)
+=======
+    add_function(
+        [sf_blocked](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
+        {
+            BlockedCSC<float, 32>(X_arg, *sf_blocked, B_arg, Y_arg, M_arg, N_arg, K_arg);
+        },
+        "BlockedCSC_32");
+
+    // add_function(
+    //     [sf_csr](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
+    //     {
+    //         BaseCSR<float>(X_arg, *sf_csr, B_arg, Y_arg, M_arg, N_arg, K_arg);
+    //     },
+    //     "BaseCSR_naive");
+>>>>>>> 205dd08 (BlockedCSC is still wrong, I need some sleep)
 
     // add_function(
     //     [sf_csc](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)

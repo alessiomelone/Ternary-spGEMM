@@ -19,6 +19,9 @@ def run_and_parse_benchmark(save_results=False, raw_output=False):
     
     test_cases = [
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 205dd08 (BlockedCSC is still wrong, I need some sleep)
         (   1,  1,  8),
         (   1,  2,  8),
         (   1,  4,  8),
@@ -47,6 +50,7 @@ def run_and_parse_benchmark(save_results=False, raw_output=False):
         (   1, 33554432,  8),
         (   1, 67108864,  8),
         (   1, 134217728,  8),
+<<<<<<< HEAD
 =======
         (   1,  512,  2048),
         (   1, 1024,  4096),
@@ -54,6 +58,8 @@ def run_and_parse_benchmark(save_results=False, raw_output=False):
         (   1, 4096, 16384),
         ( 256,  512,  2048),
 >>>>>>> a4043d8 (added calibrate as flag (Default CALIBRATE), removed Baraq's unrolled 5 (templated))
+=======
+>>>>>>> 205dd08 (BlockedCSC is still wrong, I need some sleep)
         # ( 256, 1024,  4096),
         # ( 256, 2048,  8192)
     ]
@@ -75,8 +81,7 @@ def run_and_parse_benchmark(save_results=False, raw_output=False):
                 "-M", str(m_val),
                 "-K", str(k_val),
                 "-N", str(n_val),
-                "-s", str(non_zero_s),
-                "-correctness"
+                "-s", str(non_zero_s)
             ]
 
             try:
