@@ -106,10 +106,93 @@ void CSC_base_testing(T *X, const BaseTCSC &W_csr, T *b, T *Y, int M, int N, int
 #endif
                 y_val -= X[m * K + row_index_neg[k]];
             }
+<<<<<<< HEAD
+=======
 #ifdef INSTRUMENTATION_RUN
             flops++;
 #endif
             Y[m * N + n] = y_val + b[n];
+        }
+    }
+}
+
+template <typename T>
+void BaseCSC_unroll5(T *X, const BaseTCSC &W_csc,
+                     T *b, T *Y,
+                     int M, int N, int K)
+{
+>>>>>>> 36a9897 (corrected B in readme)
+#ifdef INSTRUMENTATION_RUN
+            flops++;
+#endif
+<<<<<<< HEAD
+            Y[m * N + n] = y_val + b[n];
+=======
+    const int *col_start_pos = W_csc.col_start_pos.data();
+    const int *col_start_neg = W_csc.col_start_neg.data();
+    const int *row_index_pos = W_csc.row_index_pos.data();
+    const int *row_index_neg = W_csc.row_index_neg.data();
+
+    for (int m = 0; m < M; ++m)
+    {
+        const T *x_row = X + m * K; // pointer to X[m,0]
+
+        for (int n = 0; n < N; ++n)
+        {
+            T y_val = 0;
+
+            /* ---------- positive coefficients ---------- */
+            int k0 = col_start_pos[n];
+            int kEnd = col_start_pos[n + 1];
+
+            /* main body: 5 nz per batch */
+            for (; k0 + 4 < kEnd; k0 += 5)
+            {
+#ifdef INSTRUMENTATION_RUN
+                flops += 5;
+#endif
+                y_val += x_row[row_index_pos[k0]];
+                y_val += x_row[row_index_pos[k0 + 1]];
+                y_val += x_row[row_index_pos[k0 + 2]];
+                y_val += x_row[row_index_pos[k0 + 3]];
+                y_val += x_row[row_index_pos[k0 + 4]];
+            }
+            /* tail */
+            for (; k0 < kEnd; ++k0)
+            {
+#ifdef INSTRUMENTATION_RUN
+                flops++;
+#endif
+                y_val += x_row[row_index_pos[k0]];
+            }
+
+            /* ---------- negative coefficients ---------- */
+            k0 = col_start_neg[n];
+            kEnd = col_start_neg[n + 1];
+
+            for (; k0 + 4 < kEnd; k0 += 5)
+            {
+                y_val -= x_row[row_index_neg[k0]];
+                y_val -= x_row[row_index_neg[k0 + 1]];
+                y_val -= x_row[row_index_neg[k0 + 2]];
+                y_val -= x_row[row_index_neg[k0 + 3]] y_val -= x_row[row_index_neg[k0 + 4]];
+#ifdef INSTRUMENTATION_RUN
+                flops += 5;
+#endif
+            }
+            for (; k0 < kEnd; ++k0)
+            {
+                y_val -= x_row[row_index_neg[k0]];
+#ifdef INSTRUMENTATION_RUN
+                flops++;
+#endif
+            }
+            /* bias + store */
+            Y[m * N + n] = y_val + b[n];
+#ifdef INSTRUMENTATION_RUN
+            flops++;
+#endif
+>>>>>>> 36a9897 (corrected B in readme)
         }
     }
 }
@@ -219,6 +302,7 @@ void CCSC_base(T *X, const CompressedCSC &W, T *b, T *Y, int M, int N, int K)
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 00c090c (Add TCSR and TCSC base function prototypes; refactor CSC_base and CCSC_base implementations):cpp_impl/comp.cpp
 =======
             Y[m * N + n + 0] = y_val0 + b[n];
@@ -239,6 +323,11 @@ void CCSC_base(T *X, const CompressedCSC &W, T *b, T *Y, int M, int N, int K)
             flops += 5;
 #endif
 >>>>>>> da3265c (corrected B in readme)
+=======
+#ifdef INSTRUMENTATION_RUN
+            flops += 5;
+#endif
+>>>>>>> 36a9897 (corrected B in readme)
         }
     }
 }
@@ -652,8 +741,13 @@ void BaseCSR(T *X, const BaseTCSR &W_csr, T *b, T *Y, int M, int N, int K)
 #ifdef INSTRUMENTATION_RUN
                 flops++;
 #endif
+<<<<<<< HEAD
                 Y_row[col_index_pos[j]] += x_val;
                 // printf("\t\t\t\t\tAccessing Y[%d][%d] = %f\n", m, col_index_pos[j], Y_row[col_index_pos[j]]);
+=======
+                int n_col = col_index_pos[j];
+                Y[m * N + n_col] += x_val;
+>>>>>>> 36a9897 (corrected B in readme)
             }
 
             // Process negative values
@@ -662,8 +756,13 @@ void BaseCSR(T *X, const BaseTCSR &W_csr, T *b, T *Y, int M, int N, int K)
 #ifdef INSTRUMENTATION_RUN
                 flops++;
 #endif
+<<<<<<< HEAD
                 Y_row[col_index_neg[j]] -= x_val;
                 // printf("\t\t\t\t\tAccessing Y[%d][%d] = %f\n", m, col_index_neg[j], Y_row[col_index_neg[j]]);
+=======
+                int n_col = col_index_neg[j];
+                Y[m * N + n_col] -= x_val;
+>>>>>>> 36a9897 (corrected B in readme)
             }
         }
     }
