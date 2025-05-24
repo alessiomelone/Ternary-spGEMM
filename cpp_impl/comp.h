@@ -163,6 +163,7 @@ void CCSC_base(T *X, const CompressedCSC &W, T *b, T *Y, int M, int N, int K)
 >>>>>>> 422cf16 (merge)
 =======
 
+<<<<<<< HEAD
             // scan through all blocks in column n
             for (int k = col_start[n]; k < col_start[n + 1]; ++k)
 >>>>>>> 6073638 (merge and fix bugs)
@@ -190,6 +191,10 @@ void CCSC_base(T *X, const CompressedCSC &W, T *b, T *Y, int M, int N, int K)
 
             for (int k = col_start[n]; k < col_start[n + 1]; ++k)
             {
+=======
+            for (int k = col_start[n]; k < col_start[n + 1]; ++k)
+            {
+>>>>>>> a757576 (short to int)
                 int row = row_index[k];
                 const int8_t *d = decodeCCSC[vals[k]];
 

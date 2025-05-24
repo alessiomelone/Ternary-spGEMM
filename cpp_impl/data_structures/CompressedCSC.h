@@ -303,6 +303,7 @@ public:
 			{
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 				int val = matrix[r * cols + c];
 				if (val != 0)
 				{
@@ -315,6 +316,9 @@ public:
 =======
 				int row = (rows - (rows % 5)) + pad_pos;
 >>>>>>> 67ba190 (short to int)
+=======
+				int row = (rows - (rows % 5)) + pad_pos;
+>>>>>>> a757576 (short to int)
 				const int *matrix_ptr = matrix + (row * cols) + col;
 				pad_values[pad_pos] = *matrix_ptr;
 			}
