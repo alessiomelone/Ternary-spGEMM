@@ -93,7 +93,7 @@ int main(int argc, char **argv)
     /* --- Prepare sparse formats once -------------------------------------- */
     BaseTCSC sf(W_raw.data(), K, N);
     CompressedCSC ccsc(W_raw.data(), K, N);
-    BaseTCSR sf_csr(W_raw.data(), K, N);
+    BlockedTCSC<2> sf_blocked(W_raw.data(), K, N);
 
     /* --- Dispatch to requested kernel ------------------------------------- */
     comp_func kernel;

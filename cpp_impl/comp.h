@@ -2,6 +2,7 @@
 #define COMP_H
 
 #include "common.h"
+#include "data_structures/BlockedTCSC.h"
 
 #ifdef INSTRUMENTATION_RUN
 long long flops = 0;
@@ -727,6 +728,58 @@ void BaseCSC_unr_tiled(T *X, const BaseTCSC &W_csc, T *b, T *Y, int M, int N, in
                     Y[m * N + n] = (y_pos_final - y_neg_final) + b[n];
                 }
             }
+        }
+    }
+}
+
+template <typename T, int B>
+void BlockedCSC(T *X, const BlockedTCSC<B> &W_csc, T *b, T *Y, int M, int N, int K)
+{
+#ifdef INSTRUMENTATION_RUN
+    flops = 0;
+    ds_size = W_csc.getDataStructureSize();
+#endif
+    const int *col_start_pos = W_csc.col_start_pos.data();
+    const int *col_start_neg = W_csc.col_start_neg.data();
+    const int *row_index_pos = W_csc.row_index_pos.data();
+    const int *row_index_neg = W_csc.row_index_neg.data();
+
+    // Initialize Y with bias
+    for (int m = 0; m < M; m++)
+    {
+        for (int n = 0; n < N; n++)
+        {
+            Y[m * N + n] = b[n];
+        }
+    }
+
+    // Process each row of Y
+    for (int m = 0; m < M; m++)
+    {
+        // Process each column
+        for (int n = 0; n < N; n++)
+        {
+            T y_val = 0;
+
+            // Process positive values
+            for (int k = col_start_pos[n]; k < col_start_pos[n + 1]; k++)
+            {
+                y_val += X[m * K + row_index_pos[k]];
+#ifdef INSTRUMENTATION_RUN
+                flops++;
+#endif
+            }
+
+            // Process negative values
+            for (int k = col_start_neg[n]; k < col_start_neg[n + 1]; k++)
+            {
+                y_val -= X[m * K + row_index_neg[k]];
+#ifdef INSTRUMENTATION_RUN
+                flops++;
+#endif
+            }
+
+            Y[m * N + n] = y_val;
         }
     }
 }

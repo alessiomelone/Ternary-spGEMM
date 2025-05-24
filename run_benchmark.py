@@ -13,16 +13,39 @@ def ensure_make():
         print(f"Error running make: {e}")
         raise
 
-def run_and_parse_benchmark(save_results=False):
+def run_and_parse_benchmark(save_results=False, raw_output=False):
     # Ensure make has been run
     ensure_make()
     
     test_cases = [
-        (   1,  512,  2048),
-        (   1, 1024,  4096),
-        (   1, 2048,  8192),
-        (   1, 4096, 16384),
-        ( 256,  512,  2048),
+        (   1,  1,  8),
+        (   1,  2,  8),
+        (   1,  4,  8),
+        (   1,  8,  8),
+        (   1,  16,  8),
+        (   1,  32,  8),
+        (   1,  64,  8),
+        (   1,  128,  8),
+        (   1,  256,  8),
+        (   1,  512,  8),
+        (   1, 1024,  8),
+        (   1, 2048,  8),
+        (   1, 4096, 8),
+        (   1, 8192,  8),
+        (   1, 16384,  8),
+        (   1, 32768,  8),
+        (   1, 65536,  8),
+        (   1, 131072,  8),
+        (   1, 262144,  8),
+        (   1, 524288,  8),
+        (   1, 1048576,  8),
+        (   1, 2097152,  8),
+        (   1, 4194304,  8),
+        (   1, 8388608,  8),
+        (   1, 16777216,  8),
+        (   1, 33554432,  8),
+        (   1, 67108864,  8),
+        (   1, 134217728,  8),
         # ( 256, 1024,  4096),
         # ( 256, 2048,  8192)
     ]
@@ -44,8 +67,7 @@ def run_and_parse_benchmark(save_results=False):
                 "-M", str(m_val),
                 "-K", str(k_val),
                 "-N", str(n_val),
-                "-s", str(non_zero_s),
-                "-correctness"
+                "-s", str(non_zero_s)
             ]
 
             try:
@@ -63,6 +85,12 @@ def run_and_parse_benchmark(save_results=False):
                     continue
 
                 stdout_output = process.stdout
+
+                if raw_output:
+                    print("\nRaw output:")
+                    print(stdout_output)
+                    print("-" * 80)
+                    continue
 
                 # Regex to find test case correctness (passed/failed)
                 correctness_matches = re.findall(r"Test case (.*?) (passed|failed)!", stdout_output)
@@ -119,5 +147,6 @@ def run_and_parse_benchmark(save_results=False):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Run SparseGEMM benchmarks')
     parser.add_argument('-s', '--save', action='store_true', help='Save benchmark results to JSON file')
+    parser.add_argument('-r', '--raw', action='store_true', help='Show raw output of test cases without parsing')
     args = parser.parse_args()
-    run_and_parse_benchmark(save_results=args.save) 
+    run_and_parse_benchmark(save_results=args.save, raw_output=args.raw) 
