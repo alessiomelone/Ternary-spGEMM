@@ -4,7 +4,7 @@
 #include <utility>
 #include "DataStructureInterface.hpp"
 
-class TCSRMatrix : public DataStructureInterface
+class CompressedTCSR : public DataStructureInterface
 {
 public:
   int num_matrix_rows;
@@ -13,8 +13,8 @@ public:
   std::vector<int> encoded_cols;
   std::vector<int> row_pos_counts;
 
-  TCSRMatrix() : num_matrix_rows(0), num_matrix_cols(0) {}
-  TCSRMatrix(const int *W, int K, int N) { init(W, K, N); }
+  CompressedTCSR() : num_matrix_rows(0), num_matrix_cols(0) {}
+  CompressedTCSR(const int *W, int K, int N) { init(W, K, N); }
 
   static int tcsr_encode_col(int c, int v) { return v == 1 ? c : ~c; }
 

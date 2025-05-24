@@ -71,16 +71,17 @@ int main(int argc, char **argv)
     auto sf_csc = std::make_shared<BaseTCSC>(W_raw.data(), K, N);
     auto sf_csr = std::make_shared<BaseTCSR>(W_raw.data(), K, N);
     auto sf_ccsc = std::make_shared<CompressedCSC>(W_raw.data(), K, N);
-    auto sf_tcsr = std::make_shared<TCSRMatrix>(W_raw.data(), K, N);
-    auto sf_tcsc = std::make_shared<TCSCMatrix>(W_raw.data(), K, N);
+    auto sf_tcsr = std::make_shared<CompressedTCSR>(W_raw.data(), K, N);
+    auto sf_tcsc = std::make_shared<CompressedTCSC>(W_raw.data(), K, N);
 
     // Register functions using the shared instances
 
     add_function(
         [sf_csc](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
         {
-            CSC_base<float>(X_arg, *sf_csc, B_arg, Y_arg, M_arg, N_arg, K_arg);
+            BaseCSC<float>(X_arg, *sf_csc, B_arg, Y_arg, M_arg, N_arg, K_arg);
         },
+<<<<<<< HEAD
         "CSC_base");
     // add_function(
 <<<<<<< HEAD
@@ -94,6 +95,30 @@ int main(int argc, char **argv)
 >>>>>>> 00c090c (Add TCSR and TCSC base function prototypes; refactor CSC_base and CCSC_base implementations)
     //     },
     //     "CSC_base_testing");
+=======
+        "BaseCSC");
+
+    add_function(
+        [sf_csc](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
+        {
+            BaseCSC_unr<float, 8>(X_arg, *sf_csc, B_arg, Y_arg, M_arg, N_arg, K_arg);
+        },
+        "BaseCSC_unr-8");
+
+    add_function(
+        [sf_csr](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
+        {
+            BaseCSR<float>(X_arg, *sf_csr, B_arg, Y_arg, M_arg, N_arg, K_arg);
+        },
+        "BaseCSR");
+
+    add_function(
+        [sf_csr](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
+        {
+            BaseCSR_unr<float, 8>(X_arg, *sf_csr, B_arg, Y_arg, M_arg, N_arg, K_arg);
+        },
+        "BaseCSR_unr-8");
+>>>>>>> 3e9bdeb (added run_benchmark.py)
 
     add_function(
         [sf_ccsc](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
@@ -117,6 +142,7 @@ int main(int argc, char **argv)
         },
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         "TCSR_unrolled-12");
 =======
     // add_function(
@@ -132,6 +158,9 @@ int main(int argc, char **argv)
 =======
         "TCSR_unrolled_tiled-12-4-4");
 >>>>>>> 84e2726 (Tiling for TCSR improved but still needs works)
+=======
+        "TCSR_unrolled_tiled-8-8");
+>>>>>>> 3e9bdeb (added run_benchmark.py)
 
     add_function(
         [sf_tcsc](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
@@ -140,6 +169,7 @@ int main(int argc, char **argv)
         },
         "TCSC_base");
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
     add_function(
@@ -157,11 +187,14 @@ int main(int argc, char **argv)
     //     "TCSC_unrolled-12");
 >>>>>>> f2770dd (TCSC tiled is 1.5)
 
+=======
+>>>>>>> 3e9bdeb (added run_benchmark.py)
     add_function(
         [sf_tcsc](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
         {
-            TCSC_unrolled_tiled<float, 12, 8, 8>(X_arg, *sf_tcsc, B_arg, Y_arg, M_arg, N_arg, K_arg);
+            TCSC_unrolled_tiled<float, 8, 8, 8>(X_arg, *sf_tcsc, B_arg, Y_arg, M_arg, N_arg, K_arg);
         },
+<<<<<<< HEAD
 <<<<<<< HEAD
         "TCSC_unrolled_tiled-12-32-32");
 =======
@@ -182,6 +215,9 @@ int main(int argc, char **argv)
 =======
         "TCSC_unrolled_tiled-12-16-16");
 >>>>>>> f2770dd (TCSC tiled is 1.5)
+=======
+        "TCSC_unrolled_tiled-8-8-8");
+>>>>>>> 3e9bdeb (added run_benchmark.py)
 
     if (numFuncs == 0)
     {
@@ -206,6 +242,7 @@ int main(int argc, char **argv)
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
         comp_func func = userFuncs[i_loop]; // func is std::function
@@ -216,6 +253,13 @@ int main(int argc, char **argv)
 
         // Call the std::function directly. Sparse data is captured in the lambda.
 >>>>>>> 00c090c (Add TCSR and TCSC base function prototypes; refactor CSC_base and CCSC_base implementations)
+=======
+        comp_func func = userFuncs[i_loop];
+
+        Y_main.insert(Y_main.end(), 10, 0);
+        X_main.insert(X_main.end(), 10, 0);
+
+>>>>>>> 3e9bdeb (added run_benchmark.py)
         func(X_main.data(), B_main.data(), Y_main.data(), M, N, K);
 
         Y_main.resize(Y_main.size() - 10);
