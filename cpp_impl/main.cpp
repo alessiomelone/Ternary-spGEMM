@@ -111,6 +111,7 @@ int main(int argc, char **argv)
 =======
         "BaseCSC_naive");
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 1d668b2 (renaming)
 =======
     // add_function(
@@ -124,12 +125,17 @@ int main(int argc, char **argv)
 >>>>>>> 914d53d (change readme)
 =======
     
+=======
+    #if 0
+
+>>>>>>> 896ba57 (Add instrumentation directives to makefile and readme)
         add_function(
         [sf_csc](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
         {
             BaseCSC_unroll5<float>(X_arg, *sf_csc, B_arg, Y_arg, M_arg, N_arg, K_arg);
         },
         "BaseCSC_unroll5");
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> 82b3402 (use shorts in CCSC & run unroll test)
 
@@ -142,6 +148,8 @@ int main(int argc, char **argv)
 >>>>>>> 5ab0bc5 (added 1000x4096x16384 and 4000x4096x16384 to run_benchmark.py)
 =======
 #if 1
+=======
+>>>>>>> 896ba57 (Add instrumentation directives to makefile and readme)
     add_function(
         [sf_csc](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
         {
@@ -270,7 +278,7 @@ int main(int argc, char **argv)
         "CompressedCSC_naive");
 >>>>>>> 82b3402 (use shorts in CCSC & run unroll test)
 
-#if 1
+#if 0
     add_function(
         [sf_tcsr](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
         {
