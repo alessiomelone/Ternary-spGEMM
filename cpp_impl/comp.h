@@ -880,7 +880,7 @@ void BaseCSC_unr_tiled(T *X, const BaseTCSC &W_csc, T *b, T *Y, int M, int N, in
     }
 }
 
-/*
+
 template <typename T, int B>
 void BlockedCSC(T *X, const BlockedTCSC<B> &W_csc, T *b, T *Y, int M, int N, int K)
 {
@@ -1026,5 +1026,5 @@ void BlockedCSC_unr4(T *X, const BlockedTCSC<B> &W_csc, T *b, T *Y, int M, int N
     }
 }
 
-*/
+
 #endif
