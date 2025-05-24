@@ -68,8 +68,8 @@ int main(int argc, char **argv)
     std::vector<int> W_raw = generateSparseMatrix<int>(K, N, nonZero, false);
 
     // Initialize one instance per format
-    auto sf_csc = std::make_shared<SparseFormatCSC>(W_raw.data(), K, N);
-    auto sf_csr = std::make_shared<SparseFormatCSR>(W_raw.data(), K, N);
+    auto sf_csc = std::make_shared<BaseTCSC>(W_raw.data(), K, N);
+    auto sf_csr = std::make_shared<BaseTCSR>(W_raw.data(), K, N);
     auto sf_ccsc = std::make_shared<CompressedCSC>(W_raw.data(), K, N);
     auto sf_tcsr = std::make_shared<TCSRMatrix>(W_raw.data(), K, N);
     auto sf_tcsc = std::make_shared<TCSCMatrix>(W_raw.data(), K, N);
