@@ -81,6 +81,7 @@ int main(int argc, char **argv)
     auto sf_blocked = std::make_shared<BlockedTCSC<32>>(W_raw.data(), K, N);
 
 <<<<<<< HEAD
+<<<<<<< HEAD
     // Register functions using the shared instances
 
 <<<<<<< HEAD
@@ -89,6 +90,8 @@ int main(int argc, char **argv)
 >>>>>>> 914d53d (change readme)
 =======
 >>>>>>> 3691ef5 (fixed csr. Understood why it's faster:)
+=======
+>>>>>>> 53eafc8 (fixed csr. Understood why it's faster:)
     add_function(
         [sf_csc](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
         {
@@ -114,6 +117,7 @@ int main(int argc, char **argv)
         "BaseCSC");
 =======
         "BaseCSC_naive");
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -178,6 +182,8 @@ int main(int argc, char **argv)
         "BaseCSC_unrolled_tiled_32x32x12");
 =======
 >>>>>>> 3691ef5 (fixed csr. Understood why it's faster:)
+=======
+>>>>>>> 53eafc8 (fixed csr. Understood why it's faster:)
 
     add_function(
         [sf_blocked](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
@@ -187,6 +193,7 @@ int main(int argc, char **argv)
         "BlockedCSC_32");
 
     // add_function(
+<<<<<<< HEAD
     //     [sf_csr](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
     //     {
     //         BaseCSR<float>(X_arg, *sf_csr, B_arg, Y_arg, M_arg, N_arg, K_arg);
@@ -299,10 +306,25 @@ int main(int argc, char **argv)
     //         BaseCSC_unr<float, 8>(X_arg, *sf_csc, B_arg, Y_arg, M_arg, N_arg, K_arg);
     //     },
     //     "BaseCSC_unrolled_8");
+=======
+    //     [sf_csc](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
+    //     {
+    //         BaseCSC_unr<float, 8>(X_arg, *sf_csc, B_arg, Y_arg, M_arg, N_arg, K_arg);
+    //     },
+    //     "BaseCSC_unrolled_8");
 
     // add_function(
     //     [sf_csc](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
     //     {
+    //         BaseCSC_unr<float, 16>(X_arg, *sf_csc, B_arg, Y_arg, M_arg, N_arg, K_arg);
+    //     },
+    //     "BaseCSC_unrolled_16");
+>>>>>>> 53eafc8 (fixed csr. Understood why it's faster:)
+
+    // add_function(
+    //     [sf_csc](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
+    //     {
+<<<<<<< HEAD
     //         BaseCSC_unr<float, 16>(X_arg, *sf_csc, B_arg, Y_arg, M_arg, N_arg, K_arg);
     //     },
     //     "BaseCSC_unrolled_16");
@@ -311,6 +333,8 @@ int main(int argc, char **argv)
     // add_function(
     //     [sf_csc](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
     //     {
+=======
+>>>>>>> 53eafc8 (fixed csr. Understood why it's faster:)
     //         BaseCSC_unr_tiled<float, 32, 32, 12>(X_arg, *sf_csc, B_arg, Y_arg, M_arg, N_arg, K_arg);
     //     },
     //     "BaseCSC_unrolled_tiled_32x32x12");
@@ -321,6 +345,7 @@ int main(int argc, char **argv)
     //         BaseCSR_unr<float, 8>(X_arg, *sf_csr, B_arg, Y_arg, M_arg, N_arg, K_arg);
     //     },
     //     "BaseCSR_unrolled_8");
+<<<<<<< HEAD
 
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -432,6 +457,22 @@ int main(int argc, char **argv)
     //     },
     //     "CompressedCSC_naive");
 
+=======
+
+    // add_function(
+    //     [sf_csr](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
+    //     {
+    //         BaseCSR_unr<float, 16>(X_arg, *sf_csr, B_arg, Y_arg, M_arg, N_arg, K_arg);
+    //     },
+    //     "BaseCSR_unrolled_16");
+    // add_function(
+    //     [sf_ccsc](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
+    //     {
+    //         CCSC_base<float>(X_arg, *sf_ccsc, B_arg, Y_arg, M_arg, N_arg, K_arg);
+    //     },
+    //     "CompressedCSC_naive");
+
+>>>>>>> 53eafc8 (fixed csr. Understood why it's faster:)
     // add_function(
     //     [sf_tcsr](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
     //     {
@@ -459,7 +500,10 @@ int main(int argc, char **argv)
     //         TCSC_unrolled_tiled<float, 8, 8, 8>(X_arg, *sf_tcsc, B_arg, Y_arg, M_arg, N_arg, K_arg);
     //     },
     //     "TernaryCSC_unrolled_tiled_8x8x8");
+<<<<<<< HEAD
 >>>>>>> 3691ef5 (fixed csr. Understood why it's faster:)
+=======
+>>>>>>> 53eafc8 (fixed csr. Understood why it's faster:)
 
     if (numFuncs == 0)
     {

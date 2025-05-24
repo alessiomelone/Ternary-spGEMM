@@ -718,21 +718,25 @@ void BaseCSR(T *X, const BaseTCSR &W_csr, T *b, T *Y, int M, int N, int K)
     const int *col_index_pos = W_csr.col_index_pos.data();
     const int *col_index_neg = W_csr.col_index_neg.data();
 
+<<<<<<< HEAD
     // Initialise Y with bias
+=======
+    // For each row in X
+>>>>>>> 53eafc8 (fixed csr. Understood why it's faster:)
     for (int m = 0; m < M; ++m)
     {
-        for (int n = 0; n < N; ++n)
-        {
-            Y[m * N + n] = b[n];
-        }
-    }
+        T *X_row = X + m * K;
+        T *Y_row = Y + m * N;
 
+<<<<<<< HEAD
     // For each row in X
     for (int m = 0; m < M; ++m)
     {
         T *X_row = X + m * K;
         T *Y_row = Y + m * N;
 
+=======
+>>>>>>> 53eafc8 (fixed csr. Understood why it's faster:)
         // For each row in W
         for (int k = 0; k < K; ++k)
         {
@@ -745,12 +749,17 @@ void BaseCSR(T *X, const BaseTCSR &W_csr, T *b, T *Y, int M, int N, int K)
                 flops++;
 #endif
 <<<<<<< HEAD
+<<<<<<< HEAD
                 Y_row[col_index_pos[j]] += x_val;
                 // printf("\t\t\t\t\tAccessing Y[%d][%d] = %f\n", m, col_index_pos[j], Y_row[col_index_pos[j]]);
 =======
                 int n_col = col_index_pos[j];
                 Y[m * N + n_col] += x_val;
 >>>>>>> 36a9897 (corrected B in readme)
+=======
+                Y_row[col_index_pos[j]] += x_val;
+                // printf("\t\t\t\t\tAccessing Y[%d][%d] = %f\n", m, col_index_pos[j], Y_row[col_index_pos[j]]);
+>>>>>>> 53eafc8 (fixed csr. Understood why it's faster:)
             }
 
             // Process negative values
@@ -760,12 +769,17 @@ void BaseCSR(T *X, const BaseTCSR &W_csr, T *b, T *Y, int M, int N, int K)
                 flops++;
 #endif
 <<<<<<< HEAD
+<<<<<<< HEAD
                 Y_row[col_index_neg[j]] -= x_val;
                 // printf("\t\t\t\t\tAccessing Y[%d][%d] = %f\n", m, col_index_neg[j], Y_row[col_index_neg[j]]);
 =======
                 int n_col = col_index_neg[j];
                 Y[m * N + n_col] -= x_val;
 >>>>>>> 36a9897 (corrected B in readme)
+=======
+                Y_row[col_index_neg[j]] -= x_val;
+                // printf("\t\t\t\t\tAccessing Y[%d][%d] = %f\n", m, col_index_neg[j], Y_row[col_index_neg[j]]);
+>>>>>>> 53eafc8 (fixed csr. Understood why it's faster:)
             }
         }
     }
