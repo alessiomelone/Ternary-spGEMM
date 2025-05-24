@@ -65,24 +65,33 @@ void CCSC_base(T *X, const CompressedCSC &W, T *b, T *Y, int M, int N, int K)
     flops = 0;
     ds_size = W.getDataStructureSize();
 #endif
-    const int *col_start = W.col_start.data();
-    const int *row_index = W.row_index.data();
-    const uint8_t *vals = W.vals.data();
+    const int *col_start_5 = W.col_start_5.data();
+    const int *row_index_5 = W.row_index_5.data();
+
+    const int *row_index_pos = W.row_index_pos.data();
+    const int *row_index_neg = W.row_index_neg.data();
+
+    const int *col_start_pos = W.col_start_pos.data();
+    const int *col_start_neg = W.col_start_neg.data();
+
+    const uint8_t *vals_5 = W.vals_5.data();
 
     for (int m = 0; m < M; ++m)
     {
         for (int n = 0; n < N; ++n)
         {
+            // printf("n=%d, m=%d\n", n, m);
             T y_val0 = 0;
             T y_val1 = 0;
             T y_val2 = 0;
             T y_val3 = 0;
             T y_val4 = 0;
 
-            for (int k = col_start[n]; k < col_start[n + 1]; ++k)
+            // blocks of 5
+            for (int k = col_start_5[n]; k < col_start_5[n + 1]; ++k)
             {
-                int row = row_index[k];
-                const int8_t *d = decodeCCSC[vals[k]];
+                int row = row_index_5[k];
+                const int8_t *d = decode5[vals_5[k]];
 
                 y_val0 += d[0] * X[m * K + row + 0];
                 y_val1 += d[1] * X[m * K + row + 1];
@@ -93,6 +102,160 @@ void CCSC_base(T *X, const CompressedCSC &W, T *b, T *Y, int M, int N, int K)
                 flops += 5;
 #endif
             }
+
+            // positive
+            for (int k = col_start_pos[n]; k < col_start_pos[n + 1]; ++k)
+            {
+                int row = row_index_pos[k];
+                y_val0 += X[m * K + row];
+            }
+#ifdef INSTRUMENTATION_RUN
+            flops += col_start_pos[n + 1] - col_start_pos[n];
+#endif
+
+            // negative
+            for (int k = col_start_neg[n]; k < col_start_neg[n + 1]; ++k)
+            {
+                int row = row_index_neg[k];
+                y_val0 -= X[m * K + row];
+            }
+#ifdef INSTRUMENTATION_RUN
+            flops += col_start_neg[n + 1] - col_start_neg[n];
+#endif
+
+            T acc = y_val0 + y_val1 + y_val2 + y_val3 + y_val4;
+            Y[m * N + n] = acc + b[n];
+#ifdef INSTRUMENTATION_RUN
+            flops += 5;
+#endif
+        }
+    }
+}
+
+template <typename T>
+void CCSC_unr(T *X, const CompressedCSC &W, T *b, T *Y, int M, int N, int K)
+{
+#ifdef INSTRUMENTATION_RUN
+    flops = 0;
+    ds_size = W.getDataStructureSize();
+#endif
+    const int *col_start_5 = W.col_start_5.data();
+    const int *row_index_5 = W.row_index_5.data();
+
+    const int *row_index_pos = W.row_index_pos.data();
+    const int *row_index_neg = W.row_index_neg.data();
+
+    const int *col_start_pos = W.col_start_pos.data();
+    const int *col_start_neg = W.col_start_neg.data();
+
+    const uint8_t *vals_5 = W.vals_5.data();
+
+    for (int m = 0; m < M; ++m)
+    {
+        for (int n = 0; n < N; ++n)
+        {
+            // printf("n=%d, m=%d\n", n, m);
+            T y_val0 = 0;
+            T y_val1 = 0;
+            T y_val2 = 0;
+            T y_val3 = 0;
+            T y_val4 = 0;
+
+            // blocks of 5
+            for (int k = col_start_5[n]; k < col_start_5[n + 1]; ++k)
+            {
+                int row = row_index_5[k];
+                const int8_t *d = decode5[vals_5[k]];
+
+                y_val0 += d[0] * X[m * K + row + 0];
+                y_val1 += d[1] * X[m * K + row + 1];
+                y_val2 += d[2] * X[m * K + row + 2];
+                y_val3 += d[3] * X[m * K + row + 3];
+                y_val4 += d[4] * X[m * K + row + 4];
+#ifdef INSTRUMENTATION_RUN
+                flops += 5;
+#endif
+            }
+
+            // positive (fully unrolled by 5)
+            T y_pos0 = 0, y_pos1 = 0, y_pos2 = 0, y_pos3 = 0, y_pos4 = 0;
+
+            int k_pos_loop = col_start_pos[n];
+            const int end_pos = col_start_pos[n + 1];
+
+            for (; k_pos_loop + 5 <= end_pos; k_pos_loop += 5)
+            {
+                int row0 = row_index_pos[k_pos_loop];
+                int row1 = row_index_pos[k_pos_loop + 1];
+                int row2 = row_index_pos[k_pos_loop + 2];
+                int row3 = row_index_pos[k_pos_loop + 3];
+                int row4 = row_index_pos[k_pos_loop + 4];
+
+                y_pos0 += X[m * K + row0];
+                y_pos1 += X[m * K + row1];
+                y_pos2 += X[m * K + row2];
+                y_pos3 += X[m * K + row3];
+                y_pos4 += X[m * K + row4];
+#ifdef INSTRUMENTATION_RUN
+                flops += 5;
+#endif
+            }
+
+            T y_pos_final = y_pos0 + y_pos1 + y_pos2 + y_pos3 + y_pos4;
+#ifdef INSTRUMENTATION_RUN
+            flops += 4; // reductions
+#endif
+
+            for (; k_pos_loop < end_pos; ++k_pos_loop)
+            {
+#ifdef INSTRUMENTATION_RUN
+                flops++;
+#endif
+                int row = row_index_pos[k_pos_loop];
+                y_pos_final += X[m * K + row];
+            }
+
+            y_val0 += y_pos_final;
+
+            // negative (fully unrolled by 5)
+            T y_neg0 = 0, y_neg1 = 0, y_neg2 = 0, y_neg3 = 0, y_neg4 = 0;
+
+            int k_neg_loop = col_start_neg[n];
+            const int end_neg = col_start_neg[n + 1];
+
+            for (; k_neg_loop + 5 <= end_neg; k_neg_loop += 5)
+            {
+                int row0 = row_index_neg[k_neg_loop];
+                int row1 = row_index_neg[k_neg_loop + 1];
+                int row2 = row_index_neg[k_neg_loop + 2];
+                int row3 = row_index_neg[k_neg_loop + 3];
+                int row4 = row_index_neg[k_neg_loop + 4];
+
+                y_neg0 += X[m * K + row0];
+                y_neg1 += X[m * K + row1];
+                y_neg2 += X[m * K + row2];
+                y_neg3 += X[m * K + row3];
+                y_neg4 += X[m * K + row4];
+#ifdef INSTRUMENTATION_RUN
+                flops += 5;
+#endif
+            }
+
+            T y_neg_final = y_neg0 + y_neg1 + y_neg2 + y_neg3 + y_neg4;
+#ifdef INSTRUMENTATION_RUN
+            flops += 4; // reductions
+#endif
+
+            for (; k_neg_loop < end_neg; ++k_neg_loop)
+            {
+#ifdef INSTRUMENTATION_RUN
+                flops++;
+#endif
+                int row = row_index_neg[k_neg_loop];
+                y_neg_final += X[m * K + row];
+            }
+
+            y_val0 -= y_neg_final;
 
             T acc = y_val0 + y_val1 + y_val2 + y_val3 + y_val4;
             Y[m * N + n] = acc + b[n];
