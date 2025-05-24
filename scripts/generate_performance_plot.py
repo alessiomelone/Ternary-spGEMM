@@ -16,10 +16,10 @@ SPARSITY_TO_SFLAG = {   # non-zeros = 1 / 2**sflag
     0.0625: 4  # 93 % sparsity
 }
 DATE = (lambda b: next(f"{b}{'' if i==1 else f'({i})'}" for i in range(1,100) if not os.path.exists(f"results/{b if i==1 else f'{b}({i})'}")))(datetime.now().strftime("%A %-d.%-m, %-I:%M%p").lower())
-DEFAULT_FUNCTION = "CSC_base"
+DEFAULT_FUNCTION = "TCSC_unrolled_tiled-12-16-16"
 BIN_PATH = Path("cpp_impl/SparseGEMM.out")
-CSV_PATH = Path(f"results/{DATE}/perf_results.csv")
-PLOT_PATH = Path(f"results/{DATE}/performance.png")
+CSV_PATH = Path(f"results/{DEFAULT_FUNCTION}/{DATE}/perf_results.csv")
+PLOT_PATH = Path(f"results/{DEFAULT_FUNCTION}/{DATE}/performance.png")
 
 PERF_RE = re.compile(r"Running:\s*(?P<name>\S+).*?Performance:\s*(?P<flops>[0-9.]+)",
                      re.S)

@@ -63,6 +63,11 @@ int main(int argc, char **argv)
     K = atoi(argv[4]);
     N = atoi(argv[6]);
     nonZero = atoi(argv[8]);
+    bool check_correctness = false;
+    if (argc > 9 && std::string(argv[9]) == "-correctness")
+    {
+        check_correctness = true;
+    }
 
     // Generate sparse matrix to be converted
     std::vector<int> W_raw = generateSparseMatrix<int>(K, N, nonZero, false);
@@ -235,9 +240,10 @@ int main(int argc, char **argv)
     std::vector<float> refY_main(M * N, 0);
 
     GEMM(X_main.data(), W_FP32_main.data(), B_main.data(), refY_main.data(), M, N, K);
-
-    for (i_loop = 0; i_loop < numFuncs; i_loop++)
+    
+    if (check_correctness)
     {
+<<<<<<< HEAD
         fill(Y_main.begin(), Y_main.end(), 0);
 
 <<<<<<< HEAD
@@ -265,12 +271,30 @@ int main(int argc, char **argv)
         Y_main.resize(Y_main.size() - 10);
 
         if (compare_results(Y_main.data(), refY_main.data(), M, N))
+=======
+        for (i_loop = 0; i_loop < numFuncs; i_loop++)
+>>>>>>> 08eac13 (correctness)
         {
-            std::cout << "Test case " << funcNames[i_loop] << " passed!" << std::endl;
-        }
-        else
-        {
-            std::cout << "Test case " << funcNames[i_loop] << " failed!" << std::endl;
+            fill(Y_main.begin(), Y_main.end(), 0);
+
+            comp_func func = userFuncs[i_loop]; // func is std::function
+
+            Y_main.insert(Y_main.end(), 10, 0); // extend Y so we can modify unused pad values without bounds checking
+            X_main.insert(X_main.end(), 10, 0); // extend Y so we can modify unused pad values without bounds checking
+
+            // Call the std::function directly. Sparse data is captured in the lambda.
+            func(X_main.data(), B_main.data(), Y_main.data(), M, N, K);
+
+            Y_main.resize(Y_main.size() - 10);
+
+            if (compare_results(Y_main.data(), refY_main.data(), M, N))
+            {
+                std::cout << "Test case " << funcNames[i_loop] << " passed!" << std::endl;
+            }
+            else
+            {
+                std::cout << "Test case " << funcNames[i_loop] << " failed!" << std::endl;
+            }
         }
     }
 
