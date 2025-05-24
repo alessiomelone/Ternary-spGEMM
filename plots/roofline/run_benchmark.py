@@ -16,7 +16,7 @@ def run_and_parse_benchmark(save_results=False, outname=''):
         # ( 256, 2048,  8192),
         # ( 256, 4096, 16384),
     ]
-    non_zero_s = 8
+    non_zero_s = 2
     executable_path = "../../SparseGEMM.out" 
     base_command = ["sudo", executable_path]
 

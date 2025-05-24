@@ -56,12 +56,12 @@ int main(int argc, char **argv)
         },
         "BaseCSC_naive");
 
-    add_function(
-        [sf_blocked](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
-        {
-            BlockedCSC<float, 1024>(X_arg, *sf_blocked, B_arg, Y_arg, M_arg, N_arg, K_arg);
-        },
-        "BlockedCSC_1024");
+    // add_function(
+    //     [sf_blocked](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
+    //     {
+    //         BlockedCSC<float, 1024>(X_arg, *sf_blocked, B_arg, Y_arg, M_arg, N_arg, K_arg);
+    //     },
+    //     "BlockedCSC_1024");
 
     // add_function(
     //     [sf_csr](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)

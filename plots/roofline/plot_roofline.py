@@ -363,6 +363,55 @@ def generate_plots_by_prefix(input_json_path, beta_bw, pi_perf, cli_oi_label, cl
             oi_label=cli_oi_label,
             perf_label=cli_perf_label)
 
+# --- generate_single_plot (NEW) -------------------------------------------
+def generate_single_plot(input_json_path, beta_bw, pi_perf,
+                         cli_oi_label, cli_perf_label):
+    """
+    One-shot plot: put every algorithm variant from the JSON on a single roofline.
+    """
+    try:
+        with open(input_json_path, "r", encoding="utf-8") as f:
+            all_tests = json.load(f)
+    except Exception as e:
+        print(f"Error loading JSON: {e}", file=sys.stderr)
+        sys.exit(1)
+
+    if not isinstance(all_tests, list):
+        print("JSON root must be a list of test cases.", file=sys.stderr)
+        sys.exit(1)
+
+    from collections import defaultdict
+    all_algos = defaultdict(list)          # {full_algo_name: [point dicts]}
+
+    for idx, item in enumerate(all_tests):
+        for alg, res in (item.get("results") or {}).items():
+            oi = res.get("operational_intensity")
+            perf = res.get("performance")
+            size = res.get("total_input_size")
+            if None in (oi, perf, size):
+                print(f"Warn: missing fields for {alg} (item {idx})", file=sys.stderr)
+                continue
+            try:
+                all_algos[alg].append({
+                    "oi": float(oi),
+                    "performance": float(perf),
+                    "annotation_label": str(size)
+                })
+            except (TypeError, ValueError):
+                print(f"Warn: non-numeric OI/perf for {alg} (item {idx})", file=sys.stderr)
+
+    if not all_algos:
+        print("No valid datapoints found; nothing to plot.", file=sys.stderr)
+        return
+
+    print("\nGenerating combined roofline with all algorithm variants …")
+    plot_roofline_for_prefix(
+        all_algos, beta_bw, pi_perf,
+        plot_title="Roofline Plot (All Algorithms)",
+        oi_label=cli_oi_label,
+        perf_label=cli_perf_label
+    )
+
 # --- generate_roofline_csvs_from_json (for --per_test mode, kept as is but consider annotation change if desired) ---
 def generate_roofline_csvs_from_json(input_json_path, output_directory, beta_bw, pi_perf, title_placeholder, cli_oi_label, cli_perf_label):
     try:
@@ -538,15 +587,27 @@ JSON 'results' for all modes should contain 'operational_intensity',
     parser.add_argument("--per_test", action='store_true', help="Generate one plot per test case. If not set, aggregates by algorithm prefix.")
     parser.add_argument("--oi_label", help="Label for the OI axis.", default="Operational Intensity (Flops/Byte)")
     parser.add_argument("--perf_label", help="Label for the Performance axis.", default="Performance (Flops/Cycle)")
+    parser.add_argument(
+    "-a", "--all",
+    action="store_true",
+    help="Combine **all** algorithm variants on one roofline plot (ignore prefixes)."
+)
     
     args = parser.parse_args()
 
     if args.per_test:
-        print("Operating in --per_test mode: Generating one plot per M,K,N,s combination.")
+        print("Operating in --per_test mode (one plot per M,K,N,s).")
         if not os.path.exists(args.output_dir):
-             os.makedirs(args.output_dir, exist_ok=True)
-        generate_roofline_csvs_from_json(args.json_filepath, args.output_dir, args.beta, args.pi, 
-                                         "", args.oi_label, args.perf_label)
+            os.makedirs(args.output_dir, exist_ok=True)
+        generate_roofline_csvs_from_json(args.json_filepath, args.output_dir,
+                                     args.beta, args.pi, "", args.oi_label, args.perf_label)
+
+    elif args.all:
+        print("Operating in --all mode (single combined plot).")
+        generate_single_plot(args.json_filepath, args.beta, args.pi,
+                            args.oi_label, args.perf_label)
+
     else:
-        print("Operating in default mode: Aggregating by algorithm prefix, one plot per prefix.")
-        generate_plots_by_prefix(args.json_filepath, args.beta, args.pi, args.oi_label, args.perf_label)
+        print("Operating in default mode (one plot per prefix).")
+        generate_plots_by_prefix(args.json_filepath, args.beta, args.pi,
+                                args.oi_label, args.perf_label)
