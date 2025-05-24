@@ -56,7 +56,7 @@ public:
 						uint8_t bitstring = encode5(matrix_ptr[0], matrix_ptr[1 * cols], matrix_ptr[2 * cols], matrix_ptr[3 * cols], matrix_ptr[4 * cols]);
 						vals_5.push_back(bitstring);
 						row_index_5.push_back(row);
-						rows += 5;
+						row += 5;
 						continue;
 					}
 				}

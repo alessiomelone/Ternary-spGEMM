@@ -56,12 +56,12 @@ int main(int argc, char **argv)
         },
         "BaseCSC_naive");
 
-    add_function(
-        [sf_blocked](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
-        {
-            BlockedCSC<float, 32>(X_arg, *sf_blocked, B_arg, Y_arg, M_arg, N_arg, K_arg);
-        },
-        "BlockedCSC_32");
+    // add_function(
+    //     [sf_blocked](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
+    //     {
+    //         BlockedCSC<float, 32>(X_arg, *sf_blocked, B_arg, Y_arg, M_arg, N_arg, K_arg);
+    //     },
+    //     "BlockedCSC_32");
 
     // add_function(
     //     [sf_csr](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
@@ -70,12 +70,12 @@ int main(int argc, char **argv)
     //     },
     //     "BaseCSR_naive");
 
-    // add_function(
-    //     [sf_csc](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
-    //     {
-    //         BaseCSC_unr<float, 8>(X_arg, *sf_csc, B_arg, Y_arg, M_arg, N_arg, K_arg);
-    //     },
-    //     "BaseCSC_unrolled_8");
+    add_function(
+        [sf_csc](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
+        {
+            BaseCSC_unr<float, 5>(X_arg, *sf_csc, B_arg, Y_arg, M_arg, N_arg, K_arg);
+        },
+        "BaseCSC_unrolled_5");
 
     // add_function(
     //     [sf_csc](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
@@ -110,6 +110,12 @@ int main(int argc, char **argv)
             CCSC_base<float>(X_arg, *sf_ccsc, B_arg, Y_arg, M_arg, N_arg, K_arg);
         },
         "CompressedCSC_naive");
+    add_function(
+        [sf_ccsc](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
+        {
+            CCSC_unr<float>(X_arg, *sf_ccsc, B_arg, Y_arg, M_arg, N_arg, K_arg);
+        },
+        "CompressedCSC_unrolled_5");
 
     // add_function(
     //     [sf_tcsr](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
