@@ -2,8 +2,21 @@ import subprocess
 import re
 import json
 import argparse
+import os
+
+def ensure_make():
+    print("Running make to ensure latest build...")
+    try:
+        subprocess.run(["make"], check=True)
+        print("Make completed successfully.")
+    except subprocess.CalledProcessError as e:
+        print(f"Error running make: {e}")
+        raise
 
 def run_and_parse_benchmark(save_results=False):
+    # Ensure make has been run
+    ensure_make()
+    
     test_cases = [
         (   1,  512,  2048),
         (   1, 1024,  4096),
@@ -13,8 +26,10 @@ def run_and_parse_benchmark(save_results=False):
         ( 256, 1024,  4096),
         ( 256, 2048,  8192),
         ( 256, 4096, 16384),
+        (1000, 4096, 16384),
+        (4000, 4096, 16384)
     ]
-    non_zero_s = 4
+    non_zero_s = 2
     executable_path = "./SparseGEMM.out" 
     base_command = ["sudo", executable_path]
 

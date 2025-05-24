@@ -568,15 +568,21 @@ void BaseCSR_unr(T *X, const BaseTCSR &W_csr, T *b, T *Y, int M, int N, int K)
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 <<<<<<< HEAD:cpp_impl/comp.h
 // Base implementations
 template <typename T>
 void sparseGEMM_csc_base_impl(T *X, const SparseFormatCSC &W_csc, T *b, T *Y, int M, int n_col, int N_Rows)
+=======
+template <typename T, int TILE_M, int TILE_N, int UNROLL_FACTOR>
+void BaseCSC_unr_tiled(T *X, const BaseTCSC &W_csc, T *b, T *Y, int M, int N, int K)
+>>>>>>> 5ab0bc5 (added 1000x4096x16384 and 4000x4096x16384 to run_benchmark.py)
 {
     const int *col_start_pos = W_csc.col_start_pos.data();
     const int *col_start_neg = W_csc.col_start_neg.data();
     const int *row_index_pos = W_csc.row_index_pos.data();
     const int *row_index_neg = W_csc.row_index_neg.data();
+<<<<<<< HEAD
 =======
 // --- Explicit Instantiations ---
 // This tells the compiler to generate code for these specific versions in comp.o
@@ -631,4 +637,73 @@ template void TCSC_unrolled_tiled<float, 12, 8, 8>(float *, const TCSCMatrix &, 
 >>>>>>> f2770dd (TCSC tiled is 1.5)
 =======
 >>>>>>> 84e2726 (Tiling for TCSR improved but still needs works)
+=======
+
+    for (int m_start = 0; m_start < M; m_start += TILE_M)
+    {
+        int m_end = std::min(m_start + TILE_M, M);
+
+        for (int n_start = 0; n_start < N; n_start += TILE_N)
+        {
+            int n_end = std::min(n_start + TILE_N, N);
+
+            for (int m = m_start; m < m_end; m++)
+            {
+                for (int n = n_start; n < n_end; n++)
+                {
+                    T y_pos[UNROLL_FACTOR] = {0};
+                    T y_neg[UNROLL_FACTOR] = {0};
+
+                    int k_pos_loop = col_start_pos[n];
+                    const int end_pos = col_start_pos[n + 1];
+
+                    for (; k_pos_loop + UNROLL_FACTOR <= end_pos; k_pos_loop += UNROLL_FACTOR)
+                    {
+                        for (int u = 0; u < UNROLL_FACTOR; u++)
+                        {
+                            y_pos[u] += X[m * K + row_index_pos[k_pos_loop + u]];
+                        }
+                    }
+
+                    T y_pos_final = 0;
+                    for (int u = 0; u < UNROLL_FACTOR; u++)
+                    {
+                        y_pos_final += y_pos[u];
+                    }
+
+                    for (; k_pos_loop < end_pos; k_pos_loop++)
+                    {
+                        y_pos_final += X[m * K + row_index_pos[k_pos_loop]];
+                    }
+
+                    int k_neg_loop = col_start_neg[n];
+                    const int end_neg = col_start_neg[n + 1];
+
+                    for (; k_neg_loop + UNROLL_FACTOR <= end_neg; k_neg_loop += UNROLL_FACTOR)
+                    {
+                        for (int u = 0; u < UNROLL_FACTOR; u++)
+                        {
+                            y_neg[u] += X[m * K + row_index_neg[k_neg_loop + u]];
+                        }
+                    }
+
+                    T y_neg_final = 0;
+                    for (int u = 0; u < UNROLL_FACTOR; u++)
+                    {
+                        y_neg_final += y_neg[u];
+                    }
+
+                    for (; k_neg_loop < end_neg; k_neg_loop++)
+                    {
+                        y_neg_final += X[m * K + row_index_neg[k_neg_loop]];
+                    }
+
+                    Y[m * N + n] = (y_pos_final - y_neg_final) + b[n];
+                }
+            }
+        }
+    }
+}
+
+>>>>>>> 5ab0bc5 (added 1000x4096x16384 and 4000x4096x16384 to run_benchmark.py)
 #endif
