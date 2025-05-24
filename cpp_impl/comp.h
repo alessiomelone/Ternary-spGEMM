@@ -924,4 +924,105 @@ void BlockedCSC(T *X, const BlockedTCSC<B> &W_csc, T *b, T *Y, int M, int N, int
     }
 }
 
+template <typename T, int B>
+void BlockedCSC_unr4(T *X, const BlockedTCSC<B> &W_csc, T *b, T *Y, int M, int N, int K)
+{
+#ifdef INSTRUMENTATION_RUN
+    flops = 0;
+    ds_size = W_csc.getDataStructureSize();
+#endif
+    const int *col_start_pos = W_csc.col_start_pos.data();
+    const int *col_start_neg = W_csc.col_start_neg.data();
+    const int *row_index_pos = W_csc.row_index_pos.data();
+    const int *row_index_neg = W_csc.row_index_neg.data();
+
+    // Initialize Y with bias
+    for (int m = 0; m < M; m++)
+    {
+        for (int n = 0; n < N; n++)
+        {
+            Y[m * N + n] = b[n];
+        }
+    }
+
+    // Process each row of Y
+    for (int m = 0; m < M; m++)
+    {
+        // Process each block of K
+        for (int k_block = 0; k_block < K / B; k_block++)
+        {
+            for (int n = k_block * N; n < k_block * N + N; n++)
+            {
+                T y_pos[4] = {0};
+                T y_neg[4] = {0};
+                int k_pos = col_start_pos[n];
+                int k_neg = col_start_neg[n];
+                const int end_pos = col_start_pos[n + 1];
+                const int end_neg = col_start_neg[n + 1];
+
+                // Process positive values with unrolling
+                for (; k_pos + 4 <= end_pos; k_pos += 4)
+                {
+                    for (int u = 0; u < 4; u++)
+                    {
+                        y_pos[u] += X[m * K + row_index_pos[k_pos + u]];
+#ifdef INSTRUMENTATION_RUN
+                        flops++;
+#endif
+                    }
+                }
+                // Handle remaining positive values
+                T y_pos_final = 0;
+                for (int u = 0; u < 4; u++)
+                {
+                    y_pos_final += y_pos[u];
+#ifdef INSTRUMENTATION_RUN
+                    flops++;
+#endif
+                }
+                for (; k_pos < end_pos; k_pos++)
+                {
+                    y_pos_final += X[m * K + row_index_pos[k_pos]];
+#ifdef INSTRUMENTATION_RUN
+                    flops++;
+#endif
+                }
+
+                // Process negative values with unrolling
+                for (; k_neg + 4 <= end_neg; k_neg += 4)
+                {
+                    for (int u = 0; u < 4; u++)
+                    {
+                        y_neg[u] += X[m * K + row_index_neg[k_neg + u]];
+#ifdef INSTRUMENTATION_RUN
+                        flops++;
+#endif
+                    }
+                }
+                // Handle remaining negative values
+                T y_neg_final = 0;
+                for (int u = 0; u < 4; u++)
+                {
+                    y_neg_final += y_neg[u];
+#ifdef INSTRUMENTATION_RUN
+                    flops++;
+#endif
+                }
+                for (; k_neg < end_neg; k_neg++)
+                {
+                    y_neg_final += X[m * K + row_index_neg[k_neg]];
+#ifdef INSTRUMENTATION_RUN
+                    flops++;
+#endif
+                }
+
+                Y[m * N + n % N] += (y_pos_final - y_neg_final);
+#ifdef INSTRUMENTATION_RUN
+                flops++;
+#endif
+            }
+        }
+    }
+}
+
 #endif
