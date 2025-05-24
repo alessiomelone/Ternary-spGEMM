@@ -218,7 +218,9 @@ def plot_roofline_for_prefix(
     dt = datetime.now()
     ts = datetime.timestamp(dt) * 100
     ts = int(ts)
-    plot_filename = f"roofline_plot_{plot_title.split(' ')[-1]}_{ts}.png"
+    output_dir = os.path.join("plots", "roofline", "plot_images")
+    os.makedirs(output_dir, exist_ok=True)
+    plot_filename = os.path.join(output_dir, f"roofline_plot_{plot_title.split(' ')[-1]}_{ts}.png")
     try:
         plt.savefig(plot_filename, dpi=300)
         print(f"Plot saved as {plot_filename}")
@@ -362,6 +364,65 @@ def generate_plots_by_prefix(input_json_path, beta_bw, pi_perf, cli_oi_label, cl
             plot_title=f'Roofline Plot for Prefix: {prefix}',
             oi_label=cli_oi_label,
             perf_label=cli_perf_label)
+
+
+# --- generate_plot_all (new function) ---
+def generate_plot_all(input_json_path, beta_bw, pi_perf, cli_oi_label, cli_perf_label):
+    """
+    Reads JSON and generates a single roofline plot with all algorithm variants.
+    """
+    try:
+        with open(input_json_path, 'r', encoding='utf-8') as f_json:
+            all_test_data = json.load(f_json)
+    except FileNotFoundError:
+        print(f"Error: Input JSON file not found at '{input_json_path}'", file=sys.stderr); sys.exit(1)
+    except json.JSONDecodeError:
+        print(f"Error: Could not decode JSON from '{input_json_path}'. Please check its format.", file=sys.stderr); sys.exit(1)
+    except Exception as e:
+        print(f"An unexpected error occurred while reading JSON: {e}", file=sys.stderr); sys.exit(1)
+
+    if not isinstance(all_test_data, list):
+        print("Error: Expected JSON data to be a list of test cases.", file=sys.stderr); sys.exit(1)
+
+    from collections import defaultdict
+    data_grouped = defaultdict(list)
+    for item in all_test_data:
+        if not isinstance(item, dict) or "results" not in item:
+            continue
+        results_dict = item.get("results", {})
+        for original_key, result_data in results_dict.items():
+            if not isinstance(result_data, dict):
+                continue
+            oi_value = result_data.get("operational_intensity")
+            perf_value = result_data.get("performance")
+            total_input_size = result_data.get("total_input_size")
+            if oi_value is None or perf_value is None or total_input_size is None:
+                continue
+            try:
+                oi_float = float(oi_value)
+                perf_float = float(perf_value)
+                annotation_label = str(total_input_size)
+            except (ValueError, TypeError):
+                continue
+            data_grouped[original_key].append({
+                "oi": oi_float,
+                "performance": perf_float,
+                "annotation_label": annotation_label
+            })
+
+    if not data_grouped:
+        print("No valid data to plot.", file=sys.stdout)
+        return
+
+    print("Generating combined plot for all algorithms")
+    plot_roofline_for_prefix(
+        data_grouped,
+        beta_bw,
+        pi_perf,
+        plot_title="Roofline Plot for All Algorithms",
+        oi_label=cli_oi_label,
+        perf_label=cli_perf_label
+    )
 
 # --- generate_roofline_csvs_from_json (for --per_test mode, kept as is but consider annotation change if desired) ---
 def generate_roofline_csvs_from_json(input_json_path, output_directory, beta_bw, pi_perf, title_placeholder, cli_oi_label, cli_perf_label):
@@ -538,15 +599,32 @@ JSON 'results' for all modes should contain 'operational_intensity',
     parser.add_argument("--per_test", action='store_true', help="Generate one plot per test case. If not set, aggregates by algorithm prefix.")
     parser.add_argument("--oi_label", help="Label for the OI axis.", default="Operational Intensity (Flops/Byte)")
     parser.add_argument("--perf_label", help="Label for the Performance axis.", default="Performance (Flops/Cycle)")
+    parser.add_argument("-a", "--all", action="store_true", help="Generate a single plot containing all algorithms in the JSON.")
     
     args = parser.parse_args()
-
-    if args.per_test:
+    
+    if args.all:
+        print("Operating in all mode: Generating one plot with all algorithms.")
+        generate_plot_all(args.json_filepath, args.beta, args.pi, args.oi_label, args.perf_label)
+    elif args.per_test:
         print("Operating in --per_test mode: Generating one plot per M,K,N,s combination.")
         if not os.path.exists(args.output_dir):
-             os.makedirs(args.output_dir, exist_ok=True)
-        generate_roofline_csvs_from_json(args.json_filepath, args.output_dir, args.beta, args.pi, 
-                                         "", args.oi_label, args.perf_label)
+            os.makedirs(args.output_dir, exist_ok=True)
+        generate_roofline_csvs_from_json(
+            args.json_filepath,
+            args.output_dir,
+            args.beta,
+            args.pi,
+            "",
+            args.oi_label,
+            args.perf_label
+        )
     else:
         print("Operating in default mode: Aggregating by algorithm prefix, one plot per prefix.")
-        generate_plots_by_prefix(args.json_filepath, args.beta, args.pi, args.oi_label, args.perf_label)
+        generate_plots_by_prefix(
+            args.json_filepath,
+            args.beta,
+            args.pi,
+            args.oi_label,
+            args.perf_label
+        )

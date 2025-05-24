@@ -41,4 +41,9 @@ public:
         col_start_pos.push_back(column_start_pos);
         col_start_neg.push_back(column_start_neg);
     }
+
+    int getDataStructureSize() const
+    {
+        return sizeof(int) * (col_start_pos.size() + col_start_neg.size() + row_index_pos.size() + row_index_neg.size());
+    }
 };

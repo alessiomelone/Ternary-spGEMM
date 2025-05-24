@@ -3,35 +3,35 @@ import re
 import json
 import argparse
 
-def run_and_parse_benchmark(save_results=False, outname=''):
-    test_cases = [
-        (   256, 1024,  1024),
-        (   1024, 1024,  1024),
-        (   2048, 1024,  1024),
-        (   4096, 1024, 1024),
-        (   8192, 1024, 1024),
-        (   16384, 1024, 1024),
-        # ( 256,  512,  2048),
-        # ( 256, 1024,  4096),
-        # ( 256, 2048,  8192),
-        # ( 256, 4096, 16384),
-    ]
-    non_zero_s = 8
+def run_and_parse_benchmark(vary='M', sparsity=8, save_results=False, outname=''):
+    reference_values = [1, 16, 64, 256, 1000, 4000]#, 16000, 64000]
+
+    test_cases = []
+    if vary == 'M':
+        for m in reference_values:
+            test_cases.append((m, 1024, 1024))
+    elif vary == 'K':
+        for k in reference_values:
+            test_cases.append((1024, k, 1024))
+    else:  # vary == 'N'
+        for n in reference_values:
+            test_cases.append((1024, 1024, n))
+
     executable_path = "./SparseGEMM.out" 
     base_command = ["sudo", executable_path]
 
     all_results = []
 
     print(f"Running benchmark with executable: {executable_path}")
-    print(f"Using -s (nonZero) parameter: {non_zero_s}\n")
+    print(f"Using sparsity {sparsity}\n")
 
     for m_val, k_val, n_val in test_cases:
-        print(f"--- Running test case: M={m_val}, K={k_val}, N={n_val}, s={non_zero_s} ---")
+        print(f"--- Running test case: M={m_val}, K={k_val}, N={n_val}, s={sparsity} ---")
         command = base_command + [
             "-M", str(m_val),
             "-K", str(k_val),
             "-N", str(n_val),
-            "-s", str(non_zero_s)
+            "-s", str(sparsity)
         ]
 
         try:
@@ -42,7 +42,7 @@ def run_and_parse_benchmark(save_results=False, outname=''):
                 print(f"Return code: {process.returncode}")
                 print(f"Stderr:\n{process.stderr}")
                 all_results.append({
-                    "test_case": {"M": m_val, "K": k_val, "N": n_val, "s": non_zero_s},
+                    "test_case": {"M": m_val, "K": k_val, "N": n_val, "s": sparsity},
                     "error": process.stderr,
                     "results": {}
                 })
@@ -94,25 +94,25 @@ def run_and_parse_benchmark(save_results=False, outname=''):
 
 
             all_results.append({
-                "test_case": {"M": m_val, "K": k_val, "N": n_val, "s": non_zero_s},
+                "test_case": {"M": m_val, "K": k_val, "N": n_val, "s": sparsity},
                 "results": current_test_results
             })
 
         except subprocess.TimeoutExpired:
             print(f"ERROR: Benchmark run timed out for M={m_val}, K={k_val}, N={n_val}")
             all_results.append({
-                "test_case": {"M": m_val, "K": k_val, "N": n_val, "s": non_zero_s},
+                "test_case": {"M": m_val, "K": k_val, "N": n_val, "s": sparsity},
                 "error": "TimeoutExpired",
                 "results": {}
             })
         except Exception as e:
             print(f"An unexpected error occurred for M={m_val}, K={k_val}, N={n_val}: {e}")
             all_results.append({
-                "test_case": {"M": m_val, "K": k_val, "N": n_val, "s": non_zero_s},
+                "test_case": {"M": m_val, "K": k_val, "N": n_val, "s": sparsity},
                 "error": str(e),
                 "results": {}
             })
-        print("-" * (len(f"--- Running test case: M={m_val}, K={k_val}, N={n_val}, s={non_zero_s} ---")) + "\n")
+        print("-" * (len(f"--- Running test case: M={m_val}, K={k_val}, N={n_val}, s={sparsity} ---")) + "\n")
 
     # Optionally, save all results to a JSON file
     if save_results:
@@ -125,5 +125,9 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Run SparseGEMM benchmarks')
     parser.add_argument('-s', '--save', action='store_true', help='Save benchmark results to JSON file')
     parser.add_argument('--output', type=str, default='benchmark_results.json', help='Name of JSON file')
+    parser.add_argument('--vary', choices=['M', 'K', 'N'], default='M',
+                        help='Matrix dimension to vary; others fixed at 1024')
+    parser.add_argument('--sparsity', type=int, default=8,
+                        help='Non‑zero elements per row passed to SparseGEMM via -s')
     args = parser.parse_args()
-    run_and_parse_benchmark(args.save, args.output) 
+    run_and_parse_benchmark(args.vary, args.sparsity, args.save, args.output)
