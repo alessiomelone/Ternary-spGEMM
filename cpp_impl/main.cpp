@@ -130,6 +130,7 @@ int main(int argc, char **argv)
             BaseCSC_unroll5<float>(X_arg, *sf_csc, B_arg, Y_arg, M_arg, N_arg, K_arg);
         },
         "BaseCSC_unroll5");
+<<<<<<< HEAD
 >>>>>>> 82b3402 (use shorts in CCSC & run unroll test)
 
     // add_function(
@@ -139,27 +140,47 @@ int main(int argc, char **argv)
     //     },
     //     "BaseCSC_unrolled_8");
 >>>>>>> 5ab0bc5 (added 1000x4096x16384 and 4000x4096x16384 to run_benchmark.py)
+=======
+#if 1
+    add_function(
+        [sf_csc](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
+        {
+            BaseCSC_unr<float, 8>(X_arg, *sf_csc, B_arg, Y_arg, M_arg, N_arg, K_arg);
+        },
+        "BaseCSC_unrolled_8");
 
-    // add_function(
-    //     [sf_csc](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
-    //     {
-    //         BaseCSC_unr<float, 16>(X_arg, *sf_csc, B_arg, Y_arg, M_arg, N_arg, K_arg);
-    //     },
-    //     "BaseCSC_unrolled_16");
+    add_function(
+        [sf_csc](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
+        {
+            BaseCSC_unr<float, 16>(X_arg, *sf_csc, B_arg, Y_arg, M_arg, N_arg, K_arg);
+        },
+        "BaseCSC_unrolled_16");
+>>>>>>> bc77f8b (Add Flop Instrumentation)
 
-    // add_function(
-    //     [sf_csc](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
-    //     {
-    //         BaseCSC_unr_tiled<float, 32, 32, 12>(X_arg, *sf_csc, B_arg, Y_arg, M_arg, N_arg, K_arg);
-    //     },
-    //     "BaseCSC_unrolled_tiled_32x32x12");
+    add_function(
+        [sf_csc](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
+        {
+            BaseCSC_unr_tiled<float, 32, 32, 12>(X_arg, *sf_csc, B_arg, Y_arg, M_arg, N_arg, K_arg);
+        },
+        "BaseCSC_unrolled_tiled_32x32x12");
+
+    add_function(
+        [sf_csr](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
+        {
+            BaseCSR<float>(X_arg, *sf_csr, B_arg, Y_arg, M_arg, N_arg, K_arg);
+        },
+        "BaseCSR_naive");
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> bc77f8b (Add Flop Instrumentation)
     add_function(
         [sf_csr](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
         {
             BaseCSR_unr<float, 8>(X_arg, *sf_csr, B_arg, Y_arg, M_arg, N_arg, K_arg);
         },
+<<<<<<< HEAD
 <<<<<<< HEAD
         "BaseCSR_unr-8");
 >>>>>>> 3e9bdeb (added run_benchmark.py)
@@ -188,6 +209,9 @@ int main(int argc, char **argv)
     //         BaseCSR_unr<float, 16>(X_arg, *sf_csr, B_arg, Y_arg, M_arg, N_arg, K_arg);
     //     },
     //     "BaseCSR_unrolled_16");
+=======
+        "BaseCSR_unrolled_8");
+>>>>>>> bc77f8b (Add Flop Instrumentation)
 
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -232,6 +256,13 @@ int main(int argc, char **argv)
 >>>>>>> 5ab0bc5 (added 1000x4096x16384 and 4000x4096x16384 to run_benchmark.py)
 =======
     add_function(
+        [sf_csr](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
+        {
+            BaseCSR_unr<float, 16>(X_arg, *sf_csr, B_arg, Y_arg, M_arg, N_arg, K_arg);
+        },
+        "BaseCSR_unrolled_16");
+#endif
+    add_function(
         [sf_ccsc](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
         {
             CCSC_base<float>(X_arg, *sf_ccsc, B_arg, Y_arg, M_arg, N_arg, K_arg);
@@ -239,20 +270,22 @@ int main(int argc, char **argv)
         "CompressedCSC_naive");
 >>>>>>> 82b3402 (use shorts in CCSC & run unroll test)
 
-    // add_function(
-    //     [sf_tcsr](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
-    //     {
-    //         TCSR<float>(X_arg, *sf_tcsr, B_arg, Y_arg, M_arg, N_arg, K_arg);
-    //     },
-    //     "TernaryCSR_naive");
+#if 1
+    add_function(
+        [sf_tcsr](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
+        {
+            TCSR<float>(X_arg, *sf_tcsr, B_arg, Y_arg, M_arg, N_arg, K_arg);
+        },
+        "TernaryCSR_naive");
 
-    // add_function(
-    //     [sf_tcsr](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
-    //     {
-    //         TCSR_unrolled_tiled<float, 8, 8>(X_arg, *sf_tcsr, B_arg, Y_arg, M_arg, N_arg, K_arg);
-    //     },
-    //     "TernaryCSR_unrolled_tiled_8x8");
+    add_function(
+        [sf_tcsr](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
+        {
+            TCSR_unrolled_tiled<float, 8, 8>(X_arg, *sf_tcsr, B_arg, Y_arg, M_arg, N_arg, K_arg);
+        },
+        "TernaryCSR_unrolled_tiled_8x8");
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -287,11 +320,14 @@ int main(int argc, char **argv)
 >>>>>>> 3e9bdeb (added run_benchmark.py)
 =======
 >>>>>>> 914d53d (change readme)
+=======
+>>>>>>> bc77f8b (Add Flop Instrumentation)
     add_function(
         [sf_tcsc](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
         {
             TCSC<float>(X_arg, *sf_tcsc, B_arg, Y_arg, M_arg, N_arg, K_arg);
         },
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -333,6 +369,17 @@ int main(int argc, char **argv)
     //     },
     //     "TernaryCSC_unrolled_tiled_8x8x8");
 >>>>>>> 914d53d (change readme)
+=======
+        "TernaryCSC_naive");
+
+    add_function(
+        [sf_tcsc](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
+        {
+            TCSC_unrolled_tiled<float, 8, 8, 8>(X_arg, *sf_tcsc, B_arg, Y_arg, M_arg, N_arg, K_arg);
+        },
+        "TernaryCSC_unrolled_tiled_8x8x8");
+#endif
+>>>>>>> bc77f8b (Add Flop Instrumentation)
 
     if (numFuncs == 0)
     {
@@ -414,7 +461,11 @@ int main(int argc, char **argv)
         std::cout << std::endl
                   << "Running: " << funcNames[i_loop] << std::endl;
         std::cout << perf_val << " cycles" << std::endl;
-        std::cout << "Performance: " << static_cast<double>(M * N) * (1.0 + static_cast<double>(K) / nonZero) / perf_val << " flops/cycle" << std::endl;
+    #ifdef INSTRUMENTATION_RUN
+        std::cout << "Flops: " << getTotalFlops() << std::endl;
+        std::cout << "Performance: " << (double) getTotalFlops() / perf_val << " flops/cycle" << std::endl;
+    #endif
+        // std::cout << "Performance: " << static_cast<double>(M * N) * (1.0 + static_cast<double>(K) / nonZero) / perf_val << " flops/cycle" << std::endl;
     }
 
     return 0;

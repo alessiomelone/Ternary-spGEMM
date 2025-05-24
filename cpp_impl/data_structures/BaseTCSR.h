@@ -107,4 +107,14 @@ public:
             std::cout << val << " ";
         std::cout << std::endl;
     }
+
+    int getDataStructureSize() {
+        return sizeof(int) * (
+            row_start_pos.size() +
+            row_start_neg.size() +
+            col_index_pos.size() +
+            col_index_neg.size() +
+            2
+        );
+    }
 };
