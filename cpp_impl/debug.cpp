@@ -26,6 +26,7 @@
 
 #include "common.h"
 #include "sparseUtils.h"
+#include "comp.h"
 
 // --- Prototypes for implementations defined & explicitly instantiated in comp.cpp ---
 template <typename T>
@@ -34,6 +35,8 @@ template <typename T>
 void CCSC_base(T *X, const CompressedCSC &W_csc, T *b, T *Y, int M, int N, int K);
 template <typename T, int UNROLL_FACTOR>
 void BaseCSC_unr(T *X, const BaseTCSC &W_csc, T *b, T *Y, int M, int N, int K);
+template <typename T>
+void BaseCSR(T *X, const BaseTCSR &W_csc, T *b, T *Y, int M, int N, int K);
 // -------------------------------------------------------------------------------
 
 using comp_func = std::function<void(float *, float *, float *, int, int, int)>;
@@ -90,13 +93,14 @@ int main(int argc, char **argv)
     /* --- Prepare sparse formats once -------------------------------------- */
     BaseTCSC sf(W_raw.data(), K, N);
     CompressedCSC ccsc(W_raw.data(), K, N);
+    BaseTCSR sf_csr(W_raw.data(), K, N);
 
     /* --- Dispatch to requested kernel ------------------------------------- */
     comp_func kernel;
 
-    kernel = [&ccsc](float *Xv, float *Bv, float *Yv, int m, int n, int k)
+    kernel = [&sf_csr](float *Xv, float *Bv, float *Yv, int m, int n, int k)
     {
-        CCSC_base<float>(Xv, ccsc, Bv, Yv, m, n, k);
+        BaseCSR<float>(Xv, sf_csr, Bv, Yv, m, n, k);
     };
 
     /* --- Print matrices ---------------------------------------------------- */

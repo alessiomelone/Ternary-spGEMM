@@ -3,15 +3,21 @@
 #include <iostream>
 #include "DataStructureInterface.hpp"
 
+/**
+ * @brief Compressed Sparse Row (CSR) format for ternary matrices
+ *
+ * This class implements a CSR format specifically for ternary matrices (-1, 0, 1).
+ * It stores positive and negative values separately for better performance.
+ */
 class BaseTCSR : public DataStructureInterface
 {
 public:
-    int num_rows;
-    int num_cols;
     std::vector<int> row_start_pos;
     std::vector<int> row_start_neg;
     std::vector<int> col_index_pos;
     std::vector<int> col_index_neg;
+    int num_rows;
+    int num_cols;
 
     BaseTCSR() : num_rows(0), num_cols(0) {}
 
@@ -25,36 +31,57 @@ public:
         num_rows = rows;
         num_cols = cols;
 
-        int row_start_pos_val = 0;
-        int row_start_neg_val = 0;
+        // Pre-allocate offset arrays
+        row_start_pos.resize(rows + 1, 0);
+        row_start_neg.resize(rows + 1, 0);
 
-        row_start_pos.clear();
-        row_start_neg.clear();
-        col_index_pos.clear();
-        col_index_neg.clear();
-
-        for (int k_idx = 0; k_idx < rows; k_idx++)
+        // First pass: count non-zeros per row
+        for (int k = 0; k < rows; ++k)
         {
-            row_start_pos.push_back(row_start_pos_val);
-            row_start_neg.push_back(row_start_neg_val);
-
-            for (int n_idx = 0; n_idx < cols; n_idx++)
+            for (int n = 0; n < cols; ++n)
             {
-                if (matrix[k_idx * cols + n_idx] >= 1)
+                int val = matrix[k * cols + n];
+                if (val == 1)
                 {
-                    row_start_pos_val++;
-                    col_index_pos.push_back(n_idx);
+                    row_start_pos[k + 1]++;
                 }
-                else if (matrix[k_idx * cols + n_idx] <= -1)
+                else if (val == -1)
                 {
-                    row_start_neg_val++;
-                    col_index_neg.push_back(n_idx);
+                    row_start_neg[k + 1]++;
                 }
             }
         }
 
-        row_start_pos.push_back(row_start_pos_val);
-        row_start_neg.push_back(row_start_neg_val);
+        // Convert counts to start pointers (prefix sum)
+        for (int k = 0; k < rows; ++k)
+        {
+            row_start_pos[k + 1] += row_start_pos[k];
+            row_start_neg[k + 1] += row_start_neg[k];
+        }
+
+        // Resize index vectors based on total counts
+        col_index_pos.resize(row_start_pos[rows]);
+        col_index_neg.resize(row_start_neg[rows]);
+
+        // Second pass: fill column indices
+        std::vector<int> current_pos_ptr = row_start_pos;
+        std::vector<int> current_neg_ptr = row_start_neg;
+
+        for (int k = 0; k < rows; ++k)
+        {
+            for (int n = 0; n < cols; ++n)
+            {
+                int val = matrix[k * cols + n];
+                if (val == 1)
+                {
+                    col_index_pos[current_pos_ptr[k]++] = n;
+                }
+                else if (val == -1)
+                {
+                    col_index_neg[current_neg_ptr[k]++] = n;
+                }
+            }
+        }
     }
 
     std::vector<int> getVectorRepresentation(size_t expected_rows, size_t expected_cols) override
@@ -108,13 +135,12 @@ public:
         std::cout << std::endl;
     }
 
-    int getDataStructureSize() const {
-        return sizeof(int) * (
-            row_start_pos.size() +
-            row_start_neg.size() +
-            col_index_pos.size() +
-            col_index_neg.size() +
-            2
-        );
+    int getDataStructureSize() const
+    {
+        return sizeof(int) * (row_start_pos.size() +
+                              row_start_neg.size() +
+                              col_index_pos.size() +
+                              col_index_neg.size() +
+                              2);
     }
 };
