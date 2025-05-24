@@ -117,6 +117,7 @@ void CSC_base_testing(T *X, const BaseTCSC &W_csr, T *b, T *Y, int M, int N, int
 }
 
 template <typename T>
+<<<<<<< HEAD
 void BaseCSC_unroll5(T *X, const BaseTCSC &W_csc,
                      T *b, T *Y,
                      int M, int N, int K)
@@ -198,6 +199,8 @@ void BaseCSC_unroll5(T *X, const BaseTCSC &W_csc,
 }
 
 template <typename T>
+=======
+>>>>>>> a4043d8 (added calibrate as flag (Default CALIBRATE), removed Baraq's unrolled 5 (templated))
 void CCSC_base(T *X, const CompressedCSC &W, T *b, T *Y, int M, int N, int K)
 {
 #ifdef INSTRUMENTATION_RUN

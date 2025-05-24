@@ -18,6 +18,7 @@ def run_and_parse_benchmark(save_results=False, raw_output=False):
     ensure_make()
     
     test_cases = [
+<<<<<<< HEAD
         (   1,  1,  8),
         (   1,  2,  8),
         (   1,  4,  8),
@@ -46,6 +47,13 @@ def run_and_parse_benchmark(save_results=False, raw_output=False):
         (   1, 33554432,  8),
         (   1, 67108864,  8),
         (   1, 134217728,  8),
+=======
+        (   1,  512,  2048),
+        (   1, 1024,  4096),
+        (   1, 2048,  8192),
+        (   1, 4096, 16384),
+        ( 256,  512,  2048),
+>>>>>>> a4043d8 (added calibrate as flag (Default CALIBRATE), removed Baraq's unrolled 5 (templated))
         # ( 256, 1024,  4096),
         # ( 256, 2048,  8192)
     ]
