@@ -113,8 +113,9 @@ int main(int argc, char **argv)
     add_function(
         [sf_tcsr](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
         {
-            TCSR_unrolled<float, 12>(X_arg, *sf_tcsr, B_arg, Y_arg, M_arg, N_arg, K_arg);
+            TCSR_unrolled_tiled<float, 12, 8, 8>(X_arg, *sf_tcsr, B_arg, Y_arg, M_arg, N_arg, K_arg);
         },
+<<<<<<< HEAD
         "TCSR_unrolled-12");
 =======
     // add_function(
@@ -124,6 +125,9 @@ int main(int argc, char **argv)
     //     },
     //     "TCSR_unrolled-12");
 >>>>>>> 00c090c (Add TCSR and TCSC base function prototypes; refactor CSC_base and CCSC_base implementations)
+=======
+        "TCSR_unrolled_tiled-12-16-16");
+>>>>>>> f2770dd (TCSC tiled is 1.5)
 
     add_function(
         [sf_tcsc](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
@@ -133,18 +137,28 @@ int main(int argc, char **argv)
         "TCSC_base");
 
 <<<<<<< HEAD
+<<<<<<< HEAD
     add_function(
         [sf_tcsc](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
         {
             TCSC_unrolled<float, 12>(X_arg, *sf_tcsc, B_arg, Y_arg, M_arg, N_arg, K_arg);
         },
         "TCSC_unrolled-12");
+=======
+    // add_function(
+    //     [sf_tcsc](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
+    //     {
+    //         TCSC_unrolled<float, 12>(X_arg, *sf_tcsc, B_arg, Y_arg, M_arg, N_arg, K_arg);
+    //     },
+    //     "TCSC_unrolled-12");
+>>>>>>> f2770dd (TCSC tiled is 1.5)
 
     add_function(
         [sf_tcsc](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
         {
-            TCSC_unrolled_tiled<float, 12, 32, 32>(X_arg, *sf_tcsc, B_arg, Y_arg, M_arg, N_arg, K_arg);
+            TCSC_unrolled_tiled<float, 12, 8, 8>(X_arg, *sf_tcsc, B_arg, Y_arg, M_arg, N_arg, K_arg);
         },
+<<<<<<< HEAD
         "TCSC_unrolled_tiled-12-32-32");
 =======
     // add_function(
@@ -161,6 +175,9 @@ int main(int argc, char **argv)
     //     },
     //     "TCSC_unrolled_tiled-12-32-32");
 >>>>>>> 00c090c (Add TCSR and TCSC base function prototypes; refactor CSC_base and CCSC_base implementations)
+=======
+        "TCSC_unrolled_tiled-12-16-16");
+>>>>>>> f2770dd (TCSC tiled is 1.5)
 
     if (numFuncs == 0)
     {
@@ -193,13 +210,12 @@ int main(int argc, char **argv)
         Y_main.insert(Y_main.end(), 10, 0); // extend Y so we can modify unused pad values without bounds checking
         X_main.insert(X_main.end(), 10, 0); // extend Y so we can modify unused pad values without bounds checking
 
-        
         // Call the std::function directly. Sparse data is captured in the lambda.
 >>>>>>> 00c090c (Add TCSR and TCSC base function prototypes; refactor CSC_base and CCSC_base implementations)
         func(X_main.data(), B_main.data(), Y_main.data(), M, N, K);
-        
+
         Y_main.resize(Y_main.size() - 10);
-        
+
         if (compare_results(Y_main.data(), refY_main.data(), M, N))
         {
             std::cout << "Test case " << funcNames[i_loop] << " passed!" << std::endl;

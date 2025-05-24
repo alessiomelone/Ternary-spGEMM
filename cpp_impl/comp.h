@@ -196,248 +196,213 @@ void CCSC_base(T *X, // dense input X, row-major, size M×K
 }
 
 template <typename T>
-void TCSR_base(T *X_arg, const TCSRMatrix &W_tcsr, T *B_arg, T *Y_arg,
-               int M_dim, int N_dim, int K_dim)
+void TCSR_base(T *X, const TCSRMatrix &W, T *B, T *Y, int M, int N, int K)
 {
-    const int *row_offsets_data = W_tcsr.row_offsets.data();
-    const int *encoded_cols_data = W_tcsr.encoded_cols.data();
+    const int *row_offsets = W.row_offsets.data();
+    const int *encoded_cols = W.encoded_cols.data();
+    const int *row_pos_counts = W.row_pos_counts.data();
 
-    for (int m = 0; m < M_dim; ++m)
+    for (int m = 0; m < M; ++m)
     {
-        const T *X_row_m = X_arg + m * K_dim;
-        T *Y_row_m = Y_arg + m * N_dim;
+        T *X_row = X + m * K;
+        T *Y_row = Y + m * N;
 
-        // Initialize current row of Y with bias
-        for (int n = 0; n < N_dim; ++n)
+        // Initialize with bias
+        for (int n = 0; n < N; ++n)
+            Y_row[n] = B[n];
+
+        for (int k = 0; k < K; ++k)
         {
-            Y_row_m[n] = B_arg[n];
-        }
+            T x = X_row[k];
+            if (x == static_cast<T>(0))
+                continue;
 
-        for (int k = 0; k < K_dim; ++k)
-        {
-            T x_mk_val = X_row_m[k];
+            int row_start = row_offsets[k];
+            int pos_count = row_pos_counts[k];
 
-            int row_start_offset_W = row_offsets_data[k];
-            int row_end_offset_W = row_offsets_data[k + 1];
+            // Positive entries
+            for (int i = row_start; i < row_start + pos_count; ++i)
+                Y_row[encoded_cols[i]] += x;
 
-            for (int nz_idx = row_start_offset_W; nz_idx < row_end_offset_W; ++nz_idx)
-            {
-                std::pair<int, int> decoded_W_element = TCSRMatrix::tcsr_decode_col(encoded_cols_data[nz_idx]);
-                int n_col_in_W = decoded_W_element.first;
-                T w_kn_val = static_cast<T>(decoded_W_element.second);
-
-                Y_row_m[n_col_in_W] += x_mk_val * w_kn_val;
-            }
+            // Negative entries
+            for (int i = row_start + pos_count; i < row_offsets[k + 1]; ++i)
+                Y_row[-encoded_cols[i] - 1] -= x;
         }
     }
 }
 
-template <typename T, int UNROLL_FACTOR>
-void TCSR_unrolled(T *X_arg, const TCSRMatrix &W_tcsr, T *B_arg, T *Y_arg,
-                   int M_dim, int N_dim, int K_dim)
+template <typename T, int TILE_M, int TILE_N_ACCUM, int UNROLL_W_NNZ>
+void TCSR_unrolled_tiled(T *X, const TCSRMatrix &W, T *B,
+                         T *Y, int M, int N, int K)
 {
-    const int *row_offsets_data = W_tcsr.row_offsets.data();
-    const int *encoded_cols_data = W_tcsr.encoded_cols.data();
+    const int *row_offsets = W.row_offsets.data();
+    const int *encoded_cols = W.encoded_cols.data();
+    const int *row_pos_counts = W.row_pos_counts.data();
 
-    for (int m = 0; m < M_dim; ++m)
+    T y_tile[TILE_N_ACCUM];
+
+    for (int m_start = 0; m_start < M; m_start += TILE_M)
     {
-        const T *X_row_m = X_arg + m * K_dim;
-        T *Y_row_m = Y_arg + m * N_dim;
+        int m_end = std::min(m_start + TILE_M, M);
 
-        // Initialize current row of Y with bias
-        for (int n_init = 0; n_init < N_dim; ++n_init)
+        for (int m = m_start; m < m_end; ++m)
         {
-            Y_row_m[n_init] = B_arg[n_init];
-        }
+            const T *X_row = X + m * K;
+            T *Y_row = Y + m * N;
 
-        for (int k = 0; k < K_dim; ++k)
-        {
-            T x_mk_val = X_row_m[k];
-
-            const int row_start_offset_W = row_offsets_data[k];
-            const int row_end_offset_W = row_offsets_data[k + 1];
-            int nz_idx = row_start_offset_W;
-
-            // Unrolled part
-            for (; nz_idx + UNROLL_FACTOR <= row_end_offset_W; nz_idx += UNROLL_FACTOR)
+            for (int n_start = 0; n_start < N; n_start += TILE_N_ACCUM)
             {
-#pragma unroll
-                for (int u = 0; u < UNROLL_FACTOR; ++u)
+                int n_end = std::min(n_start + TILE_N_ACCUM, N);
+                int tile_size = n_end - n_start;
+
+                // Initialize tile with bias
+                for (int i = 0; i < tile_size; ++i)
+                    y_tile[i] = B[n_start + i];
+
+                // Process W rows
+                for (int k = 0; k < K; ++k)
                 {
-                    std::pair<int, int> decoded_W_element = TCSRMatrix::tcsr_decode_col(encoded_cols_data[nz_idx + u]);
-                    int n_col_in_W = decoded_W_element.first;
-                    T w_kn_val = static_cast<T>(decoded_W_element.second);
-                    Y_row_m[n_col_in_W] += x_mk_val * w_kn_val;
-                }
-            }
+                    T x = X_row[k];
+                    if (x == static_cast<T>(0))
+                        continue;
 
-            // Remainder loop
-            for (; nz_idx < row_end_offset_W; ++nz_idx)
-            {
-                std::pair<int, int> decoded_W_element = TCSRMatrix::tcsr_decode_col(encoded_cols_data[nz_idx]);
-                int n_col_in_W = decoded_W_element.first;
-                T w_kn_val = static_cast<T>(decoded_W_element.second);
-                Y_row_m[n_col_in_W] += x_mk_val * w_kn_val;
+                    int row_start = row_offsets[k];
+                    int pos = row_pos_counts[k];
+                    int pos_end = row_start + pos;
+                    int row_end = row_offsets[k + 1];
+
+                    // Positive entries
+                    for (int i = row_start; i < pos_end;)
+                    {
+#pragma unroll
+                        for (int u = 0; u < UNROLL_W_NNZ && i < pos_end; ++u, ++i)
+                        {
+                            int n = encoded_cols[i];
+                            if (n >= n_start && n < n_end)
+                                y_tile[n - n_start] += x;
+                        }
+                    }
+
+                    // Negative entries
+                    for (int i = pos_end; i < row_end;)
+                    {
+#pragma unroll
+                        for (int u = 0; u < UNROLL_W_NNZ && i < row_end; ++u, ++i)
+                        {
+                            int n = -encoded_cols[i] - 1;
+                            if (n >= n_start && n < n_end)
+                                y_tile[n - n_start] -= x;
+                        }
+                    }
+                }
+
+                // Store results
+                for (int i = 0; i < tile_size; ++i)
+                    Y_row[n_start + i] = y_tile[i];
             }
         }
     }
 }
 
 template <typename T>
-void TCSC_base(T *X_arg, const TCSCMatrix &W_tcsc, T *B_arg, T *Y_arg,
-               int M_dim, int N_dim, int K_dim)
+void TCSC_base(T *X, const TCSCMatrix &W_tcsc, T *b, T *Y, int M, int N, int K)
 {
-    const int *col_offsets_data = W_tcsc.col_offsets.data();
-    const int *encoded_rows_data = W_tcsc.encoded_rows.data();
+    const int *col_offsets = W_tcsc.col_offsets.data();
+    const int *encoded_rows = W_tcsc.encoded_rows.data();
+    const int *col_pos_counts = W_tcsc.col_pos_counts.data();
 
-    for (int m = 0; m < M_dim; ++m)
+    for (int m = 0; m < M; m++)
     {
-        const T *X_row_m = X_arg + m * K_dim;
-        T *Y_row_m = Y_arg + m * N_dim;
+        T *X_row = X + m * K;
+        T *Y_row = Y + m * N;
 
-        for (int n = 0; n < N_dim; ++n)
+        for (int n = 0; n < N; n++)
         {
-            T y_mn_acc = 0;
-            int col_start_offset_W = col_offsets_data[n];
-            int col_end_offset_W = col_offsets_data[n + 1];
+            T y = 0;
+            int col_start = col_offsets[n];
+            int pos_count = col_pos_counts[n];
 
-            for (int nz_idx = col_start_offset_W; nz_idx < col_end_offset_W; ++nz_idx)
+            // Positive entries (raw indices)
+            for (int k = col_start; k < col_start + pos_count; k++)
             {
-                std::pair<int, int> decoded_W = TCSCMatrix::tcsc_decode_row(encoded_rows_data[nz_idx]);
-                int k_row_in_W = decoded_W.first;
-                T w_kn_val = static_cast<T>(decoded_W.second);
-                y_mn_acc += X_row_m[k_row_in_W] * w_kn_val;
+                y += X_row[encoded_rows[k]];
             }
-            Y_row_m[n] = y_mn_acc + B_arg[n];
+
+            // Negative entries (encoded indices)
+            for (int k = col_start + pos_count; k < col_offsets[n + 1]; k++)
+            {
+                y -= X_row[-encoded_rows[k] - 1];
+            }
+
+            Y_row[n] = y + b[n];
         }
     }
 }
 
-template <typename T, int UNROLL_FACTOR>
-void TCSC_unrolled(T *X_arg, const TCSCMatrix &W_tcsc, T *B_arg, T *Y_arg,
-                   int M_dim, int N_dim, int K_dim)
+template <typename T, int TILE_M, int TILE_N, int UNROLL_K>
+void TCSC_unrolled_tiled(T *X, const TCSCMatrix &W, T *B,
+                         T *Y, int M, int N, int K)
 {
-    const int *encoded_rows_data = W_tcsc.encoded_rows.data();
-    const int *col_offsets_data = W_tcsc.col_offsets.data();
+    const int *col_offsets = W.col_offsets.data();
+    const int *encoded_rows = W.encoded_rows.data();
+    const int *col_pos_counts = W.col_pos_counts.data();
 
-    // For each row m of X and Y
-    for (int m = 0; m < M_dim; ++m)
+    for (int m_start = 0; m_start < M; m_start += TILE_M)
     {
-        const T *X_row_m = X_arg + m * K_dim; // Pointer to current row of X
-        T *Y_row_m = Y_arg + m * N_dim;       // Pointer to current row of Y
+        int m_end = std::min(m_start + TILE_M, M);
 
-        // For each column n of W and Y
-        for (int n = 0; n < N_dim; ++n)
+        for (int n_start = 0; n_start < N; n_start += TILE_N)
         {
-            T y_mn_acc_partials[UNROLL_FACTOR];
-            // Initialize partial accumulators to zero
-            for (int u = 0; u < UNROLL_FACTOR; ++u)
+            int n_end = std::min(n_start + TILE_N, N);
+
+            for (int m = m_start; m < m_end; ++m)
             {
-                y_mn_acc_partials[u] = T(0);
-            }
+                const T *X_row = X + m * K;
+                T *Y_row = Y + m * N;
 
-            const int col_start_offset_W = col_offsets_data[n];
-            const int col_end_offset_W = col_offsets_data[n + 1];
-            int nz_idx = col_start_offset_W;
-
-            for (; nz_idx + UNROLL_FACTOR <= col_end_offset_W; nz_idx += UNROLL_FACTOR)
-            {
-
-#pragma unroll
-                for (int u = 0; u < UNROLL_FACTOR; ++u)
+                for (int n = n_start; n < n_end; ++n)
                 {
-                    // Decode W element (row index in W and value)
-                    std::pair<int, int> decoded_W = TCSCMatrix::tcsc_decode_row(encoded_rows_data[nz_idx + u]);
-                    int k_row_in_W = decoded_W.first;              // This is the 'k' index for X
-                    T w_kn_val = static_cast<T>(decoded_W.second); // This is the W[k,n] value
+                    T acc = B[n];
+                    int off = col_offsets[n];
+                    int pos = col_pos_counts[n];
+                    int pos_end = off + pos;
+                    int col_end = col_offsets[n + 1];
 
-                    // Accumulate product into the corresponding partial accumulator
-                    y_mn_acc_partials[u] += X_row_m[k_row_in_W] * w_kn_val;
-                }
-            }
-
-            // Sum up partial accumulators
-            T y_mn_acc_final = T(0);
-            for (int u = 0; u < UNROLL_FACTOR; ++u)
-            {
-                y_mn_acc_final += y_mn_acc_partials[u];
-            }
-
-            // Remainder loop
-            for (; nz_idx < col_end_offset_W; ++nz_idx)
-            {
-                std::pair<int, int> decoded_W = TCSCMatrix::tcsc_decode_row(encoded_rows_data[nz_idx]);
-                int k_row_in_W = decoded_W.first;
-                T w_kn_val = static_cast<T>(decoded_W.second);
-                y_mn_acc_final += X_row_m[k_row_in_W] * w_kn_val;
-            }
-
-            Y_row_m[n] = y_mn_acc_final + B_arg[n];
-        }
-    }
-}
-
-template <typename T, int UNROLL_FACTOR, int TILE_M, int TILE_N>
-void TCSC_unrolled_tiled(T *X_arg, const TCSCMatrix &W_tcsc, T *B_arg, T *Y_arg,
-                         int M_dim, int N_dim, int K_dim)
-{
-    const int *encoded_rows_data = W_tcsc.encoded_rows.data();
-    const int *col_offsets_data = W_tcsc.col_offsets.data();
-
-    for (int m_tile_start = 0; m_tile_start < M_dim; m_tile_start += TILE_M)
-    {
-        int m_tile_end = std::min(m_tile_start + TILE_M, M_dim);
-
-        for (int n_tile_start = 0; n_tile_start < N_dim; n_tile_start += TILE_N)
-        {
-            int n_tile_end = std::min(n_tile_start + TILE_N, N_dim);
-
-            // Process tile: Y[m_tile_start:m_tile_end, n_tile_start:n_tile_end]
-            for (int m = m_tile_start; m < m_tile_end; ++m)
-            {
-                const T *X_row_m = X_arg + m * K_dim;
-                T *Y_row_m = Y_arg + m * N_dim;
-
-                for (int n = n_tile_start; n < n_tile_end; ++n)
-                {
-                    T y_mn_acc_partials[UNROLL_FACTOR];
-                    for (int u = 0; u < UNROLL_FACTOR; ++u)
+                    // Positive entries
+                    int k = off;
+                    if (UNROLL_K > 1)
                     {
-                        y_mn_acc_partials[u] = T(0);
-                    }
-
-                    const int col_start_offset_W = col_offsets_data[n];
-                    const int col_end_offset_W = col_offsets_data[n + 1];
-                    int nz_idx = col_start_offset_W;
-
-                    // Unrolled part
-                    for (; nz_idx + UNROLL_FACTOR <= col_end_offset_W; nz_idx += UNROLL_FACTOR)
-                    {
+                        T partials[UNROLL_K] = {0};
 #pragma unroll
-                        for (int u = 0; u < UNROLL_FACTOR; ++u)
+                        for (; k + UNROLL_K <= pos_end; k += UNROLL_K)
                         {
-                            std::pair<int, int> decoded_W = TCSCMatrix::tcsc_decode_row(encoded_rows_data[nz_idx + u]);
-                            int k_row_in_W = decoded_W.first;
-                            T w_kn_val = static_cast<T>(decoded_W.second);
-                            y_mn_acc_partials[u] += X_row_m[k_row_in_W] * w_kn_val;
+                            for (int u = 0; u < UNROLL_K; ++u)
+                                partials[u] += X_row[encoded_rows[k + u]];
                         }
+                        for (int u = 0; u < UNROLL_K; ++u)
+                            acc += partials[u];
                     }
+                    for (; k < pos_end; ++k)
+                        acc += X_row[encoded_rows[k]];
 
-                    T y_mn_acc_final = T(0);
-                    for (int u = 0; u < UNROLL_FACTOR; ++u)
+                    // Negative entries
+                    k = pos_end;
+                    if (UNROLL_K > 1)
                     {
-                        y_mn_acc_final += y_mn_acc_partials[u];
+                        T partials[UNROLL_K] = {0};
+#pragma unroll
+                        for (; k + UNROLL_K <= col_end; k += UNROLL_K)
+                        {
+                            for (int u = 0; u < UNROLL_K; ++u)
+                                partials[u] -= X_row[-encoded_rows[k + u] - 1];
+                        }
+                        for (int u = 0; u < UNROLL_K; ++u)
+                            acc += partials[u];
                     }
+                    for (; k < col_end; ++k)
+                        acc -= X_row[-encoded_rows[k] - 1];
 
-                    // Remainder loop
-                    for (; nz_idx < col_end_offset_W; ++nz_idx)
-                    {
-                        std::pair<int, int> decoded_W = TCSCMatrix::tcsc_decode_row(encoded_rows_data[nz_idx]);
-                        int k_row_in_W = decoded_W.first;
-                        T w_kn_val = static_cast<T>(decoded_W.second);
-                        y_mn_acc_final += X_row_m[k_row_in_W] * w_kn_val;
-                    }
-                    Y_row_m[n] = y_mn_acc_final + B_arg[n];
+                    Y_row[n] = acc;
                 }
             }
         }
@@ -517,6 +482,7 @@ void CSC_unrolled(
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 <<<<<<< HEAD:cpp_impl/comp.h
 // Base implementations
 template <typename T>
@@ -541,11 +507,18 @@ template void CSC_base<float>(float *, const SparseFormat &, float *, float *, i
 template void CSC_base<float>(float *, const SparseFormatCSC &, float *, float *, int, int, int);
 template void CSC_base_testing<float>(float *, const SparseFormatCSC &, float *, float *, int, int, int);
 >>>>>>> 6073638 (merge and fix bugs)
+=======
+// --- Explicit Instantiations ---
+// This tells the compiler to generate code for these specific versions in comp.o
+template void CSC_base<float>(float *, const SparseFormatCSC &, float *, float *, int, int, int);
+template void CSC_base_testing<float>(float *, const SparseFormatCSC &, float *, float *, int, int, int);
+>>>>>>> f2770dd (TCSC tiled is 1.5)
 template void CCSC_base<float>(float *, const CompressedCSC &, float *, float *, int, int, int);
 template void TCSR_base<float>(float *, const TCSRMatrix &, float *, float *, int, int, int);
 template void TCSC_base<float>(float *, const TCSCMatrix &, float *, float *, int, int, int);
 template void CSC_unrolled<float, 2>(float *, const SparseFormatCSC &, float *, float *, int, int, int);
 // If you use other unroll factors or other types for T, you'd add them here.
+<<<<<<< HEAD
 <<<<<<< HEAD
 template void CSC_unrolled<float, 12>(float *, const SparseFormat &, float *, float *, int, int, int);
 <<<<<<< HEAD
@@ -563,4 +536,12 @@ template void TCSC_unrolled_tiled<float, 12, 32, 32>(float *, const TCSCMatrix &
 
 =======
 >>>>>>> 9966890 (fix)
+=======
+template void CSC_unrolled<float, 12>(float *, const SparseFormatCSC &, float *, float *, int, int, int);
+
+template void TCSR_unrolled_tiled<float, 12, 8, 8>(float *, const TCSRMatrix &, float *, float *, int, int, int);
+
+template void TCSC_unrolled_tiled<float, 12, 8, 8>(float *, const TCSCMatrix &, float *, float *, int, int, int);
+
+>>>>>>> f2770dd (TCSC tiled is 1.5)
 #endif
