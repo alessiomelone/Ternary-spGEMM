@@ -196,8 +196,10 @@ int main(int argc, char **argv)
 #ifdef INSTRUMENTATION_RUN
         std::cout << "Flops: " << getTotalFlops() << std::endl;
         std::cout << "Performance: " << (double)getTotalFlops() / perf_val << " flops/cycle" << std::endl;
+        double total_bytes = sizeof(float) * ((double) (M * K + M * N + N)) + (double) getDataStructureSizeInBytes();
+        std::cout << "Total Input Size: " << (int) total_bytes << " Bytes" << std::endl;
+        std::cout << "Operational Intensity: " << (double)getTotalFlops() / total_bytes << " Flops/Byte" << std::endl;
         std::cout << "Data Structure Size: " << getDataStructureSizeInBytes() << " Bytes" << std::endl;
-        std::cout << "Operational Intensity: " << (double)getTotalFlops() / (double)getDataStructureSizeInBytes() << " Flops/Byte" << std::endl;
 #endif
         // std::cout << "Performance: " << static_cast<double>(M * N) * (1.0 + static_cast<double>(K) / nonZero) / perf_val << " flops/cycle" << std::endl;
     }
