@@ -82,11 +82,15 @@ int main(int argc, char **argv)
     // Register functions using the shared instances
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 914d53d (change readme)
     add_function(
         [sf_csc](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
         {
             BaseCSC<float>(X_arg, *sf_csc, B_arg, Y_arg, M_arg, N_arg, K_arg);
         },
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
         "CSC_base");
@@ -114,6 +118,9 @@ int main(int argc, char **argv)
     //         BaseCSC<float>(X_arg, *sf_csc, B_arg, Y_arg, M_arg, N_arg, K_arg);
     //     },
     //     "BaseCSC_naive");
+=======
+        "BaseCSC_naive");
+>>>>>>> 914d53d (change readme)
 
     // add_function(
     //     [sf_csc](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
@@ -123,19 +130,19 @@ int main(int argc, char **argv)
     //     "BaseCSC_unrolled_8");
 >>>>>>> 5ab0bc5 (added 1000x4096x16384 and 4000x4096x16384 to run_benchmark.py)
 
-    add_function(
-        [sf_csc](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
-        {
-            BaseCSC_unr<float, 16>(X_arg, *sf_csc, B_arg, Y_arg, M_arg, N_arg, K_arg);
-        },
-        "BaseCSC_unrolled_16");
+    // add_function(
+    //     [sf_csc](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
+    //     {
+    //         BaseCSC_unr<float, 16>(X_arg, *sf_csc, B_arg, Y_arg, M_arg, N_arg, K_arg);
+    //     },
+    //     "BaseCSC_unrolled_16");
 
-    add_function(
-        [sf_csc](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
-        {
-            BaseCSC_unr_tiled<float, 32, 32, 12>(X_arg, *sf_csc, B_arg, Y_arg, M_arg, N_arg, K_arg);
-        },
-        "BaseCSC_unrolled_tiled_32x32x12");
+    // add_function(
+    //     [sf_csc](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
+    //     {
+    //         BaseCSC_unr_tiled<float, 32, 32, 12>(X_arg, *sf_csc, B_arg, Y_arg, M_arg, N_arg, K_arg);
+    //     },
+    //     "BaseCSC_unrolled_tiled_32x32x12");
 
 <<<<<<< HEAD
     add_function(
@@ -227,6 +234,7 @@ int main(int argc, char **argv)
     //     },
     //     "TernaryCSR_unrolled_tiled_8x8");
 
+<<<<<<< HEAD
     // add_function(
     //     [sf_tcsc](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
     //     {
@@ -254,11 +262,14 @@ int main(int argc, char **argv)
 
 =======
 >>>>>>> 3e9bdeb (added run_benchmark.py)
+=======
+>>>>>>> 914d53d (change readme)
     add_function(
         [sf_tcsc](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
         {
-            TCSC_unrolled_tiled<float, 8, 8, 8>(X_arg, *sf_tcsc, B_arg, Y_arg, M_arg, N_arg, K_arg);
+            TCSC<float>(X_arg, *sf_tcsc, B_arg, Y_arg, M_arg, N_arg, K_arg);
         },
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -287,6 +298,16 @@ int main(int argc, char **argv)
 =======
         "TernaryCSC_unrolled_tiled_8x8x8");
 >>>>>>> 1d668b2 (renaming)
+=======
+        "TernaryCSC_naive");
+
+    // add_function(
+    //     [sf_tcsc](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
+    //     {
+    //         TCSC_unrolled_tiled<float, 8, 8, 8>(X_arg, *sf_tcsc, B_arg, Y_arg, M_arg, N_arg, K_arg);
+    //     },
+    //     "TernaryCSC_unrolled_tiled_8x8x8");
+>>>>>>> 914d53d (change readme)
 
     if (numFuncs == 0)
     {

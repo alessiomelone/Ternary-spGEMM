@@ -64,13 +64,6 @@ To test a data structure:
 g++ -Icpp_impl/data_structures -o test_data_structure.out cpp_impl/test_data_structure.cpp && ./test_data_structure.out
 ```
 
-## Implementation Steps
-
-When adding a new implementation:
-1. Add new function in `comp.cpp`
-2. Add template instantiation in `comp.cpp`
-3. Add prototype at the top of `main.cpp`
-4. Register function with a lambda in `main.cpp`
 
 ## Performance Considerations
 
