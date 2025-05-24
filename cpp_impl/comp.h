@@ -231,74 +231,89 @@ void TCSR_base(T *X, const TCSRMatrix &W, T *B, T *Y, int M, int N, int K)
     }
 }
 
-template <typename T, int TILE_M, int TILE_N_ACCUM, int UNROLL_W_NNZ>
-void TCSR_unrolled_tiled(T *X, const TCSRMatrix &W, T *B,
-                         T *Y, int M, int N, int K)
+template <typename T, int TILE_M, int UNROLL_W_NNZ>
+void TCSR_unrolled_tiled(
+    T *X_arg,
+    const TCSRMatrix &W_tcsr,
+    T *B_arg,
+    T *Y_arg,
+    int M_dim,
+    int N_dim,
+    int K_dim)
 {
-    const int *row_offsets = W.row_offsets.data();
-    const int *encoded_cols = W.encoded_cols.data();
-    const int *row_pos_counts = W.row_pos_counts.data();
+    const int *row_offsets_data = W_tcsr.row_offsets.data();
+    const int *encoded_cols_data = W_tcsr.encoded_cols.data();
+    const int *row_pos_counts_data = W_tcsr.row_pos_counts.data();
 
-    T y_tile[TILE_N_ACCUM];
-
-    for (int m_start = 0; m_start < M; m_start += TILE_M)
+    std::vector<T> y_row_accumulator_storage;
+    if (N_dim > 0)
     {
-        int m_end = std::min(m_start + TILE_M, M);
+        y_row_accumulator_storage.resize(N_dim);
+    }
+    T *y_row_accumulator = y_row_accumulator_storage.data();
 
-        for (int m = m_start; m < m_end; ++m)
+    for (int m_tile_start = 0; m_tile_start < M_dim; m_tile_start += TILE_M)
+    {
+        const int m_tile_end = std::min(m_tile_start + TILE_M, M_dim);
+
+        for (int m = m_tile_start; m < m_tile_end; ++m)
         {
-            const T *X_row = X + m * K;
-            T *Y_row = Y + m * N;
+            const T *X_row_m = X_arg + (size_t)m * K_dim;
+            T *Y_row_m = Y_arg + (size_t)m * N_dim;
 
-            for (int n_start = 0; n_start < N; n_start += TILE_N_ACCUM)
+            for (int n_idx = 0; n_idx < N_dim; ++n_idx)
             {
-                int n_end = std::min(n_start + TILE_N_ACCUM, N);
-                int tile_size = n_end - n_start;
+                y_row_accumulator[n_idx] = B_arg[n_idx];
+            }
 
-                // Initialize tile with bias
-                for (int i = 0; i < tile_size; ++i)
-                    y_tile[i] = B[n_start + i];
+            for (int k = 0; k < K_dim; ++k)
+            {
+                const T x_mk_val = X_row_m[k];
 
-                // Process W rows
-                for (int k = 0; k < K; ++k)
+                if (x_mk_val == static_cast<T>(0))
                 {
-                    T x = X_row[k];
-                    if (x == static_cast<T>(0))
-                        continue;
-
-                    int row_start = row_offsets[k];
-                    int pos = row_pos_counts[k];
-                    int pos_end = row_start + pos;
-                    int row_end = row_offsets[k + 1];
-
-                    // Positive entries
-                    for (int i = row_start; i < pos_end;)
-                    {
-#pragma unroll
-                        for (int u = 0; u < UNROLL_W_NNZ && i < pos_end; ++u, ++i)
-                        {
-                            int n = encoded_cols[i];
-                            if (n >= n_start && n < n_end)
-                                y_tile[n - n_start] += x;
-                        }
-                    }
-
-                    // Negative entries
-                    for (int i = pos_end; i < row_end;)
-                    {
-#pragma unroll
-                        for (int u = 0; u < UNROLL_W_NNZ && i < row_end; ++u, ++i)
-                        {
-                            int n = -encoded_cols[i] - 1;
-                            if (n >= n_start && n < n_end)
-                                y_tile[n - n_start] -= x;
-                        }
-                    }
+                    continue;
                 }
 
-                // Store results
-                for (int i = 0; i < tile_size; ++i)
-                    Y_row[n_start + i] = y_tile[i];
+                const int W_k_row_start_offset = row_offsets_data[k];
+                const int W_k_pos_count = row_pos_counts_data[k];
+                const int W_k_pos_entries_end_offset = W_k_row_start_offset + W_k_pos_count;
+                const int W_k_row_end_offset = row_offsets_data[k + 1];
+
+                int nnz_ptr_W;
+
+                nnz_ptr_W = W_k_row_start_offset;
+                for (; nnz_ptr_W + UNROLL_W_NNZ <= W_k_pos_entries_end_offset; nnz_ptr_W += UNROLL_W_NNZ)
+                {
+#pragma unroll
+                    for (int u = 0; u < UNROLL_W_NNZ; ++u)
+                    {
+                        y_row_accumulator[encoded_cols_data[nnz_ptr_W + u]] += x_mk_val;
+                    }
+                }
+                for (; nnz_ptr_W < W_k_pos_entries_end_offset; ++nnz_ptr_W)
+                {
+                    y_row_accumulator[encoded_cols_data[nnz_ptr_W]] += x_mk_val;
+                }
+
+                nnz_ptr_W = W_k_pos_entries_end_offset;
+                for (; nnz_ptr_W + UNROLL_W_NNZ <= W_k_row_end_offset; nnz_ptr_W += UNROLL_W_NNZ)
+                {
+#pragma unroll
+                    for (int u = 0; u < UNROLL_W_NNZ; ++u)
+                    {
+                        y_row_accumulator[-encoded_cols_data[nnz_ptr_W + u] - 1] -= x_mk_val;
+                    }
+                }
+                for (; nnz_ptr_W < W_k_row_end_offset; ++nnz_ptr_W)
+                {
+                    y_row_accumulator[-encoded_cols_data[nnz_ptr_W] - 1] -= x_mk_val;
+                }
+            }
+
+            for (int n_idx = 0; n_idx < N_dim; ++n_idx)
+            {
+                Y_row_m[n_idx] = y_row_accumulator[n_idx];
             }
         }
     }
@@ -483,6 +498,7 @@ void CSC_unrolled(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 <<<<<<< HEAD:cpp_impl/comp.h
 // Base implementations
 template <typename T>
@@ -544,4 +560,6 @@ template void TCSR_unrolled_tiled<float, 12, 8, 8>(float *, const TCSRMatrix &, 
 template void TCSC_unrolled_tiled<float, 12, 8, 8>(float *, const TCSCMatrix &, float *, float *, int, int, int);
 
 >>>>>>> f2770dd (TCSC tiled is 1.5)
+=======
+>>>>>>> 84e2726 (Tiling for TCSR improved but still needs works)
 #endif

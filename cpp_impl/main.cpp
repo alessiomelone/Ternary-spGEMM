@@ -113,8 +113,9 @@ int main(int argc, char **argv)
     add_function(
         [sf_tcsr](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
         {
-            TCSR_unrolled_tiled<float, 12, 8, 8>(X_arg, *sf_tcsr, B_arg, Y_arg, M_arg, N_arg, K_arg);
+            TCSR_unrolled_tiled<float, 8, 8>(X_arg, *sf_tcsr, B_arg, Y_arg, M_arg, N_arg, K_arg);
         },
+<<<<<<< HEAD
 <<<<<<< HEAD
         "TCSR_unrolled-12");
 =======
@@ -128,6 +129,9 @@ int main(int argc, char **argv)
 =======
         "TCSR_unrolled_tiled-12-16-16");
 >>>>>>> f2770dd (TCSC tiled is 1.5)
+=======
+        "TCSR_unrolled_tiled-12-4-4");
+>>>>>>> 84e2726 (Tiling for TCSR improved but still needs works)
 
     add_function(
         [sf_tcsc](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
