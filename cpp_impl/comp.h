@@ -197,8 +197,8 @@ void CCSC_base(T *X, const CompressedCSC &W, T *b, T *Y, int M, int N, int K)
     flops = 0;
     ds_size = W.getDataStructureSize();
 #endif
-    const short *col_start = W.col_start.data();
-    const short *row_index = W.row_index.data();
+    const int *col_start = W.col_start.data();
+    const int *row_index = W.row_index.data();
     const uint8_t *vals = W.vals.data();
 
     for (int m = 0; m < M; ++m)
@@ -264,9 +264,9 @@ void CCSC_base(T *X, const CompressedCSC &W, T *b, T *Y, int M, int N, int K)
             Y[m * n_col + n + 4] = y_val4 + b[n];
 =======
 
-            for (short k = col_start[n]; k < col_start[n + 1]; ++k)
+            for (int k = col_start[n]; k < col_start[n + 1]; ++k)
             {
-                short row = row_index[k];
+                int row = row_index[k];
                 const int8_t *d = decodeCCSC[vals[k]];
 
                 y_val0 += d[0] * X[m * K + row + 0];
