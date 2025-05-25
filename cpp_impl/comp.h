@@ -2,7 +2,6 @@
 #define COMP_H
 
 #include "common.h"
-#include "data_structures/BlockedTCSC.h"
 #include <iostream>
 
 #ifdef INSTRUMENTATION_RUN
