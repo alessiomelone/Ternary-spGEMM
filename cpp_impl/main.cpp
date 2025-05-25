@@ -44,8 +44,6 @@ int main(int argc, char **argv)
     // Initialize one instance per format
     auto sf_csc = std::make_shared<BaseTCSC>(W_raw.data(), K, N);
     auto sf_csr = std::make_shared<BaseTCSR>(W_raw.data(), K, N);
-    auto sf_tcsc = std::make_shared<BaseTCSC>(W_raw.data(), K, N);
-    auto sf_tcsr = std::make_shared<BaseTCSR>(W_raw.data(), K, N);
     auto sf_ccsc = std::make_shared<CompressedCSC>(W_raw.data(), K, N);
     auto sf_icsr = std::make_shared<ICSR>(W_raw.data(), K, N);
     auto sf_icsc = std::make_shared<ICSC>(W_raw.data(), K, N);
@@ -59,9 +57,9 @@ int main(int argc, char **argv)
     //     "BaseCSC_naive");
 
     add_function(
-        [sf_tcsc](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
+        [sf_icsc](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
         {
-            TCSC_inter<float>(X_arg, *sf_tcsc, B_arg, Y_arg, M_arg, N_arg, K_arg);
+            ICSC_base<float>(X_arg, *sf_icsc, B_arg, Y_arg, M_arg, N_arg, K_arg);
         },
         "TCSC_interleaf");
 
@@ -94,9 +92,9 @@ int main(int argc, char **argv)
         "BaseCSR_naive");
 
     add_function(
-        [sf_tcsr](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
+        [sf_icsr](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
         {
-            TCSR_inter<float>(X_arg, *sf_tcsr, B_arg, Y_arg, M_arg, N_arg, K_arg);
+            ICSR_base<float>(X_arg, *sf_icsr, B_arg, Y_arg, M_arg, N_arg, K_arg);
         },
         "TCSR_interleaf");
 
@@ -180,13 +178,7 @@ int main(int argc, char **argv)
             fill(Y_main.begin(), Y_main.end(), 0);
 
             comp_func func = userFuncs[i_loop];
-
-            Y_main.insert(Y_main.end(), 10, 0);
-            X_main.insert(X_main.end(), 10, 0);
-
             func(X_main.data(), B_main.data(), Y_main.data(), M, N, K);
-
-            Y_main.resize(Y_main.size() - 10);
 
             if (compare_results(Y_main.data(), refY_main.data(), M, N))
             {

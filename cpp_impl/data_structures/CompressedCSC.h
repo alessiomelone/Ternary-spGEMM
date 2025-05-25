@@ -43,14 +43,17 @@ public:
 			col_start_neg.push_back(row_index_neg.size());
 			col_start_pos.push_back(row_index_pos.size());
 
-			for (int row = 0; row < rows; ) {
+			for (int row = 0; row < rows;)
+			{
 				// check if the next 5 values have 3+ nonzero elements
-				if (row < rows - 5) {
+				if (row < rows - 5)
+				{
 					int nonzeros = 0;
 					for (int i = 0; i < 5; ++i)
 						if (matrix[(row + i) * cols + col] != 0)
 							++nonzeros;
-					if (nonzeros >= 3) {
+					if (nonzeros >= 3)
+					{
 						// encode next 5 values as a block of 5
 						const int *matrix_ptr = matrix + (row * cols) + col;
 						uint8_t bitstring = encode5(matrix_ptr[0], matrix_ptr[1 * cols], matrix_ptr[2 * cols], matrix_ptr[3 * cols], matrix_ptr[4 * cols]);
@@ -64,9 +67,12 @@ public:
 				// TODO: otherwise, check if the next 2 values are both nonzero
 
 				// otherwise, encode the current value if it's nonzero
-				if (matrix[row * cols + col] == 1) {
+				if (matrix[row * cols + col] == 1)
+				{
 					row_index_pos.push_back(row);
-				} else if (matrix[row * cols + col] == -1) {
+				}
+				else if (matrix[row * cols + col] == -1)
+				{
 					row_index_neg.push_back(row);
 				}
 				++row;
@@ -107,8 +113,6 @@ public:
 		col_start_pos.push_back(row_index_pos.size());
 	}
 
-	
-
 	void printVars()
 	{
 		std::cout << "\nvals_5: ";
@@ -148,9 +152,9 @@ public:
 		// for each column
 		for (size_t c = 0; c < cols; ++c)
 		{
-			// where this column’s bytes start…
+			// where this column's bytes start…
 			size_t start = col_start_5[c];
-			// …and end (next col’s start, or end of vals_5)
+			// …and end (next col's start, or end of vals_5)
 			size_t end = (c + 1 < col_start_5.size()
 							  ? col_start_5[c + 1]
 							  : vals_5.size());
@@ -172,39 +176,39 @@ public:
 				}
 			}
 
-            // reconstruct singular +1 entries stored in row_index_pos
-            size_t startPos = col_start_pos[c];
-            size_t endPos = (c + 1 < col_start_pos.size() ? col_start_pos[c + 1] : row_index_pos.size());
-            for (size_t idxPos = startPos; idxPos < endPos; ++idxPos)
-            {
-                size_t r = row_index_pos[idxPos];
-                if (r < rows)
-                {
-                    M[r * cols + c] = 1;
-                }
-            }
+			// reconstruct singular +1 entries stored in row_index_pos
+			size_t startPos = col_start_pos[c];
+			size_t endPos = (c + 1 < col_start_pos.size() ? col_start_pos[c + 1] : row_index_pos.size());
+			for (size_t idxPos = startPos; idxPos < endPos; ++idxPos)
+			{
+				size_t r = row_index_pos[idxPos];
+				if (r < rows)
+				{
+					M[r * cols + c] = 1;
+				}
+			}
 
-            // reconstruct singular -1 entries stored in row_index_neg
-            size_t startNeg = col_start_neg[c];
-            size_t endNeg = (c + 1 < col_start_neg.size() ? col_start_neg[c + 1] : row_index_neg.size());
-            for (size_t idxNeg = startNeg; idxNeg < endNeg; ++idxNeg)
-            {
-                size_t r = row_index_neg[idxNeg];
-                if (r < rows)
-                {
-                    M[r * cols + c] = -1;
-                }
-            }
-			
+			// reconstruct singular -1 entries stored in row_index_neg
+			size_t startNeg = col_start_neg[c];
+			size_t endNeg = (c + 1 < col_start_neg.size() ? col_start_neg[c + 1] : row_index_neg.size());
+			for (size_t idxNeg = startNeg; idxNeg < endNeg; ++idxNeg)
+			{
+				size_t r = row_index_neg[idxNeg];
+				if (r < rows)
+				{
+					M[r * cols + c] = -1;
+				}
+			}
 		}
 
 		return M;
 	}
 
-    int getDataStructureSize() const {
-        return sizeof(uint8_t) * vals_5.size() +
-               sizeof(int) * (col_start_5.size() + col_start_pos.size() + col_start_neg.size()) +
-               sizeof(int) * (row_index_5.size() + row_index_pos.size() + row_index_neg.size()) +
-               256 * 5 * sizeof(uint8_t);
-    }
+	int getDataStructureSize() const
+	{
+		return sizeof(uint8_t) * vals_5.size() +
+			   sizeof(int) * (col_start_5.size() + col_start_pos.size() + col_start_neg.size()) +
+			   sizeof(int) * (row_index_5.size() + row_index_pos.size() + row_index_neg.size()) +
+			   256 * 5 * sizeof(uint8_t);
+	}
 };

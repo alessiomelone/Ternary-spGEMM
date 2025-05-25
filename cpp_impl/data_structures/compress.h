@@ -2,7 +2,6 @@
 #include <iostream>
 #include <vector>
 
-
 static constexpr int8_t decode2_nozero[4][2] = {
     {-1, -1},
     {-1, 1},
