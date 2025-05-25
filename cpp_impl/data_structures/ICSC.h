@@ -11,14 +11,13 @@ public:
 
   ICSC(const int *matrix, int rows, int cols)
   {
-    col_offsets.assign(cols + 1, 0); // Initialize with correct size
-    encoded_rows.clear();
-
     int current_nnz_count = 0;
-    for (int c = 0; c < cols; ++c)
+
+    for (int c = 0; c < cols; c++)
     {
-      col_offsets[c] = current_nnz_count;
-      for (int r = 0; r < rows; ++r)
+      col_offsets.push_back(current_nnz_count);
+
+      for (int r = 0; r < rows; r++)
       {
         int val = matrix[r * cols + c];
         if (val == 1 || val == -1)
@@ -28,7 +27,8 @@ public:
         }
       }
     }
-    col_offsets[cols] = current_nnz_count;
+
+    col_offsets.push_back(current_nnz_count);
   }
 
   static int icsc_encode_row(int r, int val)
