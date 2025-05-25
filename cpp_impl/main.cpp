@@ -99,13 +99,6 @@ int main(int argc, char **argv)
         },
         "TCSR_interleaf");
 
-    add_function(
-        [sf_blocked_interleaved](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
-        {
-            BlockedCSC_interleaved<float, 1024>(X_arg, *sf_blocked_interleaved, B_arg, Y_arg, M_arg, N_arg, K_arg);
-        },
-        "BlockedCSC_interleaved_1024");
-
     // add_function(
     //     [sf_csc](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
     //     {
