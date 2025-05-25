@@ -19,6 +19,7 @@ static constexpr uint8_t encode2_nozero(int8_t v0, int8_t v1) noexcept
             return i;
         }
     }
+    return 0;
 }
 
 static constexpr int8_t decode5[256][5] = {
