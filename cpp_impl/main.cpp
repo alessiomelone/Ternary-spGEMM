@@ -48,6 +48,7 @@ int main(int argc, char **argv)
     auto sf_icsr = std::make_shared<ICSR>(W_raw.data(), K, N);
     auto sf_icsc = std::make_shared<ICSC>(W_raw.data(), K, N);
     auto sf_blocked = std::make_shared<BlockedTCSC<1024>>(W_raw.data(), K, N);
+    auto sf_blocked_interleaved = std::make_shared<BlockedTCSC_interleaved<1024>>(W_raw.data(), K, N);
 
     // add_function(
     //     [sf_csc](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
@@ -97,6 +98,13 @@ int main(int argc, char **argv)
             ICSR_base<float>(X_arg, *sf_icsr, B_arg, Y_arg, M_arg, N_arg, K_arg);
         },
         "TCSR_interleaf");
+
+    add_function(
+        [sf_blocked_interleaved](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
+        {
+            BlockedCSC_interleaved<float, 1024>(X_arg, *sf_blocked_interleaved, B_arg, Y_arg, M_arg, N_arg, K_arg);
+        },
+        "BlockedCSC_interleaved_1024");
 
     // add_function(
     //     [sf_csc](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
