@@ -363,8 +363,7 @@ void ICSC_base(const T *X, const ICSC &W_icsc, const T *B, T *Y, int M, int N, i
 }
 
 template <typename T>
-void TCSR_inter(const T *X, const BaseTCSR &W_tcsr, const T *B, T *Y,
-                int M, int N, int K)
+void TCSR_inter(const T *X, const BaseTCSR &W_tcsr, const T *B, T *Y, int M, int N, int K)
 {
 
 #ifdef INSTRUMENTATION_RUN
@@ -523,6 +522,226 @@ void TCSC_inter(T *X, const BaseTCSC &W_csc, T *b, T *Y, int M, int N, int K)
 #ifdef INSTRUMENTATION_RUN
             flops++;
 #endif
+        }
+    }
+}
+
+template <typename T, int UNROLL_FACTOR>
+void TCSC_inter_unr(T *X, const BaseTCSC &W_csc, T *b, T *Y, int M, int N, int K)
+{
+#ifdef INSTRUMENTATION_RUN
+    flops = 0;
+    ds_size = W_csc.getDataStructureSize();
+#endif
+    const int *col_start_pos = W_csc.col_start_pos.data();
+    const int *col_start_neg = W_csc.col_start_neg.data();
+    const int *row_index_pos = W_csc.row_index_pos.data();
+    const int *row_index_neg = W_csc.row_index_neg.data();
+
+    for (int m = 0; m < M; m++)
+    {
+        const T *X_row_m = X + m * K;
+        for (int n = 0; n < N; n++)
+        {
+            T y_acc[UNROLL_FACTOR];
+            for (int u = 0; u < UNROLL_FACTOR; ++u)
+            {
+                y_acc[u] = T(0);
+            }
+
+            int p_pos_k_idx = col_start_pos[n];
+            const int end_pos_k_idx = col_start_pos[n + 1];
+            int p_neg_k_idx = col_start_neg[n];
+            const int end_neg_k_idx = col_start_neg[n + 1];
+
+            while (p_pos_k_idx + UNROLL_FACTOR <= end_pos_k_idx &&
+                   p_neg_k_idx + UNROLL_FACTOR <= end_neg_k_idx)
+            {
+                for (int u = 0; u < UNROLL_FACTOR; u++)
+                {
+
+                    y_acc[u] += X_row_m[row_index_pos[p_pos_k_idx + u]];
+#ifdef INSTRUMENTATION_RUN
+                    flops++;
+#endif
+                }
+                p_pos_k_idx += UNROLL_FACTOR;
+
+                for (int u = 0; u < UNROLL_FACTOR; u++)
+                {
+                    y_acc[u] -= X_row_m[row_index_neg[p_neg_k_idx + u]];
+#ifdef INSTRUMENTATION_RUN
+                    flops++;
+#endif
+                }
+                p_neg_k_idx += UNROLL_FACTOR;
+            }
+
+            while (p_pos_k_idx + UNROLL_FACTOR <= end_pos_k_idx)
+            {
+                for (int u = 0; u < UNROLL_FACTOR; u++)
+                {
+                    y_acc[u] += X_row_m[row_index_pos[p_pos_k_idx + u]];
+#ifdef INSTRUMENTATION_RUN
+                    flops++;
+#endif
+                }
+                p_pos_k_idx += UNROLL_FACTOR;
+            }
+
+            while (p_pos_k_idx < end_pos_k_idx)
+            {
+                y_acc[0] += X_row_m[row_index_pos[p_pos_k_idx++]];
+#ifdef INSTRUMENTATION_RUN
+                flops++;
+#endif
+            }
+
+            while (p_neg_k_idx + UNROLL_FACTOR <= end_neg_k_idx)
+            {
+                for (int u = 0; u < UNROLL_FACTOR; u++)
+                {
+                    y_acc[u] -= X_row_m[row_index_neg[p_neg_k_idx + u]];
+#ifdef INSTRUMENTATION_RUN
+                    flops++;
+#endif
+                }
+                p_neg_k_idx += UNROLL_FACTOR;
+            }
+
+            while (p_neg_k_idx < end_neg_k_idx)
+            {
+                y_acc[0] -= X_row_m[row_index_neg[p_neg_k_idx++]];
+#ifdef INSTRUMENTATION_RUN
+                flops++;
+#endif
+            }
+
+            T y_final = T(0);
+            for (int u = 0; u < UNROLL_FACTOR; u++)
+            {
+                y_final += y_acc[u];
+#ifdef INSTRUMENTATION_RUN
+                flops++;
+#endif
+            }
+
+            Y[m * N + n] = y_final + b[n];
+#ifdef INSTRUMENTATION_RUN
+            flops++;
+#endif
+        }
+    }
+}
+
+template <typename T, int UNROLL_FACTOR, int TILE_M, int TILE_N>
+void TCSC_inter_unr_tiled(T *X, const BaseTCSC &W_csc, T *b, T *Y, int M, int N, int K)
+{
+#ifdef INSTRUMENTATION_RUN
+    flops = 0;
+    ds_size = W_csc.getDataStructureSize();
+#endif
+    const int *col_start_pos = W_csc.col_start_pos.data();
+    const int *col_start_neg = W_csc.col_start_neg.data();
+    const int *row_index_pos = W_csc.row_index_pos.data();
+    const int *row_index_neg = W_csc.row_index_neg.data();
+
+    for (int mm = 0; mm < M; mm += TILE_M)
+    {
+        for (int nn = 0; nn < N; nn += TILE_N)
+        {
+            for (int m = mm; m < std::min(mm + TILE_M, M); ++m)
+            {
+                const T *X_row_m = X + m * K;
+                for (int n = nn; n < std::min(nn + TILE_N, N); ++n)
+                {
+                    T y_acc[UNROLL_FACTOR];
+                    for (int u = 0; u < UNROLL_FACTOR; ++u)
+                    {
+                        y_acc[u] = T(0);
+                    }
+
+                    int p_pos_k_idx = col_start_pos[n];
+                    const int end_pos_k_idx = col_start_pos[n + 1];
+                    int p_neg_k_idx = col_start_neg[n];
+                    const int end_neg_k_idx = col_start_neg[n + 1];
+
+                    // Interleaved unroll
+                    while (p_pos_k_idx + UNROLL_FACTOR <= end_pos_k_idx &&
+                           p_neg_k_idx + UNROLL_FACTOR <= end_neg_k_idx)
+                    {
+                        for (int u = 0; u < UNROLL_FACTOR; u++)
+                        {
+                            y_acc[u] += X_row_m[row_index_pos[p_pos_k_idx + u]];
+#ifdef INSTRUMENTATION_RUN
+                            flops++;
+#endif
+                        }
+                        p_pos_k_idx += UNROLL_FACTOR;
+
+                        for (int u = 0; u < UNROLL_FACTOR; u++)
+                        {
+                            y_acc[u] -= X_row_m[row_index_neg[p_neg_k_idx + u]];
+#ifdef INSTRUMENTATION_RUN
+                            flops++;
+#endif
+                        }
+                        p_neg_k_idx += UNROLL_FACTOR;
+                    }
+
+                    while (p_pos_k_idx + UNROLL_FACTOR <= end_pos_k_idx)
+                    {
+                        for (int u = 0; u < UNROLL_FACTOR; u++)
+                        {
+                            y_acc[u] += X_row_m[row_index_pos[p_pos_k_idx + u]];
+#ifdef INSTRUMENTATION_RUN
+                            flops++;
+#endif
+                        }
+                        p_pos_k_idx += UNROLL_FACTOR;
+                    }
+                    while (p_pos_k_idx < end_pos_k_idx)
+                    {
+                        y_acc[0] += X_row_m[row_index_pos[p_pos_k_idx++]];
+#ifdef INSTRUMENTATION_RUN
+                        flops++;
+#endif
+                    }
+
+                    while (p_neg_k_idx + UNROLL_FACTOR <= end_neg_k_idx)
+                    {
+                        for (int u = 0; u < UNROLL_FACTOR; u++)
+                        {
+                            y_acc[u] -= X_row_m[row_index_neg[p_neg_k_idx + u]];
+#ifdef INSTRUMENTATION_RUN
+                            flops++;
+#endif
+                        }
+                        p_neg_k_idx += UNROLL_FACTOR;
+                    }
+                    while (p_neg_k_idx < end_neg_k_idx)
+                    {
+                        y_acc[0] -= X_row_m[row_index_neg[p_neg_k_idx++]];
+#ifdef INSTRUMENTATION_RUN
+                        flops++;
+#endif
+                    }
+
+                    T y_final = T(0);
+                    for (int u = 0; u < UNROLL_FACTOR; u++)
+                    {
+                        y_final += y_acc[u];
+#ifdef INSTRUMENTATION_RUN
+                        flops++;
+#endif
+                    }
+
+                    Y[m * N + n] = y_final + b[n];
+#ifdef INSTRUMENTATION_RUN
+                    flops++;
+#endif
+                }
+            }
         }
     }
 }
