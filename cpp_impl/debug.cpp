@@ -23,12 +23,15 @@
 #include <functional>
 #include <cstdlib>
 #include <cstring>
+#include <fstream>
 
 #include "common.h"
 #include "sparseUtils.h"
 #include "comp.h"
+// #include "generated.h"
 
 // --- Prototypes for implementations defined & explicitly instantiated in comp.cpp ---
+void GenCSC(float *X, float *b, float *Y);
 template <typename T>
 void BaseCSC(T *X, const BaseTCSC &W_csc, T *b, T *Y, int M, int N, int K);
 template <typename T>
@@ -80,7 +83,7 @@ int main(int argc, char **argv)
     }
 
     /* --- Generate matrices ------------------------------------------------- */
-    std::vector<int> W_raw = generateSparseMatrix<int>(K, N, 1, false, 1);
+    std::vector<int> W_raw = generateSparseMatrix<int>(K, N, nonZero, false, 1);
     std::vector<float> W_FP32(W_raw.begin(), W_raw.end());
 
     std::vector<float> X = initX<float>(M * K, 512);
@@ -91,18 +94,119 @@ int main(int argc, char **argv)
     GEMM(X.data(), W_FP32.data(), B.data(), refY.data(), M, N, K);
 
     /* --- Prepare sparse formats once -------------------------------------- */
-    BaseTCSC sf(W_raw.data(), K, N);
-    CompressedCSC ccsc(W_raw.data(), K, N);
-    BlockedTCSC<2> sf_blocked(W_raw.data(), K, N);
+    BaseTCSC sf_csc(W_raw.data(), K, N);
+    // BaseTCSC sf(W_raw.data(), K, N);
+    // CompressedCSC ccsc(W_raw.data(), K, N);
+    // BlockedTCSC<2> sf_blocked(W_raw.data(), K, N);
 
     /* --- Dispatch to requested kernel ------------------------------------- */
     comp_func kernel;
 
-    kernel = [&ccsc](float *Xv, float *Bv, float *Yv, int m, int n, int k)
+    kernel = [&sf_csc](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
+        {
+            BaseCSC<float>(X_arg, sf_csc, B_arg, Y_arg, M_arg, N_arg, K_arg);
+        };
+    // kernel = [&sf_csc](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
+    //     {
+    //         GenCSC(X_arg, B_arg, Y_arg);
+    //     };
+    bool print_like_python = true;
+    std::string filename = "codegen/M_" + std::to_string(M) + "_K_" + std::to_string(K) + 
+                           "_N_" + std::to_string(N) + "_s_" + std::to_string(nonZero) + ".py";
+    if (print_like_python)
     {
-        CCSC_base<float>(Xv, ccsc, Bv, Yv, m, n, k);
-    };
+        std::ofstream outFile(filename);
+        if (!outFile)
+        {
+            std::cerr << "ERROR: Could not open " << filename << " for writing.\n";
+            return 1;
+        }
 
+        // Save dimensions as variables
+        outFile << "M = " << M << "\n";
+        outFile << "K = " << K << "\n";
+        outFile << "N = " << N << "\n";
+        outFile << "s = " << nonZero << "\n";
+
+        // Save W matrix as flat
+        outFile << "W = [";
+        for (int i = 0; i < K * N; ++i)
+        {
+            outFile << W_FP32[i];
+            if (i < K * N - 1)
+                outFile << ", ";
+        }
+        outFile << "]\n";
+
+        // Save X matrix as flat
+        outFile << "X = [";
+        for (int i = 0; i < M * K; ++i)
+        {
+            outFile << X[i];
+            if (i < M * K - 1)
+                outFile << ", ";
+        }
+        outFile << "]\n";
+
+        // Save B vector
+        outFile << "b = [";
+        for (int i = 0; i < N; ++i)
+        {
+            outFile << B[i];
+            if (i < N - 1)
+                outFile << ", ";
+        }
+        outFile << "]\n";
+
+        // Save Y matrix as flat
+        outFile << "Y_expected = [";
+        for (int i = 0; i < M * N; ++i)
+        {
+            outFile << refY[i];
+            if (i < M * N - 1)
+                outFile << ", ";
+        }
+        outFile << "]\n";
+
+        // Save BaseCSC vector variables
+        outFile << "col_start_pos = [";
+        for (size_t i = 0; i < sf_csc.col_start_pos.size(); ++i)
+        {
+            outFile << sf_csc.col_start_pos[i];
+            if (i < sf_csc.col_start_pos.size() - 1)
+                outFile << ", ";
+        }
+        outFile << "]\n";
+
+        outFile << "col_start_neg = [";
+        for (size_t i = 0; i < sf_csc.col_start_neg.size(); ++i)
+        {
+            outFile << sf_csc.col_start_neg[i];
+            if (i < sf_csc.col_start_neg.size() - 1)
+                outFile << ", ";
+        }
+        outFile << "]\n";
+
+        outFile << "row_index_pos = [";
+        for (size_t i = 0; i < sf_csc.row_index_pos.size(); ++i)
+        {
+            outFile << sf_csc.row_index_pos[i];
+            if (i < sf_csc.row_index_pos.size() - 1)
+                outFile << ", ";
+        }
+        outFile << "]\n";
+
+        outFile << "row_index_neg = [";
+        for (size_t i = 0; i < sf_csc.row_index_neg.size(); ++i)
+        {
+            outFile << sf_csc.row_index_neg[i];
+            if (i < sf_csc.row_index_neg.size() - 1)
+                outFile << ", ";
+        }
+        outFile << "]\n";
+
+        outFile.close();
+    }
     /* --- Print matrices ---------------------------------------------------- */
     // std::cout << "X matrix  |  W matrix\n";
     // int maxRows = (M > K) ? M : K;
@@ -141,6 +245,24 @@ int main(int argc, char **argv)
     /* --- Run kernel -------------------------------------------------------- */
     kernel(X.data(), B.data(), Y.data(), M, N, K);
 
+    if (print_like_python) {
+        std::ofstream outFile(filename, std::ios::app); // Open file in append mode
+        if (!outFile) {
+            std::cerr << "ERROR: Could not open " << filename << " for writing.\n";
+            return 1;
+        }
+
+        outFile << "Y_actual = [";
+        for (int i = 0; i < M * N; ++i)
+        {
+            outFile << Y[i];
+            if (i < M * N - 1)
+                outFile << ", ";
+        }
+        outFile << "]\n";
+
+        outFile.close(); // Close the file after writing
+    }
     // std::cout << "Actual Y matrix:\n";
     // for (int i = 0; i < M; ++i)
     // {

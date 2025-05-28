@@ -5,37 +5,31 @@ CXXFLAGS_BASE = -std=c++17 -O2 -march=native -mtune=native -fstrict-aliasing -DN
 
 # Initialize CXXFLAGS with the base flags
 CXXFLAGS = $(CXXFLAGS_BASE)
+CXXFLAGS += -Icodegen
 
 # Add CALIBRATE by default unless NO_CALIBRATE is specified
 ifndef NO_CALIBRATE
-    CXXFLAGS += -DCALIBRATE
-    BUILD_INFO = (Calibrated Build)
+	CXXFLAGS += -DCALIBRATE
+	BUILD_INFO = (Calibrated Build)
 else
-    BUILD_INFO = (Non-Calibrated Build)
+	BUILD_INFO = (Non-Calibrated Build)
 endif
 
-# This is where the conditional logic is added:
-# Check if the 'INSTRUMENT' variable is defined when make is run
-# Example: make INSTRUMENT=1 or make INSTRUMENT=true
+# Instrumentation flag if requested
 ifdef INSTRUMENT
-    # You could add more specific checks here if needed, e.g.:
-    # ifeq ($(INSTRUMENT), true)
-    # CXXFLAGS += -DINSTRUMENT_RUN
-    # endif
-    # For simplicity, if INSTRUMENT is defined to any non-empty value, we add the flag.
 	CXXFLAGS += -DINSTRUMENTATION_RUN
 	BUILD_INFO := $(BUILD_INFO) (Instrumented)
 endif
 
 LDFLAGS =
 
-# Source files and output
+# Source files and outputs
 SRCS = cpp_impl/main.cpp \
        cpp_impl/perf.cpp
 
 TARGET = sparseGEMM.out
 
-# Default rule: build the target
+# Default rule
 all: $(TARGET)
 
 $(TARGET): $(SRCS)
@@ -44,11 +38,21 @@ $(TARGET): $(SRCS)
 	$(CXX) $(CXXFLAGS) $(SRCS) -o $(TARGET) $(LDFLAGS)
 	@echo "--- Finished building $(TARGET) ---"
 
-# Clean rule: remove the target and any other build artifacts
+# Clean rule
 clean:
 	@echo "--- Cleaning $(TARGET) and *.o ---"
 	rm -f $(TARGET)
 	rm -f *.o
 
-# Phony targets
 .PHONY: all clean
+
+# -----------------------------------------------------------------------------
+# Codegen-only mode: minimal flags, include generated.h
+CODEGEN_TARGET   = sparseGEMM_codegen.out
+CODEGEN_FLAGS    = -std=c++17 -g -Icodegen
+
+.PHONY: codegen
+codegen: codegen/generated.h $(SRCS)
+	@echo "--- Building $(CODEGEN_TARGET) (Codegen mode) ---"
+	$(CXX) $(CODEGEN_FLAGS) -O0 $(SRCS) -o $(CODEGEN_TARGET)
+	@echo "--- Finished building $(CODEGEN_TARGET) ---"

@@ -39,7 +39,7 @@ int main(int argc, char **argv)
     }
 
     // Generate sparse matrix to be converted
-    std::vector<int> W_raw = generateSparseMatrix<int>(K, N, nonZero, false);
+    std::vector<int> W_raw = generateSparseMatrix<int>(K, N, nonZero, false, 1);
 
     // Initialize one instance per format
     auto sf_csc = std::make_shared<BaseTCSC>(W_raw.data(), K, N);
@@ -59,6 +59,13 @@ int main(int argc, char **argv)
             BaseCSC<float>(X_arg, *sf_csc, B_arg, Y_arg, M_arg, N_arg, K_arg);
         },
         "BaseCSC_naive");
+    
+        add_function(
+        [sf_csc](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
+        {
+            GenCSC(X_arg, B_arg, Y_arg);
+        },
+        "CodeGen");
 
     add_function(
         [sf_csc](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
