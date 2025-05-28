@@ -452,6 +452,105 @@ void TCSR_inter(const T *X, const BaseTCSR &W_tcsr, const T *B, T *Y, int M, int
 }
 
 template <typename T>
+void TCSC_interleaved_ds(T *X, const InterleavedTCSC &W_csc, T *b, T *Y, int M, int N, int K)
+{
+#ifdef INSTRUMENTATION_RUN
+    flops = 0;
+    ds_size = W_csc.getDataStructureSize();
+#endif
+
+    const int *col_s = W_csc.col_starts.data();
+    const int *row_idx_inter = W_csc.interleaved_row_indices.data();
+    const int *sign_inter = W_csc.interleaved_signs.data();
+
+    for (int m = 0; m < M; ++m)
+    {
+        const T *X_row_m = X + m * K;
+        for (int n = 0; n < N; ++n)
+        {
+            T y_val = 0;
+            const int start_k_idx = col_s[n];
+            const int end_k_idx = col_s[n + 1];
+
+            for (int k_ptr = start_k_idx; k_ptr < end_k_idx; ++k_ptr)
+            {
+                int row_k = row_idx_inter[k_ptr];
+                int sign = sign_inter[k_ptr];
+
+                y_val += sign * X_row_m[row_k];
+
+#ifdef INSTRUMENTATION_RUN
+                flops++;
+#endif
+            }
+
+            Y[m * N + n] = y_val + b[n];
+#ifdef INSTRUMENTATION_RUN
+            flops++;
+#endif
+        }
+    }
+}
+
+template <typename T>
+void TCSC_interleaved_padding(T *X, const InterleavedTCSCPadding &W_csc, T *b, T *Y, int M, int N, int K)
+{
+#ifdef INSTRUMENTATION_RUN
+    flops = 0;
+    ds_size = W_csc.getDataStructureSize();
+#endif
+
+    const int *indices_data = W_csc.all_indices.data();
+    const int *segment_ptr_data = W_csc.col_segment_ptr.data();
+
+    for (int m = 0; m < M; ++m)
+    {
+        const T *X_row_m = X + m * K;
+        for (int n = 0; n < N; ++n)
+        {
+            T y_val = 0;
+
+            int pn_start_idx = segment_ptr_data[3 * n + 0];
+            int rem_pos_start_idx = segment_ptr_data[3 * n + 1];
+            int rem_neg_start_idx = segment_ptr_data[3 * n + 2];
+            int next_col_start_idx = segment_ptr_data[3 * n + 3];
+
+            for (int k_ptr = pn_start_idx; k_ptr < rem_pos_start_idx; k_ptr += 4)
+            {
+                y_val += X_row_m[indices_data[k_ptr]];
+                y_val += X_row_m[indices_data[k_ptr + 1]];
+                y_val -= X_row_m[indices_data[k_ptr + 2]];
+                y_val -= X_row_m[indices_data[k_ptr + 3]];
+#ifdef INSTRUMENTATION_RUN
+                flops += 4;
+#endif
+            }
+
+            for (int k_ptr = rem_pos_start_idx; k_ptr < rem_neg_start_idx; ++k_ptr)
+            {
+                y_val += X_row_m[indices_data[k_ptr]];
+#ifdef INSTRUMENTATION_RUN
+                flops++;
+#endif
+            }
+
+            for (int k_ptr = rem_neg_start_idx; k_ptr < next_col_start_idx; ++k_ptr)
+            {
+                y_val -= X_row_m[indices_data[k_ptr]];
+#ifdef INSTRUMENTATION_RUN
+                flops++;
+#endif
+            }
+
+            Y[m * N + n] = y_val + b[n];
+#ifdef INSTRUMENTATION_RUN
+            flops++;
+#endif
+        }
+    }
+}
+
+template <typename T>
 void TCSC_inter(T *X, const BaseTCSC &W_csc, T *b, T *Y, int M, int N, int K)
 {
 #ifdef INSTRUMENTATION_RUN

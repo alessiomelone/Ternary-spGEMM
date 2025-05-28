@@ -9,6 +9,8 @@
 #include "data_structures/BaseTCSR.h"
 #include "data_structures/BlockedTCSC.h"
 #include "data_structures/BlockedTCSC_interleaved.h"
+#include "data_structures/InterleavedTCSC.h"
+#include "data_structures/InterleavedTCSCPadding.h"
 
 using comp_func = std::function<void(float *X, float *B, float *Y, int M, int N, int K)>;
 

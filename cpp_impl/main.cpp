@@ -50,47 +50,63 @@ int main(int argc, char **argv)
     auto sf_blocked = std::make_shared<BlockedTCSC<1024>>(W_raw.data(), K, N);
     auto sf_blocked_interleaved = std::make_shared<BlockedTCSC_interleaved<1024>>(W_raw.data(), K, N);
 
+    auto sf_interleaved = std::make_shared<InterleavedTCSC>(W_raw.data(), K, N);
+    auto sf_interleaved_padding = std::make_shared<InterleavedTCSCPadding>(W_raw.data(), K, N);
+
+    add_function(
+        [sf_csc](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
+        {
+            BaseCSC<float>(X_arg, *sf_csc, B_arg, Y_arg, M_arg, N_arg, K_arg);
+        },
+        "BaseCSC_naive");
+
+    add_function(
+        [sf_csc](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
+        {
+            TCSC_inter<float>(X_arg, *sf_csc, B_arg, Y_arg, M_arg, N_arg, K_arg);
+        },
+        "TCSC_interleaf");
+
+    add_function(
+        [sf_interleaved](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
+        {
+            TCSC_interleaved_ds<float>(X_arg, *sf_interleaved, B_arg, Y_arg, M_arg, N_arg, K_arg);
+        },
+        "TCSC_interleaf with DS 1/-1");
+
+    add_function(
+        [sf_interleaved_padding](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
+        {
+            TCSC_interleaved_padding<float>(X_arg, *sf_interleaved_padding, B_arg, Y_arg, M_arg, N_arg, K_arg);
+        },
+        "TCSC_interleaf with padding");
     // add_function(
     //     [sf_csc](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
     //     {
-    //         BaseCSC<float>(X_arg, *sf_csc, B_arg, Y_arg, M_arg, N_arg, K_arg);
+    //         BaseCSC_unr<float, 16>(X_arg, *sf_csc, B_arg, Y_arg, M_arg, N_arg, K_arg);
     //     },
-    //     "BaseCSC_naive");
+    //     "BaseCSC_unrolled_16");
 
     // add_function(
     //     [sf_csc](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
     //     {
-    //         TCSC_inter<float>(X_arg, *sf_csc, B_arg, Y_arg, M_arg, N_arg, K_arg);
+    //         TCSC_inter_unr<float, 16>(X_arg, *sf_csc, B_arg, Y_arg, M_arg, N_arg, K_arg);
     //     },
-    //     "TCSC_interleaf");
+    //     "TCSC_interleaf_unrolled_16");
 
-    add_function(
-        [sf_csc](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
-        {
-            BaseCSC_unr<float, 16>(X_arg, *sf_csc, B_arg, Y_arg, M_arg, N_arg, K_arg);
-        },
-        "BaseCSC_unrolled_16");
+    // add_function(
+    //     [sf_csc](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
+    //     {
+    //         BaseCSC_unr_tiled<float, 12, 12, 12>(X_arg, *sf_csc, B_arg, Y_arg, M_arg, N_arg, K_arg);
+    //     },
+    //     "BaseCSC_unrolled_tiled_12x12x12");
 
-    add_function(
-        [sf_csc](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
-        {
-            TCSC_inter_unr<float, 16>(X_arg, *sf_csc, B_arg, Y_arg, M_arg, N_arg, K_arg);
-        },
-        "TCSC_interleaf_unrolled_16");
-
-    add_function(
-        [sf_csc](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
-        {
-            BaseCSC_unr_tiled<float, 12, 12, 12>(X_arg, *sf_csc, B_arg, Y_arg, M_arg, N_arg, K_arg);
-        },
-        "BaseCSC_unrolled_tiled_12x12x12");
-
-    add_function(
-        [sf_csc](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
-        {
-            TCSC_inter_unr_tiled<float, 12, 12, 12>(X_arg, *sf_csc, B_arg, Y_arg, M_arg, N_arg, K_arg);
-        },
-        "TCSC_inter_unr_tiled_12x12x12");
+    // add_function(
+    //     [sf_csc](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
+    //     {
+    //         TCSC_inter_unr_tiled<float, 12, 12, 12>(X_arg, *sf_csc, B_arg, Y_arg, M_arg, N_arg, K_arg);
+    //     },
+    //     "TCSC_inter_unr_tiled_12x12x12");
 
     // add_function(
     //     [sf_blocked](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
