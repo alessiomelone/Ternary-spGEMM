@@ -515,12 +515,17 @@ void TCSC_interleaved_padding(T *X, const InterleavedTCSCPadding &W_csc, T *b, T
             int rem_neg_start_idx = segment_ptr_data[3 * n + 2];
             int next_col_start_idx = segment_ptr_data[3 * n + 3];
 
+            // change +4 to +8 for groups of 4 or + 2 for groups of 1
             for (int k_ptr = pn_start_idx; k_ptr < rem_pos_start_idx; k_ptr += 4)
             {
                 y_val += X_row_m[indices_data[k_ptr]];
                 y_val += X_row_m[indices_data[k_ptr + 1]];
+
+                // copy and increment index
                 y_val -= X_row_m[indices_data[k_ptr + 2]];
                 y_val -= X_row_m[indices_data[k_ptr + 3]];
+
+                // make sure to change the flops
 #ifdef INSTRUMENTATION_RUN
                 flops += 4;
 #endif

@@ -67,12 +67,12 @@ int main(int argc, char **argv)
         },
         "TCSC_interleaf");
 
-    add_function(
-        [sf_interleaved](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
-        {
-            TCSC_interleaved_ds<float>(X_arg, *sf_interleaved, B_arg, Y_arg, M_arg, N_arg, K_arg);
-        },
-        "TCSC_interleaf with DS 1/-1");
+    // add_function(
+    //     [sf_interleaved](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
+    //     {
+    //         TCSC_interleaved_ds<float>(X_arg, *sf_interleaved, B_arg, Y_arg, M_arg, N_arg, K_arg);
+    //     },
+    //     "TCSC_interleaf with DS 1/-1");
 
     add_function(
         [sf_interleaved_padding](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
@@ -80,6 +80,7 @@ int main(int argc, char **argv)
             TCSC_interleaved_padding<float>(X_arg, *sf_interleaved_padding, B_arg, Y_arg, M_arg, N_arg, K_arg);
         },
         "TCSC_interleaf with padding");
+
     // add_function(
     //     [sf_csc](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
     //     {
