@@ -1192,12 +1192,21 @@ void BlockedCSC(T *X, const BlockedTCSC<B> &W_csc, T *b, T *Y, int M, int N, int
                 for (int k = col_start_pos[n]; k < col_start_pos[n + 1]; k++)
                 {
                     y += X[m * K + row_index_pos[k]];
+#ifdef INSTRUMENTATION_RUN
+            flops++;
+#endif
                 }
                 for (int k = col_start_neg[n]; k < col_start_neg[n + 1]; k++)
                 {
                     y -= X[m * K + row_index_neg[k]];
+#ifdef INSTRUMENTATION_RUN
+            flops++;
+#endif
                 }
                 Y[m * N + n % N] += y;
+#ifdef INSTRUMENTATION_RUN
+            flops++;
+#endif
             }
         }
 
@@ -1312,5 +1321,76 @@ void BlockedCSC_unr4(T *X, const BlockedTCSC<B> &W_csc, T *b, T *Y, int M, int N
         }
     }
 }
+
+
+template <typename T, int B>
+void BlockedTCSC_interleaved_base(T *X, const BlockedTCSC_interleaved<B> &W_csc, T *b, T *Y, int M, int N, int K)
+{
+#ifdef INSTRUMENTATION_RUN
+    flops = 0;
+    ds_size = W_csc.getDataStructureSize();
+#endif
+
+    const int *indices_data = W_csc.all_indices.data();
+    const int *segment_ptr_data = W_csc.col_segment_ptr.data();
+
+    int num_blocks = K / B;
+
+    // Process each row of X
+    for (int m = 0; m < M; m++)
+    {
+        for (int j = 0; j < N; j++)
+            Y[m * N + j] = b[j];
+        // Process each column-block of X
+        float *X_row_m = X + m * K;
+        for (int k_block = 0; k_block < num_blocks; k_block++)
+        {
+            for (int j = 0; j < N; j++)
+            {
+                int index = k_block * N + j;
+                float sumPos = 0;
+                float sumNeg = 0;
+
+                int pn_start_idx = segment_ptr_data[3 * index + 0];
+                int rem_pos_start_idx = segment_ptr_data[3 * index + 1];
+                int rem_neg_start_idx = segment_ptr_data[3 * index + 2];
+                int next_col_start_idx = segment_ptr_data[3 * index + 3];
+
+                // change +4 to +8 for groups of 4 or + 2 for groups of 1
+                for (int k_ptr = pn_start_idx; k_ptr < rem_pos_start_idx; k_ptr += 2)
+                {
+                    sumPos += X_row_m[indices_data[k_ptr]];
+                    sumNeg -= X_row_m[indices_data[k_ptr + 1]];
+                    // make sure to change the flops
+#ifdef INSTRUMENTATION_RUN
+                    flops+=2;
+#endif
+                }
+
+                int k_ptr = rem_pos_start_idx;
+
+                while (k_ptr < rem_neg_start_idx) {
+                    sumPos += X_row_m[indices_data[k_ptr++]];   
+#ifdef INSTRUMENTATION_RUN
+                    flops++;
+#endif
+                }
+
+                while (k_ptr < next_col_start_idx) {
+                    sumNeg -= X_row_m[indices_data[k_ptr++]];   
+#ifdef INSTRUMENTATION_RUN
+                    flops++;
+#endif
+                }
+
+
+                float y_val = sumPos + sumNeg;
+                Y[m * N + j] += y_val;
+            }
+        }
+    }
+}
+
+
 
 #endif

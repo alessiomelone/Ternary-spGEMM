@@ -1,3 +1,4 @@
+/* Note [Harry]: Implementation heavily inspired by Bilal's. */
 #pragma once
 #include <vector>
 #include <iostream>
@@ -7,78 +8,82 @@ template <int B>
 class BlockedTCSC_interleaved
 {
 public:
-    std::vector<int> col_start;
-    std::vector<int> row_index;
-    std::vector<int> excess_start;
-    std::vector<int> excess_type;
+  std::vector<int> all_indices;     // All row indices, grouped by pattern
+  std::vector<int> col_segment_ptr; // Pointers to segments within all_indices
 
-    BlockedTCSC_interleaved(int *matrix, int K, int N)
+  // matrix W is KxN
+  BlockedTCSC_interleaved(const int *matrix, int rows, int cols)
+  {
+    int num_blocks_rows = rows / B;
+    
+    col_segment_ptr.push_back(0);
+
+    std::vector<int> temp_pos_indices;
+    std::vector<int> temp_neg_indices;
+
+    // For each of the K/B blocks of the rows of W
+    for (int block = 0; block < num_blocks_rows; block++)
     {
-        // Assuming K DIVIDES B
-        int num_blocks_rows = K / B;
-        int column_start_val = 0;     // Renamed for clarity from original 'column_start' local variable
-        int excess_start_pos_val = 0; // Renamed for clarity from original 'excess_start_pos' local variable
-
-        for (int b = 0; b < num_blocks_rows; b++)
+        int start_row = block * B;
+        int end_row = start_row + B;
+        // For every column of W
+        for (int n = 0; n < cols; ++n)
         {
-            for (int j = 0; j < N; j++)
+            temp_pos_indices.clear();
+            temp_neg_indices.clear();
+
+            // For every row in the block
+            for (int k = start_row; k < end_row; ++k)
             {
-                col_start.push_back(column_start_val);
-                excess_start.push_back(excess_start_pos_val);
-
-                std::vector<int> pos_indices;
-                std::vector<int> neg_indices;
-
-                for (int i = 0; i < B; i++)
+                int val = matrix[k * cols + n];
+                if (val == 1)
                 {
-                    if (matrix[(b * B + i) * N + j] == 1)
-                    {
-                        pos_indices.push_back(b * B + i);
-                    }
-                    else if (matrix[(b * B + i) * N + j] == -1)
-                    {
-                        neg_indices.push_back(b * B + i);
-                    }
+                    temp_pos_indices.push_back(k);
                 }
-
-                int min_count = std::min(pos_indices.size(), neg_indices.size());
-                for (int k_idx = 0; k_idx < min_count; k_idx++)
+                else if (val == -1)
                 {
-                    row_index.push_back(pos_indices[k_idx]);
-                    row_index.push_back(neg_indices[k_idx]);
-                    column_start_val += 2; // This local variable accumulates total interleaved elements processed so far
-                }
-
-                if (pos_indices.size() > min_count)
-                {
-                    excess_type.push_back(1);
-                    for (size_t k_idx = min_count; k_idx < pos_indices.size(); k_idx++)
-                    {
-                        row_index.push_back(pos_indices[k_idx]);
-                        excess_start_pos_val++; // This local variable accumulates total positive excess elements processed so far
-                    }
-                }
-                else if (neg_indices.size() > min_count)
-                {
-                    excess_type.push_back(-1);
-                    for (size_t k_idx = min_count; k_idx < neg_indices.size(); k_idx++)
-                    {
-                        row_index.push_back(neg_indices[k_idx]);
-                        excess_start_pos_val++; // This local variable accumulates total negative excess elements processed so far
-                    }
-                }
-                else
-                {
-                    excess_type.push_back(0);
+                    temp_neg_indices.push_back(k);
                 }
             }
-        }
-        col_start.push_back(column_start_val);
-        excess_start.push_back(excess_start_pos_val);
-    }
 
-    int getDataStructureSize() const
-    {
-        return sizeof(int) * (col_start.size() + row_index.size() + excess_start.size() + excess_type.size());
+            size_t p_idx = 0;
+            size_t n_idx = 0;
+
+            // change group size here by chaning the + 1 to + 3 for grourps of 4
+            while (p_idx < temp_pos_indices.size() && n_idx < temp_neg_indices.size())
+            {
+                // copy and add extra lines for larger or fewer groups
+                // all_indices.push_back(temp_pos_indices[p_idx++]);
+                all_indices.push_back(temp_pos_indices[p_idx++]);
+
+                // copy and add extra lines for larger or fewer groups
+                all_indices.push_back(temp_neg_indices[n_idx++]);
+                // all_indices.push_back(temp_neg_indices[n_idx++]);
+            }
+            col_segment_ptr.push_back(all_indices.size());
+
+            // Remaining positives
+            while (p_idx < temp_pos_indices.size())
+            {
+                all_indices.push_back(temp_pos_indices[p_idx++]);
+            }
+            col_segment_ptr.push_back(all_indices.size());
+
+            // Remaining negatives
+            while (n_idx < temp_neg_indices.size())
+            {
+                all_indices.push_back(temp_neg_indices[n_idx++]);
+            }
+            col_segment_ptr.push_back(all_indices.size());
+        }
     }
+  }
+
+  int getDataStructureSize() const
+  {
+    size_t size_bytes = 0;
+    size_bytes += sizeof(int) * all_indices.size();
+    size_bytes += sizeof(int) * col_segment_ptr.size();
+    return size_bytes;
+  }
 };
