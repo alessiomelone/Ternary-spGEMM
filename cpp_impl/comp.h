@@ -1361,7 +1361,6 @@ void BlockedTCSC_interleaved_base(T *X, const BlockedTCSC_interleaved<B> &W_csc,
                 {
                     sumPos += X_row_m[indices_data[k_ptr]];
                     sumNeg -= X_row_m[indices_data[k_ptr + 1]];
-                    // make sure to change the flops
 #ifdef INSTRUMENTATION_RUN
                     flops+=2;
 #endif
@@ -1386,6 +1385,90 @@ void BlockedTCSC_interleaved_base(T *X, const BlockedTCSC_interleaved<B> &W_csc,
 
                 float y_val = sumPos + sumNeg;
                 Y[m * N + j] += y_val;
+            }
+        }
+    }
+}
+
+
+
+// UNROLL_FACTOR must divide N
+template <typename T, int B, int UNROLL_FACTOR>
+void BlockedTCSC_interleaved_unr(T *X, const BlockedTCSC_interleaved<B> &W_csc, T *b, T *Y, int M, int N, int K)
+{
+#ifdef INSTRUMENTATION_RUN
+    flops = 0;
+    ds_size = W_csc.getDataStructureSize();
+#endif
+    constexpr int UNROLL_FACTOR_HALF = UNROLL_FACTOR / 2;
+    const int *indices_data = W_csc.all_indices.data();
+    const int *segment_ptr_data = W_csc.col_segment_ptr.data();
+
+    int num_blocks = K / B;
+
+    // Process each row of X
+    for (int m = 0; m < M; m++)
+    {
+        for (int j = 0; j < N; j++)
+            Y[m * N + j] = b[j];
+
+        // Process each column-block of X
+        float *X_row_m = X + m * K;
+        for (int k_block = 0; k_block < num_blocks; k_block++)
+        {
+            for (int j = 0; j < N; j++)
+            {
+                float y_acc[UNROLL_FACTOR];
+                for (int u = 0; u < UNROLL_FACTOR; ++u)
+                    y_acc[u] = 0;
+
+                int base_index = k_block * N + j;
+
+                int pn_start_idx = segment_ptr_data[3 * base_index + 0];
+                int rem_pos_start_idx = segment_ptr_data[3 * base_index + 1];
+                int rem_neg_start_idx = segment_ptr_data[3 * base_index + 2];
+                int next_col_start_idx = segment_ptr_data[3 * base_index + 3];
+
+                for (int k_ptr = pn_start_idx; k_ptr < rem_pos_start_idx; k_ptr += UNROLL_FACTOR)
+                {
+                    for (int i = 0, p = UNROLL_FACTOR_HALF; i < UNROLL_FACTOR_HALF; i++, p++)
+                    {
+                        y_acc[i] += X_row_m[indices_data[k_ptr + i]];
+                        y_acc[p] -= X_row_m[indices_data[k_ptr + p]];
+#ifdef INSTRUMENTATION_RUN
+                        flops+=2;
+#endif
+                    }
+                }
+                int k_ptr = rem_pos_start_idx;
+
+                while (k_ptr < rem_neg_start_idx) {
+                    y_acc[0] += X_row_m[indices_data[k_ptr++]];   
+#ifdef INSTRUMENTATION_RUN
+                    flops++;
+#endif
+                }
+
+                while (k_ptr < next_col_start_idx) {
+                    y_acc[1] -= X_row_m[indices_data[k_ptr++]];   
+#ifdef INSTRUMENTATION_RUN
+                    flops++;
+#endif
+                }
+
+                // Here I tried to unroll the previously serialized addition
+                constexpr int mid = UNROLL_FACTOR_HALF;
+                float y_acc0 = 0, y_acc1 = 0;
+                for (int u = 0, p = mid; u < UNROLL_FACTOR_HALF; u++, p++)
+                {
+                    y_acc0 += y_acc[u];
+                    y_acc1 += y_acc[p];
+#ifdef INSTRUMENTATION_RUN
+                    flops+=2;
+#endif
+                }
+
+                Y[m * N + j] += y_acc0 + y_acc1;
             }
         }
     }

@@ -3,7 +3,8 @@
 #include "sparseUtils.h"
 #include "comp.h"
 
-#define BLOCK_SIZE_IBTCSC 256
+#define BLOCK_SIZE_IBTCSC 512
+#define UNROLL_FACTOR_IBTCSC 16
 
 std::vector<comp_func> userFuncs;
 std::vector<std::string> funcNames;
@@ -54,8 +55,9 @@ int main(int argc, char **argv)
 
     auto sf_interleaved = std::make_shared<InterleavedTCSC>(W_raw.data(), K, N);
     auto sf_interleaved_padding = std::make_shared<InterleavedTCSCPadding>(W_raw.data(), K, N);
-    auto sf_interleaved_padding_harry = std::make_shared<BlockedTCSC_interleaved<BLOCK_SIZE_IBTCSC>>(W_raw.data(), K, N);
-
+    auto sf_interleaved_blocked_harry = std::make_shared<BlockedTCSC_interleaved<BLOCK_SIZE_IBTCSC>>(W_raw.data(), K, N);
+    auto sf_interleaved_blocked_unrolled_harry = std::make_shared<BlockedTCSC_interleaved<BLOCK_SIZE_IBTCSC>>(W_raw.data(), K, N, UNROLL_FACTOR_IBTCSC);    
+    
     add_function(
         [sf_csc](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
         {
@@ -91,18 +93,26 @@ int main(int argc, char **argv)
         },
         "BaseCSC_unrolled_16");
 
-    add_function(
-        [sf_csc](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
-        {
-            TCSC_inter_unr<float, 16>(X_arg, *sf_csc, B_arg, Y_arg, M_arg, N_arg, K_arg);
-        },
-        "TCSC_interleaf_unrolled_16");
+    // add_function(
+    //     [sf_csc](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
+    //     {
+    //         TCSC_inter_unr<float, 16>(X_arg, *sf_csc, B_arg, Y_arg, M_arg, N_arg, K_arg);
+    //     },
+    //     "TCSC_interleaf_unrolled_16");
 
         std::string s = "BlockedTCSC_interleaved_base_Block_Size:" +  std::to_string(BLOCK_SIZE_IBTCSC) ;
             add_function(
-        [sf_interleaved_padding_harry](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
+        [sf_interleaved_blocked_harry](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
         {
-            BlockedTCSC_interleaved_base<float, BLOCK_SIZE_IBTCSC>(X_arg, *sf_interleaved_padding_harry, B_arg, Y_arg, M_arg, N_arg, K_arg);
+            BlockedTCSC_interleaved_base<float, BLOCK_SIZE_IBTCSC>(X_arg, *sf_interleaved_blocked_harry, B_arg, Y_arg, M_arg, N_arg, K_arg);
+        },
+         s.data());
+    
+        s = "BlockedTCSC_interleaved_unrolled_Block_Size:" +  std::to_string(BLOCK_SIZE_IBTCSC)  + "_Unroll_Factor:" + std::to_string(UNROLL_FACTOR_IBTCSC);
+            add_function(
+        [sf_interleaved_blocked_unrolled_harry](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
+        {
+            BlockedTCSC_interleaved_unr<float, BLOCK_SIZE_IBTCSC, UNROLL_FACTOR_IBTCSC>(X_arg, *sf_interleaved_blocked_unrolled_harry, B_arg, Y_arg, M_arg, N_arg, K_arg);
         },
          s.data());
 
@@ -229,7 +239,9 @@ int main(int argc, char **argv)
             }
             else
             {
-                std::cout << "Test case " << funcNames[i_loop] << " failed!" << std::endl;
+                std::cout << "Test case "  << "\x1b[31m" << funcNames[i_loop] << " failed!" << "\x1b[0m" <<  std::endl;
+                std::cout << "\n\n  Please fix the failing fn or comment out the invocaton from main.cpp.\n\nExitting...\n\n" << std::endl;
+                exit(1);
             }
         }
     }
@@ -243,7 +255,7 @@ int main(int argc, char **argv)
         if (funcNames[i_loop] == "BaseCSC_naive") {
             base_cycles = perf_val;
         }
-        std::cout << "Speedup is: " << "\x1b[31m" << base_cycles / perf_val << "\x1b[0m" << std::endl;
+        std::cout << "Speedup is: " << "\x1b[32m" << base_cycles / perf_val << "\x1b[0m" << std::endl;
 #ifdef INSTRUMENTATION_RUN
         std::cout << "Flops: " << getTotalFlops() << std::endl;
         std::cout << "Performance: " << (double)getTotalFlops() / perf_val << " flops/cycle" << std::endl;
