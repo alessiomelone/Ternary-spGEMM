@@ -30,8 +30,80 @@
 #     }
 # }
 
-from M_16_K_1024_N_4096_s_16 import W, X, Y_expected, Y_actual, b, col_start_pos, col_start_neg, row_index_pos, row_index_neg, M, N, K, s
+from M_1_K_512_N_2048_s_16 import W, X, Y_expected, Y_actual, b, col_start_pos, col_start_neg, row_index_pos, row_index_neg, M, N, K, s
 import numpy as np
+
+def gen_code(X, col_start_pos, col_start_neg, row_index_pos, row_index_neg, b, M, N, K, log_filename):
+    """
+    Writes optimized sequence of ops (+X, -X, bias add) using batching and tree reductions.
+    """
+    BATCH_SIZE = 8
+    with open(log_filename, 'w') as f:
+        f.write("inline void GenCSC(float *X, float *b, float *Y) {\n")
+        for m in range(M):
+            base_x = m * K
+            base_y = m * N
+            for n in range(N):
+                # collect positive and negative indices
+                start_p = col_start_pos[n]
+                end_p = col_start_pos[n+1]
+                pos_indices = row_index_pos[start_p:end_p]
+                start_n = col_start_neg[n]
+                end_n = col_start_neg[n+1]
+                neg_indices = row_index_neg[start_n:end_n]
+                # build list of entries: (sign, index)
+                entries = [(+1, idx) for idx in pos_indices] + [(-1, idx) for idx in neg_indices]
+                # split into batches
+                num_entries = len(entries)
+                num_batches = (num_entries + BATCH_SIZE - 1) // BATCH_SIZE
+                partial_sums = []
+                for batch_id in range(num_batches):
+                    batch_entries = entries[batch_id * BATCH_SIZE:(batch_id + 1) * BATCH_SIZE]
+                    regs = []
+                    # load into registers r0..r{len(batch_entries)-1}
+                    for j, (sign, idx) in enumerate(batch_entries):
+                        reg = f"r_{m}_{n}_{batch_id}_{j}"
+                        if sign > 0:
+                            f.write(f"    float {reg} = X[{base_x + idx}];\n")
+                        else:
+                            f.write(f"    float {reg} = -X[{base_x + idx}];\n")
+                        regs.append(reg)
+                    # tree-reduce within batch
+                    tmp_count = 0
+                    cur_regs = regs.copy()
+                    while len(cur_regs) > 1:
+                        new_regs = []
+                        for i in range(0, len(cur_regs), 2):
+                            if i+1 < len(cur_regs):
+                                tname = f"t_{m}_{n}_{batch_id}_{tmp_count}"
+                                f.write(f"    float {tname} = {cur_regs[i]} + {cur_regs[i+1]};\n")
+                                new_regs.append(tname)
+                                tmp_count += 1
+                            else:
+                                new_regs.append(cur_regs[i])
+                        cur_regs = new_regs
+                    # cur_regs[0] is the partial sum for this batch
+                    part = f"partial{m}_{n}_{batch_id}"
+                    f.write(f"    float {part} = {cur_regs[0]};\n")
+                    partial_sums.append(part)
+                # final tree reduction of partial sums
+                cur_regs = partial_sums.copy()
+                tmp_count = 0
+                while len(cur_regs) > 1:
+                    new_regs = []
+                    for i in range(0, len(cur_regs), 2):
+                        if i+1 < len(cur_regs):
+                            tname = f"tt_{m}_{n}_{tmp_count}"
+                            f.write(f"    float {tname} = {cur_regs[i]} + {cur_regs[i+1]};\n")
+                            new_regs.append(tname)
+                            tmp_count += 1
+                        else:
+                            new_regs.append(cur_regs[i])
+                    cur_regs = new_regs
+                final_sum = cur_regs[0] if cur_regs else "0.0f"
+                # add bias and write Y
+                f.write(f"    Y[{base_y + n}] = {final_sum} + b[{n}];\n")
+        f.write("}\n")
 
 def base_csc_flat(X_flat, col_start_pos, col_start_neg,
                   row_index_pos, row_index_neg, b,
@@ -76,41 +148,6 @@ def base_csc_flat(X_flat, col_start_pos, col_start_neg,
             Y[base_y + n] = y_val + b[n]
 
     return Y
-
-def gen_code(X, col_start_pos, col_start_neg,
-             row_index_pos, row_index_neg, b,
-             M, N, K, log_filename):
-    """
-    Writes the exact sequence of ops (+X, -X, bias add) to a file,
-    and computes Y using only Python lists, no numpy.
-    """
-    Y = [0.0] * (M * N)
-
-    with open(log_filename, 'w') as f:
-        f.write("inline void GenCSC(float *X, float *b, float *Y) {")
-        f.write("float y_val;")
-        for m in range(M):
-            base_x = m * K
-            base_y = m * N
-            for n in range(N):
-                # y_val = 0.0
-                f.write("y_val = 0;")
-
-                for idx in range(col_start_pos[n], col_start_pos[n+1]):
-                    row = row_index_pos[idx]
-                    f.write(f"y_val += X[{base_x + row}];\n")
-                    # y_val += X[base_x + row]
-
-                for idx in range(col_start_neg[n], col_start_neg[n+1]):
-                    row = row_index_neg[idx]
-                    f.write(f"y_val -= X[{base_x + row}];\n")
-                    # y_val -= X[base_x + row]
-
-                Y_idx = base_y + n
-                f.write(f"Y[{Y_idx}] = y_val + b[{n}];\n")
-                # Y[Y_idx] = y_val + b[n]
-        f.write("}")
-    # return Y
 
 log_filename = "codegen/generated.h"
 gen_code(X, col_start_pos, col_start_neg, row_index_pos, row_index_neg, b, M, N, K,
