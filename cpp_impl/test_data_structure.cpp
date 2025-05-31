@@ -1,4 +1,4 @@
-#include "data_structures/CompressedCSC.h"
+#include "data_structures/InterleavedCSC.h"
 #include "sparseUtils.h"
 #include <iomanip>
 
@@ -142,9 +142,9 @@ int main()
 
     // Sizes you'll probably use debugging
     printf("(1/2)\n");
-    testMany<CompressedCSC>(40, 40, 2, 20, false);
+    testMany<InterleavedCSC>(40, 40, 2, 20, false);
 
     // Required sizes
     printf("(2/2)\n");
-    testRequired<CompressedCSC>(10, true);
+    testRequired<InterleavedCSC>(10, true);
 }
