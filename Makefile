@@ -1,7 +1,8 @@
 # Compiler and flags
 CXX = g++
 # Base CXXFLAGS, these will always be applied
-CXXFLAGS_BASE = -std=c++17 -O2 -march=native -mtune=native -fstrict-aliasing -DNDEBUG -DPMU -Wno-vla-cxx-extension
+# CXXFLAGS_BASE = -std=c++17 -O2 -march=native -mtune=native -fstrict-aliasing -DNDEBUG -DPMU -Wno-vla-cxx-extension
+CXXFLAGS_BASE = -O3 -fno-vectorize -fno-slp-vectorize -fstrict-aliasing -DPMU -DNDEBUG
 
 # Initialize CXXFLAGS with the base flags
 CXXFLAGS = $(CXXFLAGS_BASE)
