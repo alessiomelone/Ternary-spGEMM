@@ -66,12 +66,12 @@ int main(int argc, char **argv)
         },
         "BaseCSC_naive");
     
-        add_function(
-        [sf_interleaved_baraq](double *X_arg, double *B_arg, double *Y_arg, int M_arg, int N_arg, int K_arg)
-        {
-            InterleavedTCSC_baraq_comp<double>(X_arg, *sf_interleaved_baraq, B_arg, Y_arg, M_arg, N_arg, K_arg);
-        },
-        "InterleavedTCSC_baraq_comp");
+        // add_function(
+        // [sf_interleaved_baraq](double *X_arg, double *B_arg, double *Y_arg, int M_arg, int N_arg, int K_arg)
+        // {
+        //     InterleavedTCSC_baraq_comp<double>(X_arg, *sf_interleaved_baraq, B_arg, Y_arg, M_arg, N_arg, K_arg);
+        // },
+        // "InterleavedTCSC_baraq_comp");
 
         add_function(
         [sf_interleaved_baraq](double *X_arg, double *B_arg, double *Y_arg, int M_arg, int N_arg, int K_arg)
@@ -115,21 +115,21 @@ int main(int argc, char **argv)
     //     },
     //     "TCSC_interleaf_unrolled_16");
 
-        std::string s = "BlockedTCSC_interleaved_base_Block_Size:" +  std::to_string(BLOCK_SIZE_IBTCSC) ;
-            add_function(
-        [sf_interleaved_blocked_harry](double *X_arg, double *B_arg, double *Y_arg, int M_arg, int N_arg, int K_arg)
-        {
-            BlockedTCSC_interleaved_base<double, BLOCK_SIZE_IBTCSC>(X_arg, *sf_interleaved_blocked_harry, B_arg, Y_arg, M_arg, N_arg, K_arg);
-        },
-         s.data());
+        // std::string s = "BlockedTCSC_interleaved_base_Block_Size:" +  std::to_string(BLOCK_SIZE_IBTCSC) ;
+        //     add_function(
+        // [sf_interleaved_blocked_harry](double *X_arg, double *B_arg, double *Y_arg, int M_arg, int N_arg, int K_arg)
+        // {
+        //     BlockedTCSC_interleaved_base<double, BLOCK_SIZE_IBTCSC>(X_arg, *sf_interleaved_blocked_harry, B_arg, Y_arg, M_arg, N_arg, K_arg);
+        // },
+        //  s.data());
     
-        s = "BlockedTCSC_interleaved_unrolled_Block_Size:" +  std::to_string(BLOCK_SIZE_IBTCSC)  + "_Unroll_Factor:" + std::to_string(UNROLL_FACTOR_IBTCSC);
-            add_function(
-        [sf_interleaved_blocked_unrolled_harry](double *X_arg, double *B_arg, double *Y_arg, int M_arg, int N_arg, int K_arg)
-        {
-            BlockedTCSC_interleaved_unr<double, BLOCK_SIZE_IBTCSC, UNROLL_FACTOR_IBTCSC>(X_arg, *sf_interleaved_blocked_unrolled_harry, B_arg, Y_arg, M_arg, N_arg, K_arg);
-        },
-         s.data());
+        // s = "BlockedTCSC_interleaved_unrolled_Block_Size:" +  std::to_string(BLOCK_SIZE_IBTCSC)  + "_Unroll_Factor:" + std::to_string(UNROLL_FACTOR_IBTCSC);
+        //     add_function(
+        // [sf_interleaved_blocked_unrolled_harry](double *X_arg, double *B_arg, double *Y_arg, int M_arg, int N_arg, int K_arg)
+        // {
+        //     BlockedTCSC_interleaved_unr<double, BLOCK_SIZE_IBTCSC, UNROLL_FACTOR_IBTCSC>(X_arg, *sf_interleaved_blocked_unrolled_harry, B_arg, Y_arg, M_arg, N_arg, K_arg);
+        // },
+        //  s.data());
 
     // add_function(
     //     [sf_csc](double *X_arg, double *B_arg, double *Y_arg, int M_arg, int N_arg, int K_arg)
