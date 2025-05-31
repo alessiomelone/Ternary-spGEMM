@@ -2,7 +2,7 @@
 #include <iostream>
 #include <vector>
 #include <random>
-
+using namespace std;
 template <typename T>
 vector<T> initX(int LEN, int Range, bool uniformDistribution = false)
 {

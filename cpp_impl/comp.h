@@ -65,6 +65,178 @@ void BaseCSC(T *X, const BaseTCSC &W_csc, T *b, T *Y, int M, int N, int K)
     }
 }
 
+template <typename T, int UNROLL_FACTOR>
+void InterleavedTCSC_baraq_comp_unr(T *X, const InterleavedTCSC_baraq &W_csc, T *b, T *Y, int M, int N, int K)
+{
+#ifdef INSTRUMENTATION_RUN
+    flops = 0;
+    ds_size = W_csc.getDataStructureSize();
+#endif
+    const int *col_start_pos = W_csc.col_start_pos.data();
+    const int *col_start_neg = W_csc.col_start_neg.data();
+    const int *col_start_interleaved = W_csc.col_start_interleaved.data();
+    const int *row_index_pos = W_csc.row_index_pos.data();
+    const int *row_index_neg = W_csc.row_index_neg.data();
+    const int *row_index_interleaved = W_csc.row_index_interleaved.data();
+
+    for (int m = 0; m < M; m++)
+    {
+        for (int n = 0; n < N; n++)
+        {
+            T y_pos[UNROLL_FACTOR] = {0};
+            T y_neg[UNROLL_FACTOR] = {0};
+            T y_intr[UNROLL_FACTOR] = {0};
+
+            int k_intr_loop = col_start_interleaved[n];
+            const int end_intr = col_start_interleaved[n + 1];
+
+            // Process interleaved values
+            // for (int k = col_start_interleaved[n]; k < col_start_interleaved[n + 1]; k += 2) { // assume interleaved col size is a multiple of 2
+            //     T x_val_pos = X[m * K + row_index_interleaved[k]];
+            //     T x_val_neg = X[m * K + row_index_interleaved[k+1]];
+            //     y_val = y_val + x_val_pos - x_val_neg;
+            // }
+
+            for (; k_intr_loop + UNROLL_FACTOR <= end_intr; k_intr_loop += UNROLL_FACTOR)
+            {
+                for (int u = 0; u < UNROLL_FACTOR; u += 2)
+                {
+                    y_intr[u] += X[m * K + row_index_interleaved[k_intr_loop + u]] - X[m * K + row_index_interleaved[k_intr_loop + u + 1]]; // positive then negative
+#ifdef INSTRUMENTATION_RUN
+                    flops += 2;
+#endif
+                }
+            }
+
+            T y_intr_final = 0;
+            for (int u = 0; u < UNROLL_FACTOR; u++)
+            {
+#ifdef INSTRUMENTATION_RUN // TODO: Is it fair to count accumulator FLOPs??
+                flops++;
+#endif
+                y_intr_final += y_intr[u];
+            }
+
+            for (; k_intr_loop < end_intr; k_intr_loop += 2)
+            {
+#ifdef INSTRUMENTATION_RUN
+                flops++;
+#endif
+                y_intr_final += X[m * K + row_index_interleaved[k_intr_loop]] - X[m * K + row_index_interleaved[k_intr_loop + 1]];
+            }
+
+            int k_pos_loop = col_start_pos[n];
+            const int end_pos = col_start_pos[n + 1];
+
+            for (; k_pos_loop + UNROLL_FACTOR <= end_pos; k_pos_loop += UNROLL_FACTOR)
+            {
+                for (int u = 0; u < UNROLL_FACTOR; u++)
+                {
+                    y_pos[u] += X[m * K + row_index_pos[k_pos_loop + u]];
+#ifdef INSTRUMENTATION_RUN
+                    flops++;
+#endif
+                }
+            }
+
+            T y_pos_final = 0;
+            for (int u = 0; u < UNROLL_FACTOR; u++)
+            {
+#ifdef INSTRUMENTATION_RUN
+                flops++;
+#endif
+                y_pos_final += y_pos[u];
+            }
+
+            for (; k_pos_loop < end_pos; k_pos_loop++)
+            {
+#ifdef INSTRUMENTATION_RUN
+                flops++;
+#endif
+                y_pos_final += X[m * K + row_index_pos[k_pos_loop]];
+            }
+
+            int k_neg_loop = col_start_neg[n];
+            const int end_neg = col_start_neg[n + 1];
+
+            for (; k_neg_loop + UNROLL_FACTOR <= end_neg; k_neg_loop += UNROLL_FACTOR)
+            {
+                for (int u = 0; u < UNROLL_FACTOR; u++)
+                {
+#ifdef INSTRUMENTATION_RUN
+                    flops++;
+#endif
+                    y_neg[u] += X[m * K + row_index_neg[k_neg_loop + u]];
+                }
+            }
+
+            T y_neg_final = 0;
+            for (int u = 0; u < UNROLL_FACTOR; u++)
+            {
+#ifdef INSTRUMENTATION_RUN
+                flops++;
+#endif
+                y_neg_final += y_neg[u];
+            }
+
+            for (; k_neg_loop < end_neg; k_neg_loop++)
+            {
+#ifdef INSTRUMENTATION_RUN
+                flops++;
+#endif
+                y_neg_final += X[m * K + row_index_neg[k_neg_loop]];
+            }
+#ifdef INSTRUMENTATION_RUN
+            flops += 2;
+#endif
+            Y[m * N + n] = (y_intr_final + y_pos_final - y_neg_final) + b[n];
+        }
+    }
+}
+
+template <typename T>
+void InterleavedTCSC_baraq_comp(T *X, const InterleavedTCSC_baraq &W_csc, T *b, T *Y, int M, int N, int K)
+{
+    const int *col_start_pos = W_csc.col_start_pos.data();
+    const int *col_start_neg = W_csc.col_start_neg.data();
+    const int *col_start_interleaved = W_csc.col_start_interleaved.data();
+    const int *row_index_pos = W_csc.row_index_pos.data();
+    const int *row_index_neg = W_csc.row_index_neg.data();
+    const int *row_index_interleaved = W_csc.row_index_interleaved.data();
+
+    for (int m = 0; m < M; m++)
+    {
+        for (int n = 0; n < N; n++)
+        {
+            T y_val = 0;
+
+            // Process interleaved values
+            for (int k = col_start_interleaved[n]; k < col_start_interleaved[n + 1]; k += 2)
+            { // assume interleaved col size is a multiple of 2
+                T x_val_pos = X[m * K + row_index_interleaved[k]];
+                T x_val_neg = X[m * K + row_index_interleaved[k + 1]];
+                y_val = y_val + x_val_pos - x_val_neg;
+            }
+
+            // Process positive values
+            for (int k = col_start_pos[n]; k < col_start_pos[n + 1]; k++)
+            {
+                T x_val = X[m * K + row_index_pos[k]];
+                y_val += x_val;
+            }
+
+            // Process negative values
+            for (int k = col_start_neg[n]; k < col_start_neg[n + 1]; k++)
+            {
+                T x_val = X[m * K + row_index_neg[k]];
+                y_val -= x_val;
+            }
+
+            Y[m * N + n] = y_val + b[n];
+        }
+    }
+}
+
 template <typename T>
 void CCSC_base(T *X, const CompressedCSC &W, T *b, T *Y, int M, int N, int K)
 {
@@ -1193,19 +1365,19 @@ void BlockedCSC(T *X, const BlockedTCSC<B> &W_csc, T *b, T *Y, int M, int N, int
                 {
                     y += X[m * K + row_index_pos[k]];
 #ifdef INSTRUMENTATION_RUN
-            flops++;
+                    flops++;
 #endif
                 }
                 for (int k = col_start_neg[n]; k < col_start_neg[n + 1]; k++)
                 {
                     y -= X[m * K + row_index_neg[k]];
 #ifdef INSTRUMENTATION_RUN
-            flops++;
+                    flops++;
 #endif
                 }
                 Y[m * N + n % N] += y;
 #ifdef INSTRUMENTATION_RUN
-            flops++;
+                flops++;
 #endif
             }
         }
@@ -1322,7 +1494,6 @@ void BlockedCSC_unr4(T *X, const BlockedTCSC<B> &W_csc, T *b, T *Y, int M, int N
     }
 }
 
-
 template <typename T, int B>
 void BlockedTCSC_interleaved_base(T *X, const BlockedTCSC_interleaved<B> &W_csc, T *b, T *Y, int M, int N, int K)
 {
@@ -1362,26 +1533,27 @@ void BlockedTCSC_interleaved_base(T *X, const BlockedTCSC_interleaved<B> &W_csc,
                     sumPos += X_row_m[indices_data[k_ptr]];
                     sumNeg -= X_row_m[indices_data[k_ptr + 1]];
 #ifdef INSTRUMENTATION_RUN
-                    flops+=2;
+                    flops += 2;
 #endif
                 }
 
                 int k_ptr = rem_pos_start_idx;
 
-                while (k_ptr < rem_neg_start_idx) {
-                    sumPos += X_row_m[indices_data[k_ptr++]];   
+                while (k_ptr < rem_neg_start_idx)
+                {
+                    sumPos += X_row_m[indices_data[k_ptr++]];
 #ifdef INSTRUMENTATION_RUN
                     flops++;
 #endif
                 }
 
-                while (k_ptr < next_col_start_idx) {
-                    sumNeg -= X_row_m[indices_data[k_ptr++]];   
+                while (k_ptr < next_col_start_idx)
+                {
+                    sumNeg -= X_row_m[indices_data[k_ptr++]];
 #ifdef INSTRUMENTATION_RUN
                     flops++;
 #endif
                 }
-
 
                 float y_val = sumPos + sumNeg;
                 Y[m * N + j] += y_val;
@@ -1389,8 +1561,6 @@ void BlockedTCSC_interleaved_base(T *X, const BlockedTCSC_interleaved<B> &W_csc,
         }
     }
 }
-
-
 
 // UNROLL_FACTOR must divide N
 template <typename T, int B, int UNROLL_FACTOR>
@@ -1436,21 +1606,23 @@ void BlockedTCSC_interleaved_unr(T *X, const BlockedTCSC_interleaved<B> &W_csc, 
                         y_acc[i] += X_row_m[indices_data[k_ptr + i]];
                         y_acc[p] -= X_row_m[indices_data[k_ptr + p]];
 #ifdef INSTRUMENTATION_RUN
-                        flops+=2;
+                        flops += 2;
 #endif
                     }
                 }
                 int k_ptr = rem_pos_start_idx;
 
-                while (k_ptr < rem_neg_start_idx) {
-                    y_acc[0] += X_row_m[indices_data[k_ptr++]];   
+                while (k_ptr < rem_neg_start_idx)
+                {
+                    y_acc[0] += X_row_m[indices_data[k_ptr++]];
 #ifdef INSTRUMENTATION_RUN
                     flops++;
 #endif
                 }
 
-                while (k_ptr < next_col_start_idx) {
-                    y_acc[1] -= X_row_m[indices_data[k_ptr++]];   
+                while (k_ptr < next_col_start_idx)
+                {
+                    y_acc[1] -= X_row_m[indices_data[k_ptr++]];
 #ifdef INSTRUMENTATION_RUN
                     flops++;
 #endif
@@ -1464,7 +1636,7 @@ void BlockedTCSC_interleaved_unr(T *X, const BlockedTCSC_interleaved<B> &W_csc, 
                     y_acc0 += y_acc[u];
                     y_acc1 += y_acc[p];
 #ifdef INSTRUMENTATION_RUN
-                    flops+=2;
+                    flops += 2;
 #endif
                 }
 
@@ -1473,7 +1645,5 @@ void BlockedTCSC_interleaved_unr(T *X, const BlockedTCSC_interleaved<B> &W_csc, 
         }
     }
 }
-
-
 
 #endif

@@ -13,5 +13,5 @@ public:
     virtual std::vector<int> getVectorRepresentation(size_t rows, size_t cols) = 0;
 
     // Debug/print functionality
-    virtual void printVars() = 0;
+    // virtual void printVars() = 0;
 };

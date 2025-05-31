@@ -1,6 +1,13 @@
-#include "data_structures/InterleavedCSC.h"
+#include "data_structures/InterleavedTCSC_baraq.h"
 #include "sparseUtils.h"
+#include "common.h"
 #include <iomanip>
+#include <vector>
+#include <random>
+#include <ctime>
+#include <cstdlib>
+
+using namespace std;
 
 template <typename T>
 void printMatrix(const std::vector<T> &mat,
@@ -48,6 +55,7 @@ bool test(int K, int N, int nonZero, int seed, bool verbose = false)
 
     if (verbose)
     {
+        printf("Ground truth:\n");
         printMatrix<int>(W_truth, K, N, 2);
         printf("------------------------------\n");
     }
@@ -58,6 +66,7 @@ bool test(int K, int N, int nonZero, int seed, bool verbose = false)
 
     if (verbose)
     {
+        printf("Data structure:\n");
         printMatrix<int>(M, K, N, 2);
         printf(M == W_truth ? "pass\n" : "fail\n");
     }
@@ -138,13 +147,13 @@ bool testRequired(int variants, bool verbose = false)
 
 int main()
 {
-    // test<CompressedCSC>(1, 1, 2, 1, true);
+    // test<InterleavedTCSC_baraq>(3, 4, 2, 0, true);
 
     // Sizes you'll probably use debugging
     printf("(1/2)\n");
-    testMany<InterleavedCSC>(40, 40, 2, 20, false);
+    testMany<InterleavedTCSC_baraq>(40, 40, 2, 20, false);
 
     // Required sizes
     printf("(2/2)\n");
-    testRequired<InterleavedCSC>(10, true);
+    testRequired<InterleavedTCSC_baraq>(10, true);
 }
