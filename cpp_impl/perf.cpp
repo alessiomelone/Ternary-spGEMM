@@ -35,7 +35,7 @@ using namespace std;
  * Timing function based on the TimeStep Counter of the CPU.
  */
 #ifdef __x86_64__
-double rdtsc(comp_func func_to_test, float *X_buf, float *B_buf, float *Y_buf, int M_arg, int N_arg, int K_arg)
+double rdtsc(comp_func func_to_test, double *X_buf, double *B_buf, double *Y_buf, int M_arg, int N_arg, int K_arg)
 {
     int i, num_runs_actual;
     myInt64 cycles_val;
@@ -71,7 +71,7 @@ double rdtsc(comp_func func_to_test, float *X_buf, float *B_buf, float *Y_buf, i
 #endif
 
 #ifdef __aarch64__
-double rdvct(comp_func func_to_test, float *X_buf, float *B_buf, float *Y_buf, int M_arg, int N_arg, int K_arg)
+double rdvct(comp_func func_to_test, double *X_buf, double *B_buf, double *Y_buf, int M_arg, int N_arg, int K_arg)
 {
     int i, num_runs_actual;
     TIMESTAMP cycles_val;
@@ -107,7 +107,7 @@ double rdvct(comp_func func_to_test, float *X_buf, float *B_buf, float *Y_buf, i
 }
 
 #ifdef PMU
-struct performance_counters rdpmu(comp_func func_to_test, float *X_buf, float *B_buf, float *Y_buf, int M_arg, int N_arg, int K_arg)
+struct performance_counters rdpmu(comp_func func_to_test, double *X_buf, double *B_buf, double *Y_buf, int M_arg, int N_arg, int K_arg)
 {
     kperf_init();
     int i, num_runs_actual;
@@ -151,7 +151,7 @@ struct performance_counters rdpmu(comp_func func_to_test, float *X_buf, float *B
 #endif // PMU
 #endif // __aarch64__
 
-double c_clock(comp_func func_to_test, float *X_buf, float *B_buf, float *Y_buf, int M_arg, int N_arg, int K_arg)
+double c_clock(comp_func func_to_test, double *X_buf, double *B_buf, double *Y_buf, int M_arg, int N_arg, int K_arg)
 {
     int i, num_runs_actual;
     double cycles_val;
@@ -187,7 +187,7 @@ double c_clock(comp_func func_to_test, float *X_buf, float *B_buf, float *Y_buf,
 }
 
 #ifndef WIN32
-double timeofday(comp_func func_to_test, float *X_buf, float *B_buf, float *Y_buf, int M_arg, int N_arg, int K_arg)
+double timeofday(comp_func func_to_test, double *X_buf, double *B_buf, double *Y_buf, int M_arg, int N_arg, int K_arg)
 {
     int i, num_runs_actual;
     double cycles_val;
@@ -224,7 +224,7 @@ double timeofday(comp_func func_to_test, float *X_buf, float *B_buf, float *Y_bu
 
 #else // For WIN32
 
-double gettickcount(comp_func func_to_test, float *X_buf, float *B_buf, float *Y_buf, int M_arg, int N_arg, int K_arg)
+double gettickcount(comp_func func_to_test, double *X_buf, double *B_buf, double *Y_buf, int M_arg, int N_arg, int K_arg)
 {
     int i, num_runs_actual;
     double cycles_val, start_tc, end_tc;
@@ -258,7 +258,7 @@ double gettickcount(comp_func func_to_test, float *X_buf, float *B_buf, float *Y
     return (end_tc - start_tc) / num_runs_actual;
 }
 
-double queryperfcounter(comp_func func_to_test, float *X_buf, float *B_buf, float *Y_buf, int M_arg, int N_arg, int K_arg, LARGE_INTEGER f)
+double queryperfcounter(comp_func func_to_test, double *X_buf, double *B_buf, double *Y_buf, int M_arg, int N_arg, int K_arg, LARGE_INTEGER f)
 {
     int i, num_runs_actual;
     double cycles_val;
@@ -300,9 +300,9 @@ double perf_test(comp_func f, int M_param, int K_param, int N_param, int nonZero
 
     srand((unsigned)time(NULL));
 
-    vector<float> X_perf = initX<float>(M_param * K_param, 512);
-    vector<float> Y_perf(M_param * N_param, 0);
-    vector<float> B_perf(N_param, 2);
+    vector<double> X_perf = initX<double>(M_param * K_param, 512);
+    vector<double> Y_perf(M_param * N_param, 0);
+    vector<double> B_perf(N_param, 2);
 
     Y_perf.insert(Y_perf.end(), 10, 0);
     X_perf.insert(X_perf.end(), 10, 0);

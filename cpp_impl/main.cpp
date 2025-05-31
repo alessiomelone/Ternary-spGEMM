@@ -60,165 +60,165 @@ int main(int argc, char **argv)
     auto sf_interleaved_blocked_unrolled_harry = std::make_shared<BlockedTCSC_interleaved<BLOCK_SIZE_IBTCSC>>(W_raw.data(), K, N, UNROLL_FACTOR_IBTCSC);    
     
     add_function(
-        [sf_csc](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
+        [sf_csc](double *X_arg, double *B_arg, double *Y_arg, int M_arg, int N_arg, int K_arg)
         {
-            BaseCSC<float>(X_arg, *sf_csc, B_arg, Y_arg, M_arg, N_arg, K_arg);
+            BaseCSC<double>(X_arg, *sf_csc, B_arg, Y_arg, M_arg, N_arg, K_arg);
         },
         "BaseCSC_naive");
     
         add_function(
-        [sf_interleaved_baraq](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
+        [sf_interleaved_baraq](double *X_arg, double *B_arg, double *Y_arg, int M_arg, int N_arg, int K_arg)
         {
-            InterleavedTCSC_baraq_comp<float>(X_arg, *sf_interleaved_baraq, B_arg, Y_arg, M_arg, N_arg, K_arg);
+            InterleavedTCSC_baraq_comp<double>(X_arg, *sf_interleaved_baraq, B_arg, Y_arg, M_arg, N_arg, K_arg);
         },
         "InterleavedTCSC_baraq_comp");
 
         add_function(
-        [sf_interleaved_baraq](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
+        [sf_interleaved_baraq](double *X_arg, double *B_arg, double *Y_arg, int M_arg, int N_arg, int K_arg)
         {
-            InterleavedTCSC_baraq_comp_unr<float, 16>(X_arg, *sf_interleaved_baraq, B_arg, Y_arg, M_arg, N_arg, K_arg);
+            InterleavedTCSC_baraq_comp_unr<double, 16>(X_arg, *sf_interleaved_baraq, B_arg, Y_arg, M_arg, N_arg, K_arg);
         },
         "InterleavedTCSC_baraq_comp_unr_16");
 
     // add_function(
-    //     [sf_csc](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
+    //     [sf_csc](double *X_arg, double *B_arg, double *Y_arg, int M_arg, int N_arg, int K_arg)
     //     {
-    //         TCSC_inter<float>(X_arg, *sf_csc, B_arg, Y_arg, M_arg, N_arg, K_arg);
+    //         TCSC_inter<double>(X_arg, *sf_csc, B_arg, Y_arg, M_arg, N_arg, K_arg);
     //     },
     //     "TCSC_interleaf");
 
     // add_function(
-    //     [sf_interleaved](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
+    //     [sf_interleaved](double *X_arg, double *B_arg, double *Y_arg, int M_arg, int N_arg, int K_arg)
     //     {
-    //         TCSC_interleaved_ds<float>(X_arg, *sf_interleaved, B_arg, Y_arg, M_arg, N_arg, K_arg);
+    //         TCSC_interleaved_ds<double>(X_arg, *sf_interleaved, B_arg, Y_arg, M_arg, N_arg, K_arg);
     //     },
     //     "TCSC_interleaf with DS 1/-1");
 
     // add_function(
-    //     [sf_interleaved_padding](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
+    //     [sf_interleaved_padding](double *X_arg, double *B_arg, double *Y_arg, int M_arg, int N_arg, int K_arg)
     //     {
-    //         TCSC_interleaved_padding<float>(X_arg, *sf_interleaved_padding, B_arg, Y_arg, M_arg, N_arg, K_arg);
+    //         TCSC_interleaved_padding<double>(X_arg, *sf_interleaved_padding, B_arg, Y_arg, M_arg, N_arg, K_arg);
     //     },
     //     "TCSC_interleaf with padding");
 
     add_function(
-        [sf_csc](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
+        [sf_csc](double *X_arg, double *B_arg, double *Y_arg, int M_arg, int N_arg, int K_arg)
         {
-            BaseCSC_unr<float, 16>(X_arg, *sf_csc, B_arg, Y_arg, M_arg, N_arg, K_arg);
+            BaseCSC_unr<double, 16>(X_arg, *sf_csc, B_arg, Y_arg, M_arg, N_arg, K_arg);
         },
         "BaseCSC_unrolled_16");
 
     // add_function(
-    //     [sf_csc](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
+    //     [sf_csc](double *X_arg, double *B_arg, double *Y_arg, int M_arg, int N_arg, int K_arg)
     //     {
-    //         TCSC_inter_unr<float, 16>(X_arg, *sf_csc, B_arg, Y_arg, M_arg, N_arg, K_arg);
+    //         TCSC_inter_unr<double, 16>(X_arg, *sf_csc, B_arg, Y_arg, M_arg, N_arg, K_arg);
     //     },
     //     "TCSC_interleaf_unrolled_16");
 
-        // std::string s = "BlockedTCSC_interleaved_base_Block_Size:" +  std::to_string(BLOCK_SIZE_IBTCSC) ;
-        //     add_function(
-        // [sf_interleaved_blocked_harry](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
-        // {
-        //     BlockedTCSC_interleaved_base<float, BLOCK_SIZE_IBTCSC>(X_arg, *sf_interleaved_blocked_harry, B_arg, Y_arg, M_arg, N_arg, K_arg);
-        // },
-        //  s.data());
+        std::string s = "BlockedTCSC_interleaved_base_Block_Size:" +  std::to_string(BLOCK_SIZE_IBTCSC) ;
+            add_function(
+        [sf_interleaved_blocked_harry](double *X_arg, double *B_arg, double *Y_arg, int M_arg, int N_arg, int K_arg)
+        {
+            BlockedTCSC_interleaved_base<double, BLOCK_SIZE_IBTCSC>(X_arg, *sf_interleaved_blocked_harry, B_arg, Y_arg, M_arg, N_arg, K_arg);
+        },
+         s.data());
     
-        // s = "BlockedTCSC_interleaved_unrolled_Block_Size:" +  std::to_string(BLOCK_SIZE_IBTCSC)  + "_Unroll_Factor:" + std::to_string(UNROLL_FACTOR_IBTCSC);
-        //     add_function(
-        // [sf_interleaved_blocked_unrolled_harry](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
-        // {
-        //     BlockedTCSC_interleaved_unr<float, BLOCK_SIZE_IBTCSC, UNROLL_FACTOR_IBTCSC>(X_arg, *sf_interleaved_blocked_unrolled_harry, B_arg, Y_arg, M_arg, N_arg, K_arg);
-        // },
-        //  s.data());
+        s = "BlockedTCSC_interleaved_unrolled_Block_Size:" +  std::to_string(BLOCK_SIZE_IBTCSC)  + "_Unroll_Factor:" + std::to_string(UNROLL_FACTOR_IBTCSC);
+            add_function(
+        [sf_interleaved_blocked_unrolled_harry](double *X_arg, double *B_arg, double *Y_arg, int M_arg, int N_arg, int K_arg)
+        {
+            BlockedTCSC_interleaved_unr<double, BLOCK_SIZE_IBTCSC, UNROLL_FACTOR_IBTCSC>(X_arg, *sf_interleaved_blocked_unrolled_harry, B_arg, Y_arg, M_arg, N_arg, K_arg);
+        },
+         s.data());
 
     // add_function(
-    //     [sf_csc](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
+    //     [sf_csc](double *X_arg, double *B_arg, double *Y_arg, int M_arg, int N_arg, int K_arg)
     //     {
-    //         BaseCSC_unr_tiled<float, 12, 12, 12>(X_arg, *sf_csc, B_arg, Y_arg, M_arg, N_arg, K_arg);
+    //         BaseCSC_unr_tiled<double, 12, 12, 12>(X_arg, *sf_csc, B_arg, Y_arg, M_arg, N_arg, K_arg);
     //     },
     //     "BaseCSC_unrolled_tiled_12x12x12");
 
     // add_function(
-    //     [sf_csc](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
+    //     [sf_csc](double *X_arg, double *B_arg, double *Y_arg, int M_arg, int N_arg, int K_arg)
     //     {
-    //         TCSC_inter_unr_tiled<float, 12, 12, 12>(X_arg, *sf_csc, B_arg, Y_arg, M_arg, N_arg, K_arg);
+    //         TCSC_inter_unr_tiled<double, 12, 12, 12>(X_arg, *sf_csc, B_arg, Y_arg, M_arg, N_arg, K_arg);
     //     },
     //     "TCSC_inter_unr_tiled_12x12x12");
 
     // add_function(
-    //     [sf_blocked](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
+    //     [sf_blocked](double *X_arg, double *B_arg, double *Y_arg, int M_arg, int N_arg, int K_arg)
     //     {
-    //         BlockedCSC<float, 1024>(X_arg, *sf_blocked, B_arg, Y_arg, M_arg, N_arg, K_arg);
+    //         BlockedCSC<double, 1024>(X_arg, *sf_blocked, B_arg, Y_arg, M_arg, N_arg, K_arg);
     //     },
     //     "BlockedCSC_1024");
 
     // add_function(
-    //     [sf_blocked](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
+    //     [sf_blocked](double *X_arg, double *B_arg, double *Y_arg, int M_arg, int N_arg, int K_arg)
     //     {
-    //         BlockedCSC_unr4<float, 1024>(X_arg, *sf_blocked, B_arg, Y_arg, M_arg, N_arg, K_arg);
+    //         BlockedCSC_unr4<double, 1024>(X_arg, *sf_blocked, B_arg, Y_arg, M_arg, N_arg, K_arg);
     //     },
     //     "BlockedCSC_unr_1024");
 
     // add_function(
-    //     [sf_csr](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
+    //     [sf_csr](double *X_arg, double *B_arg, double *Y_arg, int M_arg, int N_arg, int K_arg)
     //     {
-    //         BaseCSR<float>(X_arg, *sf_csr, B_arg, Y_arg, M_arg, N_arg, K_arg);
+    //         BaseCSR<double>(X_arg, *sf_csr, B_arg, Y_arg, M_arg, N_arg, K_arg);
     //     },
     //     "BaseCSR_naive");
 
     // add_function(
-    //     [sf_csr](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
+    //     [sf_csr](double *X_arg, double *B_arg, double *Y_arg, int M_arg, int N_arg, int K_arg)
     //     {
-    //         TCSR_inter<float>(X_arg, *sf_csr, B_arg, Y_arg, M_arg, N_arg, K_arg);
+    //         TCSR_inter<double>(X_arg, *sf_csr, B_arg, Y_arg, M_arg, N_arg, K_arg);
     //     },
     //     "TCSR_interleaf");
 
     // add_function(
-    //     [sf_csc](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
+    //     [sf_csc](double *X_arg, double *B_arg, double *Y_arg, int M_arg, int N_arg, int K_arg)
     //     {
-    //         BaseCSC_unr<float, 5>(X_arg, *sf_csc, B_arg, Y_arg, M_arg, N_arg, K_arg);
+    //         BaseCSC_unr<double, 5>(X_arg, *sf_csc, B_arg, Y_arg, M_arg, N_arg, K_arg);
     //     },
     //     "BaseCSC_unrolled_5");
 
     // add_function(
-    //     [sf_csr](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
+    //     [sf_csr](double *X_arg, double *B_arg, double *Y_arg, int M_arg, int N_arg, int K_arg)
     //     {
-    //         BaseCSR_unr<float, 8>(X_arg, *sf_csr, B_arg, Y_arg, M_arg, N_arg, K_arg);
+    //         BaseCSR_unr<double, 8>(X_arg, *sf_csr, B_arg, Y_arg, M_arg, N_arg, K_arg);
     //     },
     //     "BaseCSR_unrolled_8");
 
     // add_function(
-    //     [sf_csr](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
+    //     [sf_csr](double *X_arg, double *B_arg, double *Y_arg, int M_arg, int N_arg, int K_arg)
     //     {
-    //         BaseCSR_unr<float, 16>(X_arg, *sf_csr, B_arg, Y_arg, M_arg, N_arg, K_arg);
+    //         BaseCSR_unr<double, 16>(X_arg, *sf_csr, B_arg, Y_arg, M_arg, N_arg, K_arg);
     //     },
     //     "BaseCSR_unrolled_16");
 
     // add_function(
-    //     [sf_ccsc](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
+    //     [sf_ccsc](double *X_arg, double *B_arg, double *Y_arg, int M_arg, int N_arg, int K_arg)
     //     {
-    //         CCSC_base<float>(X_arg, *sf_ccsc, B_arg, Y_arg, M_arg, N_arg, K_arg);
+    //         CCSC_base<double>(X_arg, *sf_ccsc, B_arg, Y_arg, M_arg, N_arg, K_arg);
     //     },
     //     "CompressedCSC_naive");
 
     // add_function(
-    //     [sf_ccsc](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
+    //     [sf_ccsc](double *X_arg, double *B_arg, double *Y_arg, int M_arg, int N_arg, int K_arg)
     //     {
-    //         CCSC_unr<float>(X_arg, *sf_ccsc, B_arg, Y_arg, M_arg, N_arg, K_arg);
+    //         CCSC_unr<double>(X_arg, *sf_ccsc, B_arg, Y_arg, M_arg, N_arg, K_arg);
     //     },
     //     "CompressedCSC_unrolled_5");
 
     // add_function(
-    //     [sf_icsr](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
+    //     [sf_icsr](double *X_arg, double *B_arg, double *Y_arg, int M_arg, int N_arg, int K_arg)
     //     {
-    //         ICSR_base<float>(X_arg, *sf_icsr, B_arg, Y_arg, M_arg, N_arg, K_arg);
+    //         ICSR_base<double>(X_arg, *sf_icsr, B_arg, Y_arg, M_arg, N_arg, K_arg);
     //     },
     //     "ICSR_naive");
 
     // add_function(
-    //     [sf_icsc](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
+    //     [sf_icsc](double *X_arg, double *B_arg, double *Y_arg, int M_arg, int N_arg, int K_arg)
     //     {
-    //         ICSC_base<float>(X_arg, *sf_icsc, B_arg, Y_arg, M_arg, N_arg, K_arg);
+    //         ICSC_base<double>(X_arg, *sf_icsc, B_arg, Y_arg, M_arg, N_arg, K_arg);
     //     },
     //     "ICSC_naive");
 
@@ -231,11 +231,11 @@ int main(int argc, char **argv)
     }
     std::cout << numFuncs << " functions registered." << std::endl;
 
-    std::vector<float> X_main = initX<float>(M * K, 512);
-    std::vector<float> W_FP32_main(W_raw.begin(), W_raw.end());
-    std::vector<float> B_main(N, 2);
-    std::vector<float> Y_main(M * N, 0);
-    std::vector<float> refY_main(M * N, 0);
+    std::vector<double> X_main = initX<double>(M * K, 512);
+    std::vector<double> W_FP32_main(W_raw.begin(), W_raw.end());
+    std::vector<double> B_main(N, 2);
+    std::vector<double> Y_main(M * N, 0);
+    std::vector<double> refY_main(M * N, 0);
 
     GEMM(X_main.data(), W_FP32_main.data(), B_main.data(), refY_main.data(), M, N, K);
 
@@ -274,7 +274,7 @@ int main(int argc, char **argv)
 #ifdef INSTRUMENTATION_RUN
         std::cout << "Flops: " << getTotalFlops() << std::endl;
         std::cout << "Performance: " << (double)getTotalFlops() / perf_val << " flops/cycle" << std::endl;
-        double total_bytes = sizeof(float) * ((double)(M * K + M * N + N)) + (double)getDataStructureSizeInBytes();
+        double total_bytes = sizeof(double) * ((double)(M * K + M * N + N)) + (double)getDataStructureSizeInBytes();
         std::cout << "Total Input Size: " << (int)total_bytes << " Bytes" << std::endl;
         std::cout << "Operational Intensity: " << (double)getTotalFlops() / total_bytes << " Flops/Byte" << std::endl;
         std::cout << "Data Structure Size: " << getDataStructureSizeInBytes() << " Bytes" << std::endl;

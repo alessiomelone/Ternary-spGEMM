@@ -85,7 +85,7 @@ void InterleavedTCSC_baraq_comp_unr(T *X, const InterleavedTCSC_baraq &W_csc, T 
         {
             T y_pos[UNROLL_FACTOR] = {0};
             T y_neg[UNROLL_FACTOR] = {0};
-            T y_intr[UNROLL_FACTOR] = {0};
+            // T y_intr[UNROLL_FACTOR * 2] = {0};
 
             int k_intr_loop = col_start_interleaved[n];
             const int end_intr = col_start_interleaved[n + 1];
@@ -96,33 +96,45 @@ void InterleavedTCSC_baraq_comp_unr(T *X, const InterleavedTCSC_baraq &W_csc, T 
             //     T x_val_neg = X[m * K + row_index_interleaved[k+1]];
             //     y_val = y_val + x_val_pos - x_val_neg;
             // }
+            
+            T y_intr_0 = 0, y_intr_1 = 0, y_intr_2 = 0, y_intr_3 = 0, y_intr_4 = 0, y_intr_5 = 0, y_intr_6 = 0, y_intr_7 = 0,
+              y_intr_8 = 0, y_intr_9 = 0, y_intr_10 = 0, y_intr_11 = 0, y_intr_12 = 0, y_intr_13 = 0, y_intr_14 = 0, y_intr_15 = 0;
 
             for (; k_intr_loop + UNROLL_FACTOR <= end_intr; k_intr_loop += UNROLL_FACTOR)
             {
-                for (int u = 0; u < UNROLL_FACTOR; u += 2)
-                {
-                    y_intr[u] += X[m * K + row_index_interleaved[k_intr_loop + u]] - X[m * K + row_index_interleaved[k_intr_loop + u + 1]]; // positive then negative
-#ifdef INSTRUMENTATION_RUN
-                    flops += 2;
-#endif
-                }
+                // for (int u = 0; u < UNROLL_FACTOR; u += 2)
+                // {
+                    y_intr_0 += X[m * K + row_index_interleaved[k_intr_loop]];
+                    y_intr_1 -= X[m * K + row_index_interleaved[k_intr_loop + 1]];
+                    y_intr_2 += X[m * K + row_index_interleaved[k_intr_loop + 2]];
+                    y_intr_3 -= X[m * K + row_index_interleaved[k_intr_loop + 3]];
+                    y_intr_4 += X[m * K + row_index_interleaved[k_intr_loop + 4]];
+                    y_intr_5 -= X[m * K + row_index_interleaved[k_intr_loop + 5]];
+                    y_intr_6 += X[m * K + row_index_interleaved[k_intr_loop + 6]];
+                    y_intr_7 -= X[m * K + row_index_interleaved[k_intr_loop + 7]];
+                    y_intr_8 += X[m * K + row_index_interleaved[k_intr_loop + 8]];
+                    y_intr_9 -= X[m * K + row_index_interleaved[k_intr_loop + 9]];
+                    y_intr_10 += X[m * K + row_index_interleaved[k_intr_loop + 10]];
+                    y_intr_11 -= X[m * K + row_index_interleaved[k_intr_loop + 11]];
+                    y_intr_12 += X[m * K + row_index_interleaved[k_intr_loop + 12]];
+                    y_intr_13 -= X[m * K + row_index_interleaved[k_intr_loop + 13]];
+                    y_intr_14 += X[m * K + row_index_interleaved[k_intr_loop + 14]];
+                    y_intr_15 -= X[m * K + row_index_interleaved[k_intr_loop + 15]];
+                // }
             }
 
             T y_intr_final = 0;
-            for (int u = 0; u < UNROLL_FACTOR; u++)
-            {
-#ifdef INSTRUMENTATION_RUN // TODO: Is it fair to count accumulator FLOPs??
-                flops++;
-#endif
-                y_intr_final += y_intr[u];
-            }
+            // for (int u = 0; u < UNROLL_FACTOR; u++)
+            // {
+            //     y_intr_final += y_intr[u];
+            // }
+            y_intr_final = y_intr_0 + y_intr_1 + y_intr_2 + y_intr_3 + y_intr_4 + y_intr_5 + y_intr_6 + y_intr_7 +
+                           y_intr_8 + y_intr_9 + y_intr_10 + y_intr_11 + y_intr_12 + y_intr_13 + y_intr_14 + y_intr_15;
 
             for (; k_intr_loop < end_intr; k_intr_loop += 2)
             {
-#ifdef INSTRUMENTATION_RUN
-                flops++;
-#endif
-                y_intr_final += X[m * K + row_index_interleaved[k_intr_loop]] - X[m * K + row_index_interleaved[k_intr_loop + 1]];
+                y_intr_final += X[m * K + row_index_interleaved[k_intr_loop]];
+                y_intr_final -= X[m * K + row_index_interleaved[k_intr_loop + 1]];
             }
 
             int k_pos_loop = col_start_pos[n];
@@ -133,26 +145,17 @@ void InterleavedTCSC_baraq_comp_unr(T *X, const InterleavedTCSC_baraq &W_csc, T 
                 for (int u = 0; u < UNROLL_FACTOR; u++)
                 {
                     y_pos[u] += X[m * K + row_index_pos[k_pos_loop + u]];
-#ifdef INSTRUMENTATION_RUN
-                    flops++;
-#endif
                 }
             }
 
             T y_pos_final = 0;
             for (int u = 0; u < UNROLL_FACTOR; u++)
             {
-#ifdef INSTRUMENTATION_RUN
-                flops++;
-#endif
                 y_pos_final += y_pos[u];
             }
 
             for (; k_pos_loop < end_pos; k_pos_loop++)
             {
-#ifdef INSTRUMENTATION_RUN
-                flops++;
-#endif
                 y_pos_final += X[m * K + row_index_pos[k_pos_loop]];
             }
 
@@ -163,9 +166,6 @@ void InterleavedTCSC_baraq_comp_unr(T *X, const InterleavedTCSC_baraq &W_csc, T 
             {
                 for (int u = 0; u < UNROLL_FACTOR; u++)
                 {
-#ifdef INSTRUMENTATION_RUN
-                    flops++;
-#endif
                     y_neg[u] += X[m * K + row_index_neg[k_neg_loop + u]];
                 }
             }
@@ -173,22 +173,13 @@ void InterleavedTCSC_baraq_comp_unr(T *X, const InterleavedTCSC_baraq &W_csc, T 
             T y_neg_final = 0;
             for (int u = 0; u < UNROLL_FACTOR; u++)
             {
-#ifdef INSTRUMENTATION_RUN
-                flops++;
-#endif
                 y_neg_final += y_neg[u];
             }
 
             for (; k_neg_loop < end_neg; k_neg_loop++)
             {
-#ifdef INSTRUMENTATION_RUN
-                flops++;
-#endif
                 y_neg_final += X[m * K + row_index_neg[k_neg_loop]];
             }
-#ifdef INSTRUMENTATION_RUN
-            flops += 2;
-#endif
             Y[m * N + n] = (y_intr_final + y_pos_final - y_neg_final) + b[n];
         }
     }
@@ -1513,14 +1504,14 @@ void BlockedTCSC_interleaved_base(T *X, const BlockedTCSC_interleaved<B> &W_csc,
         for (int j = 0; j < N; j++)
             Y[m * N + j] = b[j];
         // Process each column-block of X
-        float *X_row_m = X + m * K;
+        T *X_row_m = X + m * K;
         for (int k_block = 0; k_block < num_blocks; k_block++)
         {
             for (int j = 0; j < N; j++)
             {
                 int index = k_block * N + j;
-                float sumPos = 0;
-                float sumNeg = 0;
+                T sumPos = 0;
+                T sumNeg = 0;
 
                 int pn_start_idx = segment_ptr_data[3 * index + 0];
                 int rem_pos_start_idx = segment_ptr_data[3 * index + 1];
@@ -1555,7 +1546,7 @@ void BlockedTCSC_interleaved_base(T *X, const BlockedTCSC_interleaved<B> &W_csc,
 #endif
                 }
 
-                float y_val = sumPos + sumNeg;
+                T y_val = sumPos + sumNeg;
                 Y[m * N + j] += y_val;
             }
         }
@@ -1583,12 +1574,12 @@ void BlockedTCSC_interleaved_unr(T *X, const BlockedTCSC_interleaved<B> &W_csc, 
             Y[m * N + j] = b[j];
 
         // Process each column-block of X
-        float *X_row_m = X + m * K;
+        T *X_row_m = X + m * K;
         for (int k_block = 0; k_block < num_blocks; k_block++)
         {
             for (int j = 0; j < N; j++)
             {
-                float y_acc[UNROLL_FACTOR];
+                T y_acc[UNROLL_FACTOR];
                 for (int u = 0; u < UNROLL_FACTOR; ++u)
                     y_acc[u] = 0;
 
@@ -1630,7 +1621,7 @@ void BlockedTCSC_interleaved_unr(T *X, const BlockedTCSC_interleaved<B> &W_csc, 
 
                 // Here I tried to unroll the previously serialized addition
                 constexpr int mid = UNROLL_FACTOR_HALF;
-                float y_acc0 = 0, y_acc1 = 0;
+                T y_acc0 = 0, y_acc1 = 0;
                 for (int u = 0, p = mid; u < UNROLL_FACTOR_HALF; u++, p++)
                 {
                     y_acc0 += y_acc[u];
