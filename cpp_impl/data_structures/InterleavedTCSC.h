@@ -1,83 +1,80 @@
 #pragma once
 #include <vector>
 #include <iostream>
+#include <numeric>
 #include <algorithm>
 
 class InterleavedTCSC
 {
 public:
-    std::vector<int> col_starts;
-    std::vector<int> interleaved_row_indices;
-    std::vector<int> interleaved_signs;
+  std::vector<int> all_indices;     // All row indices, grouped by pattern
+  std::vector<int> col_segment_ptr; // Pointers to segments within all_indices
 
-    InterleavedTCSC(const int *matrix, int rows, int cols)
+  int num_original_cols; // Number of columns
+
+  InterleavedTCSC(const int *matrix, int rows, int cols) : num_original_cols(cols)
+  {
+    col_segment_ptr.push_back(0);
+
+    std::vector<int> temp_pos_indices;
+    std::vector<int> temp_neg_indices;
+
+    for (int n = 0; n < cols; ++n)
     {
+      temp_pos_indices.clear();
+      temp_neg_indices.clear();
 
-        std::vector<int> temp_row_index_pos;
-        std::vector<int> temp_row_index_neg;
-
-        int nz_count = 0;
-
-        for (int n = 0; n < cols; ++n)
+      for (int k = 0; k < rows; ++k)
+      {
+        int val = matrix[k * cols + n];
+        if (val == 1)
         {
-            col_starts.push_back(nz_count);
-
-            temp_row_index_pos.clear();
-            temp_row_index_neg.clear();
-
-            for (int k = 0; k < rows; ++k)
-            {
-                int val = matrix[k * cols + n];
-                if (val == 1)
-                {
-                    temp_row_index_pos.push_back(k);
-                }
-                else if (val == -1)
-                {
-                    temp_row_index_neg.push_back(k);
-                }
-            }
-
-            size_t p_idx = 0;
-            size_t n_idx = 0;
-            size_t len_pos = temp_row_index_pos.size();
-            size_t len_neg = temp_row_index_neg.size();
-
-            while (p_idx + 1 < len_pos && n_idx + 1 < len_neg)
-            {
-                interleaved_row_indices.push_back(temp_row_index_pos[p_idx++]);
-                interleaved_signs.push_back(1);
-                interleaved_row_indices.push_back(temp_row_index_pos[p_idx++]);
-                interleaved_signs.push_back(1);
-
-                interleaved_row_indices.push_back(temp_row_index_neg[n_idx++]);
-                interleaved_signs.push_back(-1);
-                interleaved_row_indices.push_back(temp_row_index_neg[n_idx++]);
-                interleaved_signs.push_back(-1);
-                nz_count += 4;
-            }
-
-            while (p_idx < len_pos)
-            {
-                interleaved_row_indices.push_back(temp_row_index_pos[p_idx++]);
-                interleaved_signs.push_back(1);
-                nz_count++;
-            }
-
-            while (n_idx < len_neg)
-            {
-                interleaved_row_indices.push_back(temp_row_index_neg[n_idx++]);
-                interleaved_signs.push_back(-1);
-                nz_count++;
-            }
+          temp_pos_indices.push_back(k);
         }
-        col_starts.push_back(nz_count);
-    }
+        else if (val == -1)
+        {
+          temp_neg_indices.push_back(k);
+        }
+      }
 
-    int getDataStructureSize() const
-    {
-        return sizeof(int) * (col_starts.size() +
-                              interleaved_row_indices.size() +
-                              interleaved_signs.size());
+      size_t p_idx = 0;
+      size_t n_idx = 0;
+
+      // change group size here by chaning the + 1 to + 3 for grourps of 4
+      while (p_idx + 1 < temp_pos_indices.size() && n_idx + 1 < temp_neg_indices.size())
+      {
+        // copy and add extra lines for larger or fewer groups
+        all_indices.push_back(temp_pos_indices[p_idx++]);
+        all_indices.push_back(temp_pos_indices[p_idx++]);
+
+        // copy and add extra lines for larger or fewer groups
+        all_indices.push_back(temp_neg_indices[n_idx++]);
+        all_indices.push_back(temp_neg_indices[n_idx++]);
+      }
+      col_segment_ptr.push_back(all_indices.size());
+
+      // Remaining positives
+      while (p_idx < temp_pos_indices.size())
+      {
+        all_indices.push_back(temp_pos_indices[p_idx++]);
+      }
+      col_segment_ptr.push_back(all_indices.size());
+
+      // Remaining negatives
+      while (n_idx < temp_neg_indices.size())
+      {
+        all_indices.push_back(temp_neg_indices[n_idx++]);
+      }
+      col_segment_ptr.push_back(all_indices.size());
     }
+  }
+
+  int getDataStructureSize() const
+  {
+    size_t size_bytes = 0;
+    size_bytes += sizeof(int) * all_indices.size();
+    size_bytes += sizeof(int) * col_segment_ptr.size();
+    size_bytes += sizeof(int);
+    return size_bytes;
+  }
 };

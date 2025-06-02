@@ -1,4 +1,3 @@
-#include "data_structures/InterleavedTCSC_baraq.h"
 #include "sparseUtils.h"
 #include "common.h"
 #include <iomanip>
@@ -147,13 +146,5 @@ bool testRequired(int variants, bool verbose = false)
 
 int main()
 {
-    test<InterleavedTCSC_baraq>(3, 4, 2, 0, true);
-
-    // Sizes you'll probably use debugging
-    // printf("(1/2)\n");
-    // testMany<InterleavedTCSC_baraq>(40, 40, 2, 20, false);
-
-    // // Required sizes
-    // printf("(2/2)\n");
-    // testRequired<InterleavedTCSC_baraq>(10, true);
+    test<InterleavedTCSC>(3, 4, 2, 0, true);
 }

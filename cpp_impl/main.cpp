@@ -3,7 +3,7 @@
 #include "sparseUtils.h"
 #include "comp.h"
 
-#define BLOCK_SIZE_IBTCSC 512
+#define BLOCK_SIZE 512
 #define UNROLL_FACTOR_IBTCSC 16
 
 std::vector<comp_func> userFuncs;
@@ -45,183 +45,41 @@ int main(int argc, char **argv)
     std::vector<int> W_raw = generateSparseMatrix<int>(K, N, nonZero, false);
 
     // Initialize one instance per format
-    auto sf_csc = std::make_shared<BaseTCSC>(W_raw.data(), K, N);
-    auto sf_csr = std::make_shared<BaseTCSR>(W_raw.data(), K, N);
-    auto sf_ccsc = std::make_shared<CompressedCSC>(W_raw.data(), K, N);
-    auto sf_icsr = std::make_shared<ICSR>(W_raw.data(), K, N);
-    auto sf_icsc = std::make_shared<ICSC>(W_raw.data(), K, N);
-    auto sf_blocked = std::make_shared<BlockedTCSC<1024>>(W_raw.data(), K, N);
-    auto sf_blocked_interleaved = std::make_shared<BlockedTCSC_interleaved<1024>>(W_raw.data(), K, N);
-    auto sf_interleaved_baraq = std::make_shared<InterleavedTCSC_baraq>(W_raw.data(), K, N);
+    auto sf_csc = std::make_shared<TCSC>(W_raw.data(), K, N);
+    auto sf_csr = std::make_shared<TCSR>(W_raw.data(), K, N);
+
+    auto sf_blocked = std::make_shared<BlockedTCSC<BLOCK_SIZE>>(W_raw.data(), K, N);
+    auto sf_blocked_interleaved = std::make_shared<InterleavedBlockedTCSC<BLOCK_SIZE>>(W_raw.data(), K, N);
 
     auto sf_interleaved = std::make_shared<InterleavedTCSC>(W_raw.data(), K, N);
-    auto sf_interleaved_padding = std::make_shared<InterleavedTCSCPadding>(W_raw.data(), K, N);
-    auto sf_interleaved_blocked_harry = std::make_shared<BlockedTCSC_interleaved<BLOCK_SIZE_IBTCSC>>(W_raw.data(), K, N);
-    auto sf_interleaved_blocked_unrolled_harry = std::make_shared<BlockedTCSC_interleaved<BLOCK_SIZE_IBTCSC>>(W_raw.data(), K, N, UNROLL_FACTOR_IBTCSC);
 
     add_function(
         [sf_csc](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
         {
-            BaseCSC<float>(X_arg, *sf_csc, B_arg, Y_arg, M_arg, N_arg, K_arg);
+            BaseTCSC<float>(X_arg, *sf_csc, B_arg, Y_arg, M_arg, N_arg, K_arg);
         },
-        "BaseCSC_naive");
-
-    // add_function(
-    // [sf_interleaved_baraq](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
-    // {
-    //     InterleavedTCSC_baraq_comp<float>(X_arg, *sf_interleaved_baraq, B_arg, Y_arg, M_arg, N_arg, K_arg);
-    // },
-    // "InterleavedTCSC_baraq_comp");
+        "BaseTCSC");
 
     add_function(
-        [sf_interleaved_baraq](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
+        [sf_csr](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
         {
-            InterleavedTCSC_baraq_comp_unr<float, 16>(X_arg, *sf_interleaved_baraq, B_arg, Y_arg, M_arg, N_arg, K_arg);
+            BaseTCSR<float>(X_arg, *sf_csr, B_arg, Y_arg, M_arg, N_arg, K_arg);
         },
-        "InterleavedTCSC_baraq_comp_unr_16");
-
-    // add_function(
-    //     [sf_csc](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
-    //     {
-    //         TCSC_inter<float>(X_arg, *sf_csc, B_arg, Y_arg, M_arg, N_arg, K_arg);
-    //     },
-    //     "TCSC_interleaf");
-
-    // add_function(
-    //     [sf_interleaved](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
-    //     {
-    //         TCSC_interleaved_ds<float>(X_arg, *sf_interleaved, B_arg, Y_arg, M_arg, N_arg, K_arg);
-    //     },
-    //     "TCSC_interleaf with DS 1/-1");
-
-    // add_function(
-    //     [sf_interleaved_padding](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
-    //     {
-    //         TCSC_interleaved_padding<float>(X_arg, *sf_interleaved_padding, B_arg, Y_arg, M_arg, N_arg, K_arg);
-    //     },
-    //     "TCSC_interleaf with padding");
-
+        "BaseTCSR");
 
     add_function(
-        [sf_csc](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
+        [sf_blocked](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
         {
-            BaseCSC_unr<float, 12>(X_arg, *sf_csc, B_arg, Y_arg, M_arg, N_arg, K_arg);
+            BaseBlockedTCSC<float, BLOCK_SIZE>(X_arg, *sf_blocked, B_arg, Y_arg, M_arg, N_arg, K_arg);
         },
-        "BaseCSC_unrolled_12");
+        "BaseBlockedTCSC");
 
     add_function(
-        [sf_csc](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
+        [sf_interleaved](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
         {
-            TCSC_inter_unr<float, 12>(X_arg, *sf_csc, B_arg, Y_arg, M_arg, N_arg, K_arg);
+            BaseInterleavedTCSC<float>(X_arg, *sf_interleaved, B_arg, Y_arg, M_arg, N_arg, K_arg);
         },
-        "TCSC_interleaf_unrolled_12");
-
-    // std::string s = "BlockedTCSC_interleaved_base_Block_Size:" +  std::to_string(BLOCK_SIZE_IBTCSC) ;
-    //     add_function(
-    // [sf_interleaved_blocked_harry](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
-    // {
-    //     BlockedTCSC_interleaved_base<float, BLOCK_SIZE_IBTCSC>(X_arg, *sf_interleaved_blocked_harry, B_arg, Y_arg, M_arg, N_arg, K_arg);
-    // },
-    //  s.data());
-
-    // s = "BlockedTCSC_interleaved_unrolled_Block_Size:" +  std::to_string(BLOCK_SIZE_IBTCSC)  + "_Unroll_Factor:" + std::to_string(UNROLL_FACTOR_IBTCSC);
-    //     add_function(
-    // [sf_interleaved_blocked_unrolled_harry](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
-    // {
-    //     BlockedTCSC_interleaved_unr<float, BLOCK_SIZE_IBTCSC, UNROLL_FACTOR_IBTCSC>(X_arg, *sf_interleaved_blocked_unrolled_harry, B_arg, Y_arg, M_arg, N_arg, K_arg);
-    // },
-    //  s.data());
-
-    // add_function(
-    //     [sf_csc](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
-    //     {
-    //         BaseCSC_unr_tiled<float, 12, 12, 12>(X_arg, *sf_csc, B_arg, Y_arg, M_arg, N_arg, K_arg);
-    //     },
-    //     "BaseCSC_unrolled_tiled_12x12x12");
-
-    // add_function(
-    //     [sf_csc](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
-    //     {
-    //         TCSC_inter_unr_tiled<float, 12, 12, 12>(X_arg, *sf_csc, B_arg, Y_arg, M_arg, N_arg, K_arg);
-    //     },
-    //     "TCSC_inter_unr_tiled_12x12x12");
-
-    // add_function(
-    //     [sf_blocked](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
-    //     {
-    //         BlockedCSC<float, 1024>(X_arg, *sf_blocked, B_arg, Y_arg, M_arg, N_arg, K_arg);
-    //     },
-    //     "BlockedCSC_1024");
-
-    // add_function(
-    //     [sf_blocked](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
-    //     {
-    //         BlockedCSC_unr4<float, 1024>(X_arg, *sf_blocked, B_arg, Y_arg, M_arg, N_arg, K_arg);
-    //     },
-    //     "BlockedCSC_unr_1024");
-
-    // add_function(
-    //     [sf_csr](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
-    //     {
-    //         BaseCSR<float>(X_arg, *sf_csr, B_arg, Y_arg, M_arg, N_arg, K_arg);
-    //     },
-    //     "BaseCSR_naive");
-
-    // add_function(
-    //     [sf_csr](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
-    //     {
-    //         TCSR_inter<float>(X_arg, *sf_csr, B_arg, Y_arg, M_arg, N_arg, K_arg);
-    //     },
-    //     "TCSR_interleaf");
-
-    // add_function(
-    //     [sf_csc](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
-    //     {
-    //         BaseCSC_unr<float, 5>(X_arg, *sf_csc, B_arg, Y_arg, M_arg, N_arg, K_arg);
-    //     },
-    //     "BaseCSC_unrolled_5");
-
-    // add_function(
-    //     [sf_csr](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
-    //     {
-    //         BaseCSR_unr<float, 8>(X_arg, *sf_csr, B_arg, Y_arg, M_arg, N_arg, K_arg);
-    //     },
-    //     "BaseCSR_unrolled_8");
-
-    // add_function(
-    //     [sf_csr](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
-    //     {
-    //         BaseCSR_unr<float, 16>(X_arg, *sf_csr, B_arg, Y_arg, M_arg, N_arg, K_arg);
-    //     },
-    //     "BaseCSR_unrolled_16");
-
-    // add_function(
-    //     [sf_ccsc](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
-    //     {
-    //         CCSC_base<float>(X_arg, *sf_ccsc, B_arg, Y_arg, M_arg, N_arg, K_arg);
-    //     },
-    //     "CompressedCSC_naive");
-
-    // add_function(
-    //     [sf_ccsc](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
-    //     {
-    //         CCSC_unr<float>(X_arg, *sf_ccsc, B_arg, Y_arg, M_arg, N_arg, K_arg);
-    //     },
-    //     "CompressedCSC_unrolled_5");
-
-    // add_function(
-    //     [sf_icsr](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
-    //     {
-    //         ICSR_base<float>(X_arg, *sf_icsr, B_arg, Y_arg, M_arg, N_arg, K_arg);
-    //     },
-    //     "ICSR_naive");
-
-    // add_function(
-    //     [sf_icsc](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
-    //     {
-    //         ICSC_base<float>(X_arg, *sf_icsc, B_arg, Y_arg, M_arg, N_arg, K_arg);
-    //     },
-    //     "ICSC_naive");
+        "BaseInterleavedTCSC");
 
     if (numFuncs == 0)
     {
@@ -269,7 +127,7 @@ int main(int argc, char **argv)
         perf_val = perf_test(userFuncs[i_loop], M, K, N, nonZero);
         std::cout << "\nRunning: " << "\x1b[31m" << funcNames[i_loop] << "\x1b[0m" << std::endl;
         std::cout << perf_val << " cycles" << std::endl;
-        if (funcNames[i_loop] == "BaseCSC_naive")
+        if (funcNames[i_loop] == "BaseTCSC")
         {
             base_cycles = perf_val;
         }

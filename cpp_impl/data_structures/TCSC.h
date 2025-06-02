@@ -2,7 +2,7 @@
 #include <vector>
 #include <iostream>
 
-class BaseTCSC
+class TCSC
 {
 public:
     std::vector<int> col_start_pos;
@@ -10,7 +10,7 @@ public:
     std::vector<int> row_index_pos;
     std::vector<int> row_index_neg;
 
-    BaseTCSC(const int *matrix, int rows, int cols)
+    TCSC(const int *matrix, int rows, int cols)
     {
         int column_start_pos = 0;
         int column_start_neg = 0;

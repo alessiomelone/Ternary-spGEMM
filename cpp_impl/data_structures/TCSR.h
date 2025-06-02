@@ -2,7 +2,7 @@
 #include <vector>
 #include <iostream>
 
-class BaseTCSR
+class TCSR
 {
 public:
     std::vector<int> row_start_pos;
@@ -10,7 +10,7 @@ public:
     std::vector<int> col_index_pos;
     std::vector<int> col_index_neg;
 
-    BaseTCSR(const int *matrix, int rows, int cols)
+    TCSR(const int *matrix, int rows, int cols)
     {
         int row_start_pos_count = 0;
         int row_start_neg_count = 0;
