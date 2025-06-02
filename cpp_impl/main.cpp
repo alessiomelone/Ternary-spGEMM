@@ -48,7 +48,7 @@ int main(int argc, char **argv)
     auto sf_csr = std::make_shared<TCSR>(W_raw.data(), K, N);
 
     auto sf_blocked = std::make_shared<BlockedTCSC<BLOCK_SIZE>>(W_raw.data(), K, N);
-    auto sf_blocked_interleaved = std::make_shared<InterleavedBlockedTCSC<BLOCK_SIZE>>(W_raw.data(), K, N);
+    auto sf_blocked_interleaved_8 = std::make_shared<InterleavedBlockedTCSC<BLOCK_SIZE>>(W_raw.data(), K, N, 8);
 
     auto sf_interleaved = std::make_shared<InterleavedTCSC>(W_raw.data(), K, N);
 
@@ -69,23 +69,9 @@ int main(int argc, char **argv)
     add_function(
         [sf_csc](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
         {
-            UnrolledTCSC<float, 12>(X_arg, *sf_csc, B_arg, Y_arg, M_arg, N_arg, K_arg);
-        },
-        "UnrolledTCSC_" + std::to_string(8));
-
-    add_function(
-        [sf_csc](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
-        {
             UnrolledModifiedTCSC<float, 12>(X_arg, *sf_csc, B_arg, Y_arg, M_arg, N_arg, K_arg);
         },
         "UnrolledModifiedTCSC_" + std::to_string(12));
-
-    add_function(
-        [sf_csc](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
-        {
-            UnrolledModifiedTCSC<float, 8>(X_arg, *sf_csc, B_arg, Y_arg, M_arg, N_arg, K_arg);
-        },
-        "UnrolledModifiedTCSC_" + std::to_string(8));
 
     add_function(
         [sf_blocked](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
@@ -95,23 +81,9 @@ int main(int argc, char **argv)
         "UnrolledBlockedTCSC_" + std::to_string(12));
 
     add_function(
-        [sf_blocked](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
+        [sf_blocked_interleaved_8](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
         {
-            UnrolledBlockedTCSC<float, BLOCK_SIZE, 8>(X_arg, *sf_blocked, B_arg, Y_arg, M_arg, N_arg, K_arg);
-        },
-        "UnrolledBlockedTCSC_" + std::to_string(8));
-
-    add_function(
-        [sf_blocked_interleaved](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
-        {
-            UnrolledInterleavedBlockedTCSC<float, BLOCK_SIZE, 12>(X_arg, *sf_blocked_interleaved, B_arg, Y_arg, M_arg, N_arg, K_arg);
-        },
-        "UnrolledInterleavedBlockedTCSC_" + std::to_string(12));
-
-    add_function(
-        [sf_blocked_interleaved](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
-        {
-            UnrolledInterleavedBlockedTCSC<float, BLOCK_SIZE, 8>(X_arg, *sf_blocked_interleaved, B_arg, Y_arg, M_arg, N_arg, K_arg);
+            UnrolledInterleavedBlockedTCSC<float, BLOCK_SIZE, 8>(X_arg, *sf_blocked_interleaved_8, B_arg, Y_arg, M_arg, N_arg, K_arg);
         },
         "UnrolledInterleavedBlockedTCSC_" + std::to_string(8));
 
