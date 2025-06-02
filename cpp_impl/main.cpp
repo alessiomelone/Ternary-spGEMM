@@ -57,23 +57,23 @@ int main(int argc, char **argv)
     auto sf_interleaved = std::make_shared<InterleavedTCSC>(W_raw.data(), K, N);
     auto sf_interleaved_padding = std::make_shared<InterleavedTCSCPadding>(W_raw.data(), K, N);
     auto sf_interleaved_blocked_harry = std::make_shared<BlockedTCSC_interleaved<BLOCK_SIZE_IBTCSC>>(W_raw.data(), K, N);
-    auto sf_interleaved_blocked_unrolled_harry = std::make_shared<BlockedTCSC_interleaved<BLOCK_SIZE_IBTCSC>>(W_raw.data(), K, N, UNROLL_FACTOR_IBTCSC);    
-    
+    auto sf_interleaved_blocked_unrolled_harry = std::make_shared<BlockedTCSC_interleaved<BLOCK_SIZE_IBTCSC>>(W_raw.data(), K, N, UNROLL_FACTOR_IBTCSC);
+
     add_function(
         [sf_csc](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
         {
             BaseCSC<float>(X_arg, *sf_csc, B_arg, Y_arg, M_arg, N_arg, K_arg);
         },
         "BaseCSC_naive");
-    
-        // add_function(
-        // [sf_interleaved_baraq](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
-        // {
-        //     InterleavedTCSC_baraq_comp<float>(X_arg, *sf_interleaved_baraq, B_arg, Y_arg, M_arg, N_arg, K_arg);
-        // },
-        // "InterleavedTCSC_baraq_comp");
 
-        add_function(
+    // add_function(
+    // [sf_interleaved_baraq](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
+    // {
+    //     InterleavedTCSC_baraq_comp<float>(X_arg, *sf_interleaved_baraq, B_arg, Y_arg, M_arg, N_arg, K_arg);
+    // },
+    // "InterleavedTCSC_baraq_comp");
+
+    add_function(
         [sf_interleaved_baraq](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
         {
             InterleavedTCSC_baraq_comp_unr<float, 16>(X_arg, *sf_interleaved_baraq, B_arg, Y_arg, M_arg, N_arg, K_arg);
@@ -101,42 +101,36 @@ int main(int argc, char **argv)
     //     },
     //     "TCSC_interleaf with padding");
 
+
     add_function(
         [sf_csc](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
         {
-            BaseCSC_unr<float, 16>(X_arg, *sf_csc, B_arg, Y_arg, M_arg, N_arg, K_arg);
+            BaseCSC_unr<float, 12>(X_arg, *sf_csc, B_arg, Y_arg, M_arg, N_arg, K_arg);
         },
-        "BaseCSC_unrolled_16");
-    
-        add_function(
+        "BaseCSC_unrolled_12");
+
+    add_function(
         [sf_csc](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
         {
-            BaseCSC_unr_vectorized<float, 16>(X_arg, *sf_csc, B_arg, Y_arg, M_arg, N_arg, K_arg);
+            TCSC_inter_unr<float, 12>(X_arg, *sf_csc, B_arg, Y_arg, M_arg, N_arg, K_arg);
         },
-        "BaseCSC_unrolled_16_vectorized");
+        "TCSC_interleaf_unrolled_12");
 
-    // add_function(
-    //     [sf_csc](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
-    //     {
-    //         TCSC_inter_unr<float, 16>(X_arg, *sf_csc, B_arg, Y_arg, M_arg, N_arg, K_arg);
-    //     },
-    //     "TCSC_interleaf_unrolled_16");
+    // std::string s = "BlockedTCSC_interleaved_base_Block_Size:" +  std::to_string(BLOCK_SIZE_IBTCSC) ;
+    //     add_function(
+    // [sf_interleaved_blocked_harry](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
+    // {
+    //     BlockedTCSC_interleaved_base<float, BLOCK_SIZE_IBTCSC>(X_arg, *sf_interleaved_blocked_harry, B_arg, Y_arg, M_arg, N_arg, K_arg);
+    // },
+    //  s.data());
 
-        // std::string s = "BlockedTCSC_interleaved_base_Block_Size:" +  std::to_string(BLOCK_SIZE_IBTCSC) ;
-        //     add_function(
-        // [sf_interleaved_blocked_harry](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
-        // {
-        //     BlockedTCSC_interleaved_base<float, BLOCK_SIZE_IBTCSC>(X_arg, *sf_interleaved_blocked_harry, B_arg, Y_arg, M_arg, N_arg, K_arg);
-        // },
-        //  s.data());
-    
-        // s = "BlockedTCSC_interleaved_unrolled_Block_Size:" +  std::to_string(BLOCK_SIZE_IBTCSC)  + "_Unroll_Factor:" + std::to_string(UNROLL_FACTOR_IBTCSC);
-        //     add_function(
-        // [sf_interleaved_blocked_unrolled_harry](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
-        // {
-        //     BlockedTCSC_interleaved_unr<float, BLOCK_SIZE_IBTCSC, UNROLL_FACTOR_IBTCSC>(X_arg, *sf_interleaved_blocked_unrolled_harry, B_arg, Y_arg, M_arg, N_arg, K_arg);
-        // },
-        //  s.data());
+    // s = "BlockedTCSC_interleaved_unrolled_Block_Size:" +  std::to_string(BLOCK_SIZE_IBTCSC)  + "_Unroll_Factor:" + std::to_string(UNROLL_FACTOR_IBTCSC);
+    //     add_function(
+    // [sf_interleaved_blocked_unrolled_harry](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
+    // {
+    //     BlockedTCSC_interleaved_unr<float, BLOCK_SIZE_IBTCSC, UNROLL_FACTOR_IBTCSC>(X_arg, *sf_interleaved_blocked_unrolled_harry, B_arg, Y_arg, M_arg, N_arg, K_arg);
+    // },
+    //  s.data());
 
     // add_function(
     //     [sf_csc](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
@@ -261,8 +255,9 @@ int main(int argc, char **argv)
             }
             else
             {
-                std::cout << "Test case "  << "\x1b[31m" << funcNames[i_loop] << " failed!" << "\x1b[0m" <<  std::endl;
-                std::cout << "\n\n  Please fix the failing fn or comment out the invocaton from main.cpp.\n\nExiting...\n\n" << std::endl;
+                std::cout << "Test case " << "\x1b[31m" << funcNames[i_loop] << " failed!" << "\x1b[0m" << std::endl;
+                std::cout << "\n\n  Please fix the failing fn or comment out the invocaton from main.cpp.\n\nExiting...\n\n"
+                          << std::endl;
                 exit(1);
             }
         }
@@ -274,7 +269,8 @@ int main(int argc, char **argv)
         perf_val = perf_test(userFuncs[i_loop], M, K, N, nonZero);
         std::cout << "\nRunning: " << "\x1b[31m" << funcNames[i_loop] << "\x1b[0m" << std::endl;
         std::cout << perf_val << " cycles" << std::endl;
-        if (funcNames[i_loop] == "BaseCSC_naive") {
+        if (funcNames[i_loop] == "BaseCSC_naive")
+        {
             base_cycles = perf_val;
         }
         std::cout << "Speedup is: " << "\x1b[32m" << base_cycles / perf_val << "\x1b[0m" << std::endl;
