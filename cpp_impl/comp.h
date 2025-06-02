@@ -3,6 +3,7 @@
 
 #include "common.h"
 #include <iostream>
+#include <arm_neon.h>
 
 #ifdef INSTRUMENTATION_RUN
 long long flops = 0;
@@ -812,5 +813,211 @@ void UnrolledInterleavedBlockedTCSC(T *X, const InterleavedBlockedTCSC<B> &W_csc
         }
     }
 }
+
+template <typename T>
+void NeonInterleavedTCSC(T *X, const InterleavedTCSC &W_csc, T *b, T *Y, int M, int N, int K)
+{
+    const int *indices_data = W_csc.all_indices.data();
+    const int *segment_ptr_data = W_csc.col_segment_ptr.data();
+
+    // Create a sign vector for addition and subtraction
+    const float32x4_t signs = {1.0f, 1.0f, -1.0f, -1.0f};
+
+    for (int m = 0; m < M; ++m)
+    {
+        const T *X_row_m = X + m * K;
+        for (int n = 0; n < N; n += 4)
+        {
+            T y_val0 = 0;
+            T y_val1 = 0;
+            T y_val2 = 0;
+            T y_val3 = 0;
+            { // n = 0
+                // Initialize an accumulator vector to zeros
+                float32x4_t y_val_vec = vdupq_n_f32(0.0f);
+
+                // Load counters from ds
+                int32x4_t indices_vec = vld1q_s32(segment_ptr_data + 3 * n);
+                int pn_start_idx = vgetq_lane_s32(indices_vec, 0);
+                int rem_pos_start_idx = vgetq_lane_s32(indices_vec, 1);
+                int rem_neg_start_idx = vgetq_lane_s32(indices_vec, 2);
+                int next_col_start_idx = vgetq_lane_s32(indices_vec, 3);
+
+                int k_ptr = pn_start_idx;
+                for (; k_ptr + 3 < rem_pos_start_idx; k_ptr += 4)
+                {
+                    // Load indices
+                    int32x4_t indices_vec = vld1q_s32(indices_data + k_ptr);
+
+                    // Gather values from X_row_m using the indices
+                    float32x4_t x_vals = {
+                        X_row_m[vgetq_lane_s32(indices_vec, 0)],
+                        X_row_m[vgetq_lane_s32(indices_vec, 1)],
+                        X_row_m[vgetq_lane_s32(indices_vec, 2)],
+                        X_row_m[vgetq_lane_s32(indices_vec, 3)]
+                    };
+
+                    // Perform fused multiply-add: y_val_vec += x_vals * signs
+                    y_val_vec = vmlaq_f32(y_val_vec, x_vals, signs);
+                }
+                
+                // Horizontally add the elements of the accumulator vector
+                y_val0 += vaddvq_f32(y_val_vec);
+
+                // Handle the remaining elements (positive contributions)
+                for (k_ptr = rem_pos_start_idx; k_ptr < rem_neg_start_idx; ++k_ptr)
+                {
+                    y_val0 += X_row_m[indices_data[k_ptr]];
+                }
+
+                // Handle the remaining elements (negative contributions)
+                for (k_ptr = rem_neg_start_idx; k_ptr < next_col_start_idx; ++k_ptr)
+                {
+                    y_val0 -= X_row_m[indices_data[k_ptr]];
+                }
+            }
+
+            { // n = 1
+                // Initialize an accumulator vector to zeros
+                float32x4_t y_val_vec = vdupq_n_f32(0.0f);
+
+                // Load counters from ds
+                int32x4_t indices_vec = vld1q_s32(segment_ptr_data + 3 * (n+1));
+                int pn_start_idx = vgetq_lane_s32(indices_vec, 0);
+                int rem_pos_start_idx = vgetq_lane_s32(indices_vec, 1);
+                int rem_neg_start_idx = vgetq_lane_s32(indices_vec, 2);
+                int next_col_start_idx = vgetq_lane_s32(indices_vec, 3);
+
+                int k_ptr = pn_start_idx;
+                for (; k_ptr + 3 < rem_pos_start_idx; k_ptr += 4)
+                {
+                    // Load indices
+                    int32x4_t indices_vec = vld1q_s32(indices_data + k_ptr);
+
+                    // Gather values from X_row_m using the indices
+                    float32x4_t x_vals = {
+                        X_row_m[vgetq_lane_s32(indices_vec, 0)],
+                        X_row_m[vgetq_lane_s32(indices_vec, 1)],
+                        X_row_m[vgetq_lane_s32(indices_vec, 2)],
+                        X_row_m[vgetq_lane_s32(indices_vec, 3)]
+                    };
+
+                    // Perform fused multiply-add: y_val_vec += x_vals * signs
+                    y_val_vec = vmlaq_f32(y_val_vec, x_vals, signs);
+                }
+                
+                // Horizontally add the elements of the accumulator vector
+                y_val1 += vaddvq_f32(y_val_vec);
+
+                // Handle the remaining elements (positive contributions)
+                for (k_ptr = rem_pos_start_idx; k_ptr < rem_neg_start_idx; ++k_ptr)
+                {
+                    y_val1 += X_row_m[indices_data[k_ptr]];
+                }
+
+                // Handle the remaining elements (negative contributions)
+                for (k_ptr = rem_neg_start_idx; k_ptr < next_col_start_idx; ++k_ptr)
+                {
+                    y_val1 -= X_row_m[indices_data[k_ptr]];
+                }
+            }
+
+            { // n = 2
+                // Initialize an accumulator vector to zeros
+                float32x4_t y_val_vec = vdupq_n_f32(0.0f);
+
+                // Load counters from ds
+                int32x4_t indices_vec = vld1q_s32(segment_ptr_data + 3 * (n+2));
+                int pn_start_idx = vgetq_lane_s32(indices_vec, 0);
+                int rem_pos_start_idx = vgetq_lane_s32(indices_vec, 1);
+                int rem_neg_start_idx = vgetq_lane_s32(indices_vec, 2);
+                int next_col_start_idx = vgetq_lane_s32(indices_vec, 3);
+
+                int k_ptr = pn_start_idx;
+                for (; k_ptr + 3 < rem_pos_start_idx; k_ptr += 4)
+                {
+                    // Load indices
+                    int32x4_t indices_vec = vld1q_s32(indices_data + k_ptr);
+
+                    // Gather values from X_row_m using the indices
+                    float32x4_t x_vals = {
+                        X_row_m[vgetq_lane_s32(indices_vec, 0)],
+                        X_row_m[vgetq_lane_s32(indices_vec, 1)],
+                        X_row_m[vgetq_lane_s32(indices_vec, 2)],
+                        X_row_m[vgetq_lane_s32(indices_vec, 3)]
+                    };
+
+                    // Perform fused multiply-add: y_val_vec += x_vals * signs
+                    y_val_vec = vmlaq_f32(y_val_vec, x_vals, signs);
+                }
+                
+                // Horizontally add the elements of the accumulator vector
+                y_val2 += vaddvq_f32(y_val_vec);
+
+                // Handle the remaining elements (positive contributions)
+                for (k_ptr = rem_pos_start_idx; k_ptr < rem_neg_start_idx; ++k_ptr)
+                {
+                    y_val2 += X_row_m[indices_data[k_ptr]];
+                }
+
+                // Handle the remaining elements (negative contributions)
+                for (k_ptr = rem_neg_start_idx; k_ptr < next_col_start_idx; ++k_ptr)
+                {
+                    y_val2 -= X_row_m[indices_data[k_ptr]];
+                }
+            }
+            { // n = 3
+                // Initialize an accumulator vector to zeros
+                float32x4_t y_val_vec = vdupq_n_f32(0.0f);
+
+                // Load counters from ds
+                int32x4_t indices_vec = vld1q_s32(segment_ptr_data + 3 * (n+3));
+                int pn_start_idx = vgetq_lane_s32(indices_vec, 0);
+                int rem_pos_start_idx = vgetq_lane_s32(indices_vec, 1);
+                int rem_neg_start_idx = vgetq_lane_s32(indices_vec, 2);
+                int next_col_start_idx = vgetq_lane_s32(indices_vec, 3);
+
+                int k_ptr = pn_start_idx;
+                for (; k_ptr + 3 < rem_pos_start_idx; k_ptr += 4)
+                {
+                    // Load indices
+                    int32x4_t indices_vec = vld1q_s32(indices_data + k_ptr);
+
+                    // Gather values from X_row_m using the indices
+                    float32x4_t x_vals = {
+                        X_row_m[vgetq_lane_s32(indices_vec, 0)],
+                        X_row_m[vgetq_lane_s32(indices_vec, 1)],
+                        X_row_m[vgetq_lane_s32(indices_vec, 2)],
+                        X_row_m[vgetq_lane_s32(indices_vec, 3)]
+                    };
+
+                    // Perform fused multiply-add: y_val_vec += x_vals * signs
+                    y_val_vec = vmlaq_f32(y_val_vec, x_vals, signs);
+                }
+                
+                // Horizontally add the elements of the accumulator vector
+                y_val3 += vaddvq_f32(y_val_vec);
+
+                // Handle the remaining elements (positive contributions)
+                for (k_ptr = rem_pos_start_idx; k_ptr < rem_neg_start_idx; ++k_ptr)
+                {
+                    y_val3 += X_row_m[indices_data[k_ptr]];
+                }
+
+                // Handle the remaining elements (negative contributions)
+                for (k_ptr = rem_neg_start_idx; k_ptr < next_col_start_idx; ++k_ptr)
+                {
+                    y_val3 -= X_row_m[indices_data[k_ptr]];
+                }
+            }
+
+            float32x4_t y_res = { y_val0, y_val1, y_val2, y_val3 };
+            float32x4_t b_vals = vld1q_f32(b + n);
+            float32x4_t store_in_y = vaddq_f32(y_res, b_vals);
+            vst1q_f32(Y + m * N + n, store_in_y);
+        }
+    }
+}
+
 
 #endif
