@@ -2,11 +2,11 @@
 #include <iostream>
 #include <vector>
 #include <random>
-using namespace std;
+
 template <typename T>
-vector<T> initX(int LEN, int Range, bool uniformDistribution = false)
+std::vector<T> initX(int LEN, int Range, bool uniformDistribution = false)
 {
-    vector<T> X(LEN, 0);
+    std::vector<T> X(LEN, 0);
     mt19937 generator(static_cast<unsigned int>(time(0)));
     uniform_int_distribution<int> range(-Range, Range);
     if (uniformDistribution)
@@ -30,7 +30,7 @@ vector<T> generateSparseMatrix(int H, int W, int nonZero, bool uniformDistributi
         srand(seed);
     }
 
-    vector<T> y = vector<T>(H * W, 0);
+    std::vector<T> y = std::vector<T>(H * W, 0);
     if (uniformDistribution)
     {
         for (int h = 0; h < H; h++)

@@ -1,6 +1,6 @@
 #pragma once
 #include <vector>
-
+// If we want to use test_data_structure.cpp for debugging, we need to implement this interface.
 class DataStructureInterface
 {
 public:
@@ -11,7 +11,4 @@ public:
 
     // Convert back to a dense matrix representation
     virtual std::vector<int> getVectorRepresentation(size_t rows, size_t cols) = 0;
-
-    // Debug/print functionality
-    // virtual void printVars() = 0;
 };
