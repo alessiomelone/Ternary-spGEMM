@@ -335,6 +335,7 @@ void BaseInterleavedTCSC(T *X, const InterleavedTCSC &W_csc, T *b, T *Y, int M, 
 
 template <typename T, int UNROLL_FACTOR>
 void UnrolledInterleavedTCSC(T *X, const InterleavedTCSC &W_csc, T *b, T *Y, int M, int N, int K)
+
 {
 
 #ifdef INSTRUMENTATION_RUN
@@ -473,6 +474,7 @@ void UnrolledInterleavedTCSC(T *X, const InterleavedTCSC &W_csc, T *b, T *Y, int
         }
     }
 }
+
 // TCSR
 
 template <typename T>

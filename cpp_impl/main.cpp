@@ -74,12 +74,12 @@ int main(int argc, char **argv)
         },
         "BaseBlockedTCSC");
 
-    add_function(
-        [sf_interleaved](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
-        {
-            BaseInterleavedTCSC<float>(X_arg, *sf_interleaved, B_arg, Y_arg, M_arg, N_arg, K_arg);
-        },
-        "BaseInterleavedTCSC");
+    // add_function(
+    //     [sf_interleaved](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
+    //     {
+    //         BaseInterleavedTCSC<float>(X_arg, *sf_interleaved, B_arg, Y_arg, M_arg, N_arg, K_arg);
+    //     },
+    //     "BaseInterleavedTCSC");
 
     add_function(
         [sf_csc](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
@@ -95,19 +95,19 @@ int main(int argc, char **argv)
         },
         "UnrolledTCSC_12");
 
-    add_function(
-        [sf_interleaved](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
-        {
-            NeonInterleavedTCSC<float>(X_arg, *sf_interleaved, B_arg, Y_arg, M_arg, N_arg, K_arg);
-        },
-        "NeonInterleavedTCSC");
+    // add_function(
+    //     [sf_interleaved](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
+    //     {
+    //         NeonInterleavedTCSC<float>(X_arg, *sf_interleaved, B_arg, Y_arg, M_arg, N_arg, K_arg);
+    //     },
+    //     "NeonInterleavedTCSC");
 
-    add_function(
-        [sf_interleaved](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
-        {
-            UnrolledInterleavedTCSC<float, 8>(X_arg, *sf_interleaved, B_arg, Y_arg, M_arg, N_arg, K_arg);
-        },
-        "BaseInterleavedTCSC");
+    // add_function(
+    //     [sf_interleaved](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
+    //     {
+    //         UnrolledInterleavedTCSC<float, 8>(X_arg, *sf_interleaved, B_arg, Y_arg, M_arg, N_arg, K_arg);
+    //     },
+    //     "UnrolledInterleavedTCSC");
 
     if (numFuncs == 0)
     {
