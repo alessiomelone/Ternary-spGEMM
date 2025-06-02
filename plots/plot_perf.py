@@ -145,7 +145,7 @@ def create_performance_plot(json_filepath, title, outname):
     dt = datetime.now()
     ts = datetime.timestamp(dt) * 100
     ts = int(ts)
-    output_dir = os.path.join("plots", "roofline", "plot_images")
+    output_dir = os.path.join("plots", "plot_images")
     os.makedirs(output_dir, exist_ok=True)
     plot_filename = os.path.join(output_dir, f"{outname}_{ts}.png")
     try:

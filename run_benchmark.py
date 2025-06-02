@@ -20,7 +20,7 @@ def run_and_parse_benchmark(save_results=False):
         for k_val, n_val in zip(K_values, N_values):
             test_cases.append((m_val, k_val, n_val))
     
-    non_zero_s = 8
+    non_zero_s = 2
     executable_path = "./sparseGEMM.out" 
     base_command = ["sudo", executable_path]
 

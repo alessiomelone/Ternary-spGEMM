@@ -68,6 +68,114 @@ void BaseTCSC(T *X, const TCSC &W_csc, T *b, T *Y, int M, int N, int K)
 }
 
 template <typename T, int UNROLL_FACTOR>
+void UnrolledModifiedTCSC(T *X, const TCSC &W_csc, T *b, T *Y, int M, int N, int K)
+{
+#ifdef INSTRUMENTATION_RUN
+    flops = 0;
+    ds_size = W_csc.getDataStructureSize();
+#endif
+    const int *col_start_pos = W_csc.col_start_pos.data();
+    const int *col_start_neg = W_csc.col_start_neg.data();
+    const int *row_index_pos = W_csc.row_index_pos.data();
+    const int *row_index_neg = W_csc.row_index_neg.data();
+
+    for (int m = 0; m < M; m++)
+    {
+        const T *X_row_m = X + m * K;
+        for (int n = 0; n < N; n++)
+        {
+            T y_acc[UNROLL_FACTOR];
+            for (int u = 0; u < UNROLL_FACTOR; ++u)
+            {
+                y_acc[u] = T(0);
+            }
+
+            int p_pos_k_idx = col_start_pos[n];
+            const int end_pos_k_idx = col_start_pos[n + 1];
+            int p_neg_k_idx = col_start_neg[n];
+            const int end_neg_k_idx = col_start_neg[n + 1];
+
+            while (p_pos_k_idx + UNROLL_FACTOR <= end_pos_k_idx &&
+                   p_neg_k_idx + UNROLL_FACTOR <= end_neg_k_idx)
+            {
+                for (int u = 0; u < UNROLL_FACTOR; u++)
+                {
+
+                    y_acc[u] += X_row_m[row_index_pos[p_pos_k_idx + u]];
+#ifdef INSTRUMENTATION_RUN
+                    flops++;
+#endif
+                }
+                p_pos_k_idx += UNROLL_FACTOR;
+
+                for (int u = 0; u < UNROLL_FACTOR; u++)
+                {
+                    y_acc[u] -= X_row_m[row_index_neg[p_neg_k_idx + u]];
+#ifdef INSTRUMENTATION_RUN
+                    flops++;
+#endif
+                }
+                p_neg_k_idx += UNROLL_FACTOR;
+            }
+
+            while (p_pos_k_idx + UNROLL_FACTOR <= end_pos_k_idx)
+            {
+                for (int u = 0; u < UNROLL_FACTOR; u++)
+                {
+                    y_acc[u] += X_row_m[row_index_pos[p_pos_k_idx + u]];
+#ifdef INSTRUMENTATION_RUN
+                    flops++;
+#endif
+                }
+                p_pos_k_idx += UNROLL_FACTOR;
+            }
+
+            while (p_pos_k_idx < end_pos_k_idx)
+            {
+                y_acc[0] += X_row_m[row_index_pos[p_pos_k_idx++]];
+#ifdef INSTRUMENTATION_RUN
+                flops++;
+#endif
+            }
+
+            while (p_neg_k_idx + UNROLL_FACTOR <= end_neg_k_idx)
+            {
+                for (int u = 0; u < UNROLL_FACTOR; u++)
+                {
+                    y_acc[u] -= X_row_m[row_index_neg[p_neg_k_idx + u]];
+#ifdef INSTRUMENTATION_RUN
+                    flops++;
+#endif
+                }
+                p_neg_k_idx += UNROLL_FACTOR;
+            }
+
+            while (p_neg_k_idx < end_neg_k_idx)
+            {
+                y_acc[0] -= X_row_m[row_index_neg[p_neg_k_idx++]];
+#ifdef INSTRUMENTATION_RUN
+                flops++;
+#endif
+            }
+
+            T y_final = T(0);
+            for (int u = 0; u < UNROLL_FACTOR; u++)
+            {
+                y_final += y_acc[u];
+#ifdef INSTRUMENTATION_RUN
+                flops++;
+#endif
+            }
+
+            Y[m * N + n] = y_final + b[n];
+#ifdef INSTRUMENTATION_RUN
+            flops++;
+#endif
+        }
+    }
+}
+
+template <typename T, int UNROLL_FACTOR>
 void UnrolledTCSC(T *X, const TCSC &W_csc, T *b, T *Y, int M, int N, int K)
 {
 #ifdef INSTRUMENTATION_RUN
