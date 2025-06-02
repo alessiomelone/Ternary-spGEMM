@@ -7,6 +7,7 @@
 #include "data_structures/BlockedTCSC.h"
 #include "data_structures/InterleavedBlockedTCSC.h"
 #include "data_structures/InterleavedTCSC.h"
+#include "data_structures/VectorTCSC.h"
 
 using comp_func = std::function<void(float *X, float *B, float *Y, int M, int N, int K)>;
 

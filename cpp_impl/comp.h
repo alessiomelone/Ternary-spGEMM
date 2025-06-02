@@ -937,204 +937,296 @@ void UnrolledInterleavedBlockedTCSC(T *X, const InterleavedBlockedTCSC<B> &W_csc
 }
 
 template <typename T>
-void NeonInterleavedTCSC(T *X, const InterleavedTCSC &W_csc, T *b, T *Y, int M, int N, int K)
+void NeonTCSC(float *X, const TCSC &W_csc, float *b, float *Y, int M, int N, int K)
 {
-    const int *indices_data = W_csc.all_indices.data();
-    const int *segment_ptr_data = W_csc.col_segment_ptr.data();
+    const int *col_start_pos = W_csc.col_start_pos.data();
+    const int *col_start_neg = W_csc.col_start_neg.data();
+    const int *row_index_pos = W_csc.row_index_pos.data();
+    const int *row_index_neg = W_csc.row_index_neg.data();
 
-    // Create a sign vector for addition and subtraction
-    const float32x4_t signs = {1.0f, 1.0f, -1.0f, -1.0f};
-
-    for (int m = 0; m < M; ++m)
+    for (int m = 0; m < M; m++)
     {
-        const T *X_row_m = X + m * K;
+        const float* X_row_m = X + m * K;
+
         for (int n = 0; n < N; n += 4)
         {
-            T y_val0 = 0;
-            T y_val1 = 0;
-            T y_val2 = 0;
-            T y_val3 = 0;
-            { // n = 0
-                // Initialize an accumulator vector to zeros
-                float32x4_t y_val_vec = vdupq_n_f32(0.0f);
+            float32x4_t y_vec0 = vdupq_n_f32(0.0f);
+            float32x4_t y_vec1 = vdupq_n_f32(0.0f);
+            float32x4_t y_vec2 = vdupq_n_f32(0.0f);
+            float32x4_t y_vec3 = vdupq_n_f32(0.0f);
 
-                // Load counters from ds
-                int32x4_t indices_vec = vld1q_s32(segment_ptr_data + 3 * n);
-                int pn_start_idx = vgetq_lane_s32(indices_vec, 0);
-                int rem_pos_start_idx = vgetq_lane_s32(indices_vec, 1);
-                int rem_neg_start_idx = vgetq_lane_s32(indices_vec, 2);
-                int next_col_start_idx = vgetq_lane_s32(indices_vec, 3);
+            // Process positive values
+            int k0 = col_start_pos[n];
+            int k1 = col_start_pos[n + 1];
+            int k2 = col_start_pos[n + 2];
+            int k3 = col_start_pos[n + 3];
 
-                int k_ptr = pn_start_idx;
-                for (; k_ptr + 3 < rem_pos_start_idx; k_ptr += 4)
-                {
-                    // Load indices
-                    int32x4_t indices_vec = vld1q_s32(indices_data + k_ptr);
-
-                    // Gather values from X_row_m using the indices
-                    float32x4_t x_vals = {
-                        X_row_m[vgetq_lane_s32(indices_vec, 0)],
-                        X_row_m[vgetq_lane_s32(indices_vec, 1)],
-                        X_row_m[vgetq_lane_s32(indices_vec, 2)],
-                        X_row_m[vgetq_lane_s32(indices_vec, 3)]};
-
-                    // Perform fused multiply-add: y_val_vec += x_vals * signs
-                    y_val_vec = vmlaq_f32(y_val_vec, x_vals, signs);
-                }
-
-                // Horizontally add the elements of the accumulator vector
-                y_val0 += vaddvq_f32(y_val_vec);
-
-                // Handle the remaining elements (positive contributions)
-                for (k_ptr = rem_pos_start_idx; k_ptr < rem_neg_start_idx; ++k_ptr)
-                {
-                    y_val0 += X_row_m[indices_data[k_ptr]];
-                }
-
-                // Handle the remaining elements (negative contributions)
-                for (k_ptr = rem_neg_start_idx; k_ptr < next_col_start_idx; ++k_ptr)
-                {
-                    y_val0 -= X_row_m[indices_data[k_ptr]];
-                }
+            int k0_end = col_start_pos[n + 1];
+            for (; k0 + 3 < k0_end; k0 += 4) {
+                float32x4_t x_vals = { X_row_m[row_index_pos[k0]], X_row_m[row_index_pos[k0+1]], X_row_m[row_index_pos[k0+2]], X_row_m[row_index_pos[k0+3]] };
+                y_vec0 = vaddq_f32(y_vec0, x_vals);
+            }
+            int k1_end = col_start_pos[n + 2];
+            for (; k1 + 3 < k1_end; k1 += 4) {
+                float32x4_t x_vals = { X_row_m[row_index_pos[k1]], X_row_m[row_index_pos[k1+1]], X_row_m[row_index_pos[k1+2]], X_row_m[row_index_pos[k1+3]] };
+                y_vec1 = vaddq_f32(y_vec1, x_vals);
+            }
+            int k2_end = col_start_pos[n + 3];
+            for (; k2 + 3 < k2_end; k2 += 4) {
+                float32x4_t x_vals = { X_row_m[row_index_pos[k2]], X_row_m[row_index_pos[k2+1]], X_row_m[row_index_pos[k2+2]], X_row_m[row_index_pos[k2+3]] };
+                y_vec2 = vaddq_f32(y_vec2, x_vals);
+            }
+            int k3_end = col_start_pos[n + 4];
+            for (; k3 + 3 < k3_end; k3 += 4) {
+                float32x4_t x_vals = { X_row_m[row_index_pos[k3]], X_row_m[row_index_pos[k3+1]], X_row_m[row_index_pos[k3+2]], X_row_m[row_index_pos[k3+3]] };
+                y_vec3 = vaddq_f32(y_vec3, x_vals);
             }
 
-            { // n = 1
-                // Initialize an accumulator vector to zeros
-                float32x4_t y_val_vec = vdupq_n_f32(0.0f);
+            // Process negative values
+            int l0 = col_start_neg[n];
+            int l1 = col_start_neg[n + 1];
+            int l2 = col_start_neg[n + 2];
+            int l3 = col_start_neg[n + 3];
 
-                // Load counters from ds
-                int32x4_t indices_vec = vld1q_s32(segment_ptr_data + 3 * (n + 1));
-                int pn_start_idx = vgetq_lane_s32(indices_vec, 0);
-                int rem_pos_start_idx = vgetq_lane_s32(indices_vec, 1);
-                int rem_neg_start_idx = vgetq_lane_s32(indices_vec, 2);
-                int next_col_start_idx = vgetq_lane_s32(indices_vec, 3);
-
-                int k_ptr = pn_start_idx;
-                for (; k_ptr + 3 < rem_pos_start_idx; k_ptr += 4)
-                {
-                    // Load indices
-                    int32x4_t indices_vec = vld1q_s32(indices_data + k_ptr);
-
-                    // Gather values from X_row_m using the indices
-                    float32x4_t x_vals = {
-                        X_row_m[vgetq_lane_s32(indices_vec, 0)],
-                        X_row_m[vgetq_lane_s32(indices_vec, 1)],
-                        X_row_m[vgetq_lane_s32(indices_vec, 2)],
-                        X_row_m[vgetq_lane_s32(indices_vec, 3)]};
-
-                    // Perform fused multiply-add: y_val_vec += x_vals * signs
-                    y_val_vec = vmlaq_f32(y_val_vec, x_vals, signs);
-                }
-
-                // Horizontally add the elements of the accumulator vector
-                y_val1 += vaddvq_f32(y_val_vec);
-
-                // Handle the remaining elements (positive contributions)
-                for (k_ptr = rem_pos_start_idx; k_ptr < rem_neg_start_idx; ++k_ptr)
-                {
-                    y_val1 += X_row_m[indices_data[k_ptr]];
-                }
-
-                // Handle the remaining elements (negative contributions)
-                for (k_ptr = rem_neg_start_idx; k_ptr < next_col_start_idx; ++k_ptr)
-                {
-                    y_val1 -= X_row_m[indices_data[k_ptr]];
-                }
+            int l0_end = col_start_neg[n + 1];
+            for (; l0 + 3 < l0_end; l0 += 4) {
+                float32x4_t x_vals = { X_row_m[row_index_neg[l0]], X_row_m[row_index_neg[l0+1]], X_row_m[row_index_neg[l0+2]], X_row_m[row_index_neg[l0+3]] };
+                y_vec0 = vsubq_f32(y_vec0, x_vals);
+            }
+            int l1_end = col_start_neg[n + 2];
+            for (; l1 + 3 < l1_end; l1 += 4) {
+                float32x4_t x_vals = { X_row_m[row_index_neg[l1]], X_row_m[row_index_neg[l1+1]], X_row_m[row_index_neg[l1+2]], X_row_m[row_index_neg[l1+3]] };
+                y_vec1 = vsubq_f32(y_vec1, x_vals);
+            }
+            int l2_end = col_start_neg[n + 3];
+            for (; l2 + 3 < l2_end; l2 += 4) {
+                float32x4_t x_vals = { X_row_m[row_index_neg[l2]], X_row_m[row_index_neg[l2+1]], X_row_m[row_index_neg[l2+2]], X_row_m[row_index_neg[l2+3]] };
+                y_vec2 = vsubq_f32(y_vec2, x_vals);
+            }
+            int l3_end = col_start_neg[n + 4];
+            for (; l3 + 3 < l3_end; l3 += 4) {
+                float32x4_t x_vals = { X_row_m[row_index_neg[l3]], X_row_m[row_index_neg[l3+1]], X_row_m[row_index_neg[l3+2]], X_row_m[row_index_neg[l3+3]] };
+                y_vec3 = vsubq_f32(y_vec3, x_vals);
             }
 
-            { // n = 2
-                // Initialize an accumulator vector to zeros
-                float32x4_t y_val_vec = vdupq_n_f32(0.0f);
+            // Horizontal add
+            float y0 = vaddvq_f32(y_vec0);
+            float y1 = vaddvq_f32(y_vec1);
+            float y2 = vaddvq_f32(y_vec2);
+            float y3 = vaddvq_f32(y_vec3);
+            
+            // Remainder Loops
+            for (; k0 < k0_end; k0++) { y0 += X_row_m[row_index_pos[k0]]; }
+            for (; l0 < l0_end; l0++) { y0 -= X_row_m[row_index_neg[l0]]; }
+            for (; k1 < k1_end; k1++) { y1 += X_row_m[row_index_pos[k1]]; }
+            for (; l1 < l1_end; l1++) { y1 -= X_row_m[row_index_neg[l1]]; }
+            for (; k2 < k2_end; k2++) { y2 += X_row_m[row_index_pos[k2]]; }
+            for (; l2 < l2_end; l2++) { y2 -= X_row_m[row_index_neg[l2]]; }
+            for (; k3 < k3_end; k3++) { y3 += X_row_m[row_index_pos[k3]]; }
+            for (; l3 < l3_end; l3++) { y3 -= X_row_m[row_index_neg[l3]]; }
 
-                // Load counters from ds
-                int32x4_t indices_vec = vld1q_s32(segment_ptr_data + 3 * (n + 2));
-                int pn_start_idx = vgetq_lane_s32(indices_vec, 0);
-                int rem_pos_start_idx = vgetq_lane_s32(indices_vec, 1);
-                int rem_neg_start_idx = vgetq_lane_s32(indices_vec, 2);
-                int next_col_start_idx = vgetq_lane_s32(indices_vec, 3);
+            // Store final results
+            Y[m * N + n]     = y0 + b[n];
+            Y[m * N + n + 1] = y1 + b[n + 1];
+            Y[m * N + n + 2] = y2 + b[n + 2];
+            Y[m * N + n + 3] = y3 + b[n + 3];
+            // float32x4_t y_res = { y0, y1, y2, y3 };
+            // float32x4_t b_vals = vld1q_f32(b + n);
+            // float32x4_t store_in_y = vaddq_f32(y_res, b_vals);
+            // vst1q_f32(Y + m * N + n, store_in_y);
 
-                int k_ptr = pn_start_idx;
-                for (; k_ptr + 3 < rem_pos_start_idx; k_ptr += 4)
-                {
-                    // Load indices
-                    int32x4_t indices_vec = vld1q_s32(indices_data + k_ptr);
-
-                    // Gather values from X_row_m using the indices
-                    float32x4_t x_vals = {
-                        X_row_m[vgetq_lane_s32(indices_vec, 0)],
-                        X_row_m[vgetq_lane_s32(indices_vec, 1)],
-                        X_row_m[vgetq_lane_s32(indices_vec, 2)],
-                        X_row_m[vgetq_lane_s32(indices_vec, 3)]};
-
-                    // Perform fused multiply-add: y_val_vec += x_vals * signs
-                    y_val_vec = vmlaq_f32(y_val_vec, x_vals, signs);
-                }
-
-                // Horizontally add the elements of the accumulator vector
-                y_val2 += vaddvq_f32(y_val_vec);
-
-                // Handle the remaining elements (positive contributions)
-                for (k_ptr = rem_pos_start_idx; k_ptr < rem_neg_start_idx; ++k_ptr)
-                {
-                    y_val2 += X_row_m[indices_data[k_ptr]];
-                }
-
-                // Handle the remaining elements (negative contributions)
-                for (k_ptr = rem_neg_start_idx; k_ptr < next_col_start_idx; ++k_ptr)
-                {
-                    y_val2 -= X_row_m[indices_data[k_ptr]];
-                }
-            }
-            { // n = 3
-                // Initialize an accumulator vector to zeros
-                float32x4_t y_val_vec = vdupq_n_f32(0.0f);
-
-                // Load counters from ds
-                int32x4_t indices_vec = vld1q_s32(segment_ptr_data + 3 * (n + 3));
-                int pn_start_idx = vgetq_lane_s32(indices_vec, 0);
-                int rem_pos_start_idx = vgetq_lane_s32(indices_vec, 1);
-                int rem_neg_start_idx = vgetq_lane_s32(indices_vec, 2);
-                int next_col_start_idx = vgetq_lane_s32(indices_vec, 3);
-
-                int k_ptr = pn_start_idx;
-                for (; k_ptr + 3 < rem_pos_start_idx; k_ptr += 4)
-                {
-                    // Load indices
-                    int32x4_t indices_vec = vld1q_s32(indices_data + k_ptr);
-
-                    // Gather values from X_row_m using the indices
-                    float32x4_t x_vals = {
-                        X_row_m[vgetq_lane_s32(indices_vec, 0)],
-                        X_row_m[vgetq_lane_s32(indices_vec, 1)],
-                        X_row_m[vgetq_lane_s32(indices_vec, 2)],
-                        X_row_m[vgetq_lane_s32(indices_vec, 3)]};
-
-                    // Perform fused multiply-add: y_val_vec += x_vals * signs
-                    y_val_vec = vmlaq_f32(y_val_vec, x_vals, signs);
-                }
-
-                // Horizontally add the elements of the accumulator vector
-                y_val3 += vaddvq_f32(y_val_vec);
-
-                // Handle the remaining elements (positive contributions)
-                for (k_ptr = rem_pos_start_idx; k_ptr < rem_neg_start_idx; ++k_ptr)
-                {
-                    y_val3 += X_row_m[indices_data[k_ptr]];
-                }
-
-                // Handle the remaining elements (negative contributions)
-                for (k_ptr = rem_neg_start_idx; k_ptr < next_col_start_idx; ++k_ptr)
-                {
-                    y_val3 -= X_row_m[indices_data[k_ptr]];
-                }
-            }
-
-            float32x4_t y_res = {y_val0, y_val1, y_val2, y_val3};
-            float32x4_t b_vals = vld1q_f32(b + n);
-            float32x4_t store_in_y = vaddq_f32(y_res, b_vals);
-            vst1q_f32(Y + m * N + n, store_in_y);
         }
     }
 }
+
+template <typename T>
+void NeonTCSC2(float *X, const VectorTCSC &W_csc, float *b, float *Y, int M, int N, int K)
+{
+    const int *row_index_pos = W_csc.row_index_pos.data();
+    const int *row_index_neg = W_csc.row_index_neg.data();
+    const int *cap_every_four = W_csc.cap_every_four.data();
+
+    for (int m = 0; m < M; m++)
+    {
+        float* X_row_m = X + m * K;
+        X_row_m[-1] = 0;
+
+        int cap_idx = 0;
+        int k3_end = 0;
+        for (int n = 0; n < N; n += 4)
+        {
+            float32x4_t y_vec0 = vdupq_n_f32(0.0f);
+            float32x4_t y_vec1 = vdupq_n_f32(0.0f);
+
+            int cap = cap_every_four[cap_idx++];
+            int k0 = k3_end;
+            int k0_end = k0 + cap;
+            int k1 = k0 + cap;
+            int k2 = k1 + cap;
+            int k3 = k2 + cap;
+            k3_end = k3 + cap;
+
+            for (int i = 0; i < cap; i+=4) {
+                float32x4_t x_vals000 = { X_row_m[row_index_pos[k0]], 
+                                       X_row_m[row_index_pos[k1]], 
+                                       X_row_m[row_index_pos[k2]], 
+                                       X_row_m[row_index_pos[k3]] };
+                float32x4_t x_vals001 = { X_row_m[row_index_neg[k0]], 
+                                       X_row_m[row_index_neg[k1]], 
+                                       X_row_m[row_index_neg[k2]], 
+                                       X_row_m[row_index_neg[k3]] };
+                float32x4_t x_vals010 = { X_row_m[row_index_pos[k0+1]], 
+                                       X_row_m[row_index_pos[k1+1]], 
+                                       X_row_m[row_index_pos[k2+1]], 
+                                       X_row_m[row_index_pos[k3+1]] };
+                float32x4_t x_vals011 = { X_row_m[row_index_neg[k0+1]], 
+                                       X_row_m[row_index_neg[k1+1]], 
+                                       X_row_m[row_index_neg[k2+1]], 
+                                       X_row_m[row_index_neg[k3+1]] };
+                float32x4_t x_vals100 = { X_row_m[row_index_pos[k0+2]], 
+                                       X_row_m[row_index_pos[k1+2]], 
+                                       X_row_m[row_index_pos[k2+2]], 
+                                       X_row_m[row_index_pos[k3+2]] };
+                float32x4_t x_vals101 = { X_row_m[row_index_neg[k0+2]], 
+                                       X_row_m[row_index_neg[k1+2]], 
+                                       X_row_m[row_index_neg[k2+2]], 
+                                       X_row_m[row_index_neg[k3+2]] };
+                float32x4_t x_vals110 = { X_row_m[row_index_pos[k0+3]], 
+                                       X_row_m[row_index_pos[k1+3]], 
+                                       X_row_m[row_index_pos[k2+3]], 
+                                       X_row_m[row_index_pos[k3+3]] };
+                float32x4_t x_vals111 = { X_row_m[row_index_neg[k0+3]], 
+                                       X_row_m[row_index_neg[k1+3]], 
+                                       X_row_m[row_index_neg[k2+3]], 
+                                       X_row_m[row_index_neg[k3+3]] };
+                k0 += 4;
+                k1 += 4;
+                k2 += 4;
+                k3 += 4;
+                float32x4_t vec_tmp0 = vsubq_f32(x_vals000, x_vals001);
+                float32x4_t vec_tmp1 = vsubq_f32(x_vals010, x_vals011);
+                float32x4_t vec_tmp2 = vsubq_f32(x_vals100, x_vals101);
+                float32x4_t vec_tmp3 = vsubq_f32(x_vals110, x_vals111);
+                float32x4_t vec_tmp4 = vaddq_f32(vec_tmp0, vec_tmp1);
+                float32x4_t vec_tmp5 = vaddq_f32(vec_tmp2, vec_tmp3);
+                y_vec0 = vaddq_f32(y_vec0, vec_tmp4);
+                y_vec1 = vaddq_f32(y_vec1, vec_tmp5);
+            }
+      
+            float32x4_t b_vals = vld1q_f32(b + n);
+            float32x4_t y_vec_res = vaddq_f32(y_vec0, y_vec1);
+            float32x4_t store_in_y = vaddq_f32(y_vec_res, b_vals);
+            vst1q_f32(Y + m * N + n, store_in_y);
+
+        }
+    }
+}
+
+// WIP
+#if 0
+template <typename T>
+void NeonTCSC3(float *X, const VectorTCSC &W_csc, float *b, float *Y, int M, int N, int K)
+{
+    const int *row_index_pos = W_csc.row_index_pos.data();
+    const int *row_index_neg = W_csc.row_index_neg.data();
+    const int *cap_every_four = W_csc.cap_every_four.data();
+
+    for (int m = 0; m < M; m++)
+    {
+        float* X_row_m = X + m * K;
+        X_row_m[-1] = 0;
+
+        int cap_idx = 0;
+        int k3_end = 0;
+        for (int n = 0; n < N; n += 4)
+        {
+            float32x4_t y_vec0 = vdupq_n_f32(0.0f);
+            float32x4_t y_vec1 = vdupq_n_f32(0.0f);
+            float32x4_t y_vec2 = vdupq_n_f32(0.0f);
+            float32x4_t y_vec3 = vdupq_n_f32(0.0f);
+
+            int cap = cap_every_four[cap_idx++];
+            int k0 = k3_end;
+            int k0_end = k0 + cap;
+            int k1 = k0 + cap;
+            int k2 = k1 + cap;
+            int k3 = k2 + cap;
+            k3_end = k3 + cap;
+
+            // Process negative values
+            int l0 = k0;
+            int l1 = k1;
+            int l2 = k2;
+            int l3 = k3;
+
+
+            // // Process positive values
+            // int k0 = col_start_pos[n];
+            // int k1 = col_start_pos[n + 1];
+            // int k2 = col_start_pos[n + 2];
+            // int k3 = col_start_pos[n + 3];
+
+            // int k0_end = col_start_pos[n + 1];
+            for (int i = k0; i < k0_end; i += 4) {
+                float32x4_t x_vals0 = { X_row_m[row_index_pos[k0]], X_row_m[row_index_pos[k0+1]], X_row_m[row_index_pos[k0+2]], X_row_m[row_index_pos[k0+3]] };
+                y_vec0 = vaddq_f32(y_vec0, x_vals0);
+                float32x4_t x_vals1 = { X_row_m[row_index_pos[k1]], X_row_m[row_index_pos[k1+1]], X_row_m[row_index_pos[k1+2]], X_row_m[row_index_pos[k1+3]] };
+                y_vec1 = vaddq_f32(y_vec1, x_vals1);
+                float32x4_t x_vals2 = { X_row_m[row_index_pos[k2]], X_row_m[row_index_pos[k2+1]], X_row_m[row_index_pos[k2+2]], X_row_m[row_index_pos[k2+3]] };
+                y_vec2 = vaddq_f32(y_vec2, x_vals2);
+                float32x4_t x_vals3 = { X_row_m[row_index_pos[k3]], X_row_m[row_index_pos[k3+1]], X_row_m[row_index_pos[k3+2]], X_row_m[row_index_pos[k3+3]] };
+                y_vec3 = vaddq_f32(y_vec3, x_vals3);
+                k0 += 4;
+                k1 += 4;
+                k2 += 4;
+                k3 += 4;
+            }
+
+            int l0_end = l0 + cap;
+            for (int i = l0; i < l0_end; i += 4) {
+                float32x4_t x_vals0 = { X_row_m[row_index_neg[l0]], X_row_m[row_index_neg[l0+1]], X_row_m[row_index_neg[l0+2]], X_row_m[row_index_neg[l0+3]] };
+                y_vec0 = vsubq_f32(y_vec0, x_vals0);
+                float32x4_t x_vals1 = { X_row_m[row_index_neg[l1]], X_row_m[row_index_neg[l1+1]], X_row_m[row_index_neg[l1+2]], X_row_m[row_index_neg[l1+3]] };
+                y_vec1 = vsubq_f32(y_vec1, x_vals1);
+                float32x4_t x_vals2 = { X_row_m[row_index_neg[l2]], X_row_m[row_index_neg[l2+1]], X_row_m[row_index_neg[l2+2]], X_row_m[row_index_neg[l2+3]] };
+                y_vec2 = vsubq_f32(y_vec2, x_vals2);
+                float32x4_t x_vals3 = { X_row_m[row_index_neg[l3]], X_row_m[row_index_neg[l3+1]], X_row_m[row_index_neg[l3+2]], X_row_m[row_index_neg[l3+3]] };
+                y_vec3 = vsubq_f32(y_vec3, x_vals3);
+                l0 += 4;
+                l1 += 4;
+                l2 += 4;
+                l3 += 4;
+            }
+
+            // Horizontal add
+            float y0 = vaddvq_f32(y_vec0);
+            float y1 = vaddvq_f32(y_vec1);
+            float y2 = vaddvq_f32(y_vec2);
+            float y3 = vaddvq_f32(y_vec3);
+            
+            // // Remainder Loops
+            // for (; k0 < k0_end; k0++) { y0 += X_row_m[row_index_pos[k0]]; }
+            // for (; l0 < l0_end; l0++) { y0 -= X_row_m[row_index_neg[l0]]; }
+            // // for (; k1 < k1_end; k1++) { y1 += X_row_m[row_index_pos[k1]]; }
+            // for (; l1 < l1_end; l1++) { y1 -= X_row_m[row_index_neg[l1]]; }
+            // // for (; k2 < k2_end; k2++) { y2 += X_row_m[row_index_pos[k2]]; }
+            // for (; l2 < l2_end; l2++) { y2 -= X_row_m[row_index_neg[l2]]; }
+            // // for (; k3 < k3_end; k3++) { y3 += X_row_m[row_index_pos[k3]]; }
+            // for (; l3 < l3_end; l3++) { y3 -= X_row_m[row_index_neg[l3]]; }
+
+            // Store final results
+            Y[m * N + n]     = y0 + b[n];
+            Y[m * N + n + 1] = y1 + b[n + 1];
+            Y[m * N + n + 2] = y2 + b[n + 2];
+            Y[m * N + n + 3] = y3 + b[n + 3];
+            // float32x4_t y_res = { y0, y1, y2, y3 };
+            // float32x4_t b_vals = vld1q_f32(b + n);
+            // float32x4_t store_in_y = vaddq_f32(y_res, b_vals);
+            // vst1q_f32(Y + m * N + n, store_in_y);
+
+        }
+    }
+}
+#endif
 
 #endif
