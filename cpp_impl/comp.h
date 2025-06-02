@@ -264,8 +264,6 @@ void UnrolledTCSC(T *X, const TCSC &W_csc, T *b, T *Y, int M, int N, int K)
     }
 }
 
-// InterleavedTCSC
-
 template <typename T>
 void BaseInterleavedTCSC(T *X, const InterleavedTCSC &W_csc, T *b, T *Y, int M, int N, int K)
 {
@@ -657,6 +655,128 @@ void BaseBlockedTCSC(T *X, const BlockedTCSC<B> &W_csc, T *b, T *Y, int M, int N
         for (int n = 0; n < N; n++)
         {
             Y[m * N + n] += b[n];
+#ifdef INSTRUMENTATION_RUN
+            flops++;
+#endif
+        }
+    }
+}
+
+template <typename T, int B, int UNROLL_FACTOR>
+void UnrolledBlockedTCSC(T *X, const BlockedTCSC<B> &W_csc, T *b, T *Y, int M, int N, int K)
+{
+#ifdef INSTRUMENTATION_RUN
+    flops = 0;
+    ds_size = W_csc.getDataStructureSize();
+#endif
+    const int *col_start_pos = W_csc.col_start_pos.data();
+    const int *col_start_neg = W_csc.col_start_neg.data();
+    const int *row_index_pos = W_csc.row_index_pos.data();
+    const int *row_index_neg = W_csc.row_index_neg.data();
+
+    // Process each row of Y
+    for (int m = 0; m < M; m++)
+    {
+        const T *X_row_m = X + m * K;
+
+        // Initialize Y row with bias (only once)
+        for (int n = 0; n < N; n++)
+        {
+            Y[m * N + n] = b[n];
+        }
+
+        // Temporary accumulator for each output column to avoid WAW hazards
+        T y_temp[N];
+        for (int n = 0; n < N; n++)
+        {
+            y_temp[n] = T(0);
+        }
+
+        // Process each block of K
+        for (int k_block = 0; k_block < K / B; k_block++)
+        {
+            for (int n = k_block * N; n < k_block * N + N; n++)
+            {
+                int output_col = n % N; // Which output column we're contributing to
+
+                // Multiple accumulators to break dependency chains
+                T y_acc[UNROLL_FACTOR];
+                for (int u = 0; u < UNROLL_FACTOR; u++)
+                {
+                    y_acc[u] = T(0);
+                }
+
+                // Process positive values with unrolling
+                int k_pos = col_start_pos[n];
+                const int end_pos = col_start_pos[n + 1];
+
+                // Main unrolled loop for positive values
+                for (; k_pos + UNROLL_FACTOR <= end_pos; k_pos += UNROLL_FACTOR)
+                {
+                    for (int u = 0; u < UNROLL_FACTOR; u++)
+                    {
+                        y_acc[u] += X_row_m[row_index_pos[k_pos + u]];
+#ifdef INSTRUMENTATION_RUN
+                        flops++;
+#endif
+                    }
+                }
+
+                // Cleanup remaining positive values
+                for (; k_pos < end_pos; k_pos++)
+                {
+                    y_acc[0] += X_row_m[row_index_pos[k_pos]];
+#ifdef INSTRUMENTATION_RUN
+                    flops++;
+#endif
+                }
+
+                // Process negative values with unrolling
+                int k_neg = col_start_neg[n];
+                const int end_neg = col_start_neg[n + 1];
+
+                // Main unrolled loop for negative values
+                for (; k_neg + UNROLL_FACTOR <= end_neg; k_neg += UNROLL_FACTOR)
+                {
+                    for (int u = 0; u < UNROLL_FACTOR; u++)
+                    {
+                        y_acc[u] -= X_row_m[row_index_neg[k_neg + u]];
+#ifdef INSTRUMENTATION_RUN
+                        flops++;
+#endif
+                    }
+                }
+
+                // Cleanup remaining negative values
+                for (; k_neg < end_neg; k_neg++)
+                {
+                    y_acc[0] -= X_row_m[row_index_neg[k_neg]];
+#ifdef INSTRUMENTATION_RUN
+                    flops++;
+#endif
+                }
+
+                // Combine all accumulators and add to temporary
+                T y_final = T(0);
+                for (int u = 0; u < UNROLL_FACTOR; u++)
+                {
+                    y_final += y_acc[u];
+#ifdef INSTRUMENTATION_RUN
+                    flops++;
+#endif
+                }
+
+                y_temp[output_col] += y_final; // Accumulate into temp (no WAW hazard)
+#ifdef INSTRUMENTATION_RUN
+                flops++;
+#endif
+            }
+        }
+
+        // Final write to Y (eliminates WAW hazards)
+        for (int n = 0; n < N; n++)
+        {
+            Y[m * N + n] += y_temp[n];
 #ifdef INSTRUMENTATION_RUN
             flops++;
 #endif
