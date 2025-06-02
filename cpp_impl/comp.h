@@ -856,13 +856,12 @@ void NeonInterleavedTCSC(T *X, const InterleavedTCSC &W_csc, T *b, T *Y, int M, 
                         X_row_m[vgetq_lane_s32(indices_vec, 0)],
                         X_row_m[vgetq_lane_s32(indices_vec, 1)],
                         X_row_m[vgetq_lane_s32(indices_vec, 2)],
-                        X_row_m[vgetq_lane_s32(indices_vec, 3)]
-                    };
+                        X_row_m[vgetq_lane_s32(indices_vec, 3)]};
 
                     // Perform fused multiply-add: y_val_vec += x_vals * signs
                     y_val_vec = vmlaq_f32(y_val_vec, x_vals, signs);
                 }
-                
+
                 // Horizontally add the elements of the accumulator vector
                 y_val0 += vaddvq_f32(y_val_vec);
 
@@ -884,7 +883,7 @@ void NeonInterleavedTCSC(T *X, const InterleavedTCSC &W_csc, T *b, T *Y, int M, 
                 float32x4_t y_val_vec = vdupq_n_f32(0.0f);
 
                 // Load counters from ds
-                int32x4_t indices_vec = vld1q_s32(segment_ptr_data + 3 * (n+1));
+                int32x4_t indices_vec = vld1q_s32(segment_ptr_data + 3 * (n + 1));
                 int pn_start_idx = vgetq_lane_s32(indices_vec, 0);
                 int rem_pos_start_idx = vgetq_lane_s32(indices_vec, 1);
                 int rem_neg_start_idx = vgetq_lane_s32(indices_vec, 2);
@@ -901,13 +900,12 @@ void NeonInterleavedTCSC(T *X, const InterleavedTCSC &W_csc, T *b, T *Y, int M, 
                         X_row_m[vgetq_lane_s32(indices_vec, 0)],
                         X_row_m[vgetq_lane_s32(indices_vec, 1)],
                         X_row_m[vgetq_lane_s32(indices_vec, 2)],
-                        X_row_m[vgetq_lane_s32(indices_vec, 3)]
-                    };
+                        X_row_m[vgetq_lane_s32(indices_vec, 3)]};
 
                     // Perform fused multiply-add: y_val_vec += x_vals * signs
                     y_val_vec = vmlaq_f32(y_val_vec, x_vals, signs);
                 }
-                
+
                 // Horizontally add the elements of the accumulator vector
                 y_val1 += vaddvq_f32(y_val_vec);
 
@@ -929,7 +927,7 @@ void NeonInterleavedTCSC(T *X, const InterleavedTCSC &W_csc, T *b, T *Y, int M, 
                 float32x4_t y_val_vec = vdupq_n_f32(0.0f);
 
                 // Load counters from ds
-                int32x4_t indices_vec = vld1q_s32(segment_ptr_data + 3 * (n+2));
+                int32x4_t indices_vec = vld1q_s32(segment_ptr_data + 3 * (n + 2));
                 int pn_start_idx = vgetq_lane_s32(indices_vec, 0);
                 int rem_pos_start_idx = vgetq_lane_s32(indices_vec, 1);
                 int rem_neg_start_idx = vgetq_lane_s32(indices_vec, 2);
@@ -946,13 +944,12 @@ void NeonInterleavedTCSC(T *X, const InterleavedTCSC &W_csc, T *b, T *Y, int M, 
                         X_row_m[vgetq_lane_s32(indices_vec, 0)],
                         X_row_m[vgetq_lane_s32(indices_vec, 1)],
                         X_row_m[vgetq_lane_s32(indices_vec, 2)],
-                        X_row_m[vgetq_lane_s32(indices_vec, 3)]
-                    };
+                        X_row_m[vgetq_lane_s32(indices_vec, 3)]};
 
                     // Perform fused multiply-add: y_val_vec += x_vals * signs
                     y_val_vec = vmlaq_f32(y_val_vec, x_vals, signs);
                 }
-                
+
                 // Horizontally add the elements of the accumulator vector
                 y_val2 += vaddvq_f32(y_val_vec);
 
@@ -973,7 +970,7 @@ void NeonInterleavedTCSC(T *X, const InterleavedTCSC &W_csc, T *b, T *Y, int M, 
                 float32x4_t y_val_vec = vdupq_n_f32(0.0f);
 
                 // Load counters from ds
-                int32x4_t indices_vec = vld1q_s32(segment_ptr_data + 3 * (n+3));
+                int32x4_t indices_vec = vld1q_s32(segment_ptr_data + 3 * (n + 3));
                 int pn_start_idx = vgetq_lane_s32(indices_vec, 0);
                 int rem_pos_start_idx = vgetq_lane_s32(indices_vec, 1);
                 int rem_neg_start_idx = vgetq_lane_s32(indices_vec, 2);
@@ -990,13 +987,12 @@ void NeonInterleavedTCSC(T *X, const InterleavedTCSC &W_csc, T *b, T *Y, int M, 
                         X_row_m[vgetq_lane_s32(indices_vec, 0)],
                         X_row_m[vgetq_lane_s32(indices_vec, 1)],
                         X_row_m[vgetq_lane_s32(indices_vec, 2)],
-                        X_row_m[vgetq_lane_s32(indices_vec, 3)]
-                    };
+                        X_row_m[vgetq_lane_s32(indices_vec, 3)]};
 
                     // Perform fused multiply-add: y_val_vec += x_vals * signs
                     y_val_vec = vmlaq_f32(y_val_vec, x_vals, signs);
                 }
-                
+
                 // Horizontally add the elements of the accumulator vector
                 y_val3 += vaddvq_f32(y_val_vec);
 
@@ -1013,13 +1009,12 @@ void NeonInterleavedTCSC(T *X, const InterleavedTCSC &W_csc, T *b, T *Y, int M, 
                 }
             }
 
-            float32x4_t y_res = { y_val0, y_val1, y_val2, y_val3 };
+            float32x4_t y_res = {y_val0, y_val1, y_val2, y_val3};
             float32x4_t b_vals = vld1q_f32(b + n);
             float32x4_t store_in_y = vaddq_f32(y_res, b_vals);
             vst1q_f32(Y + m * N + n, store_in_y);
         }
     }
 }
-
 
 #endif
