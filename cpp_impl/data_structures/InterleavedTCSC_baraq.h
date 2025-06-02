@@ -88,27 +88,16 @@ public:
                               row_index_neg.size());
     }
 
-    /**
-     * @brief Reconstructs the original dense matrix (row‑major layout) that
-     *        was used to initialise this object.
-     *
-     * @param rows Number of matrix rows.
-     * @param cols Number of matrix columns.
-     *
-     * @return std::vector<int>  Flattened row‑major matrix with values
-     *         −1, 0, or 1.
-     */
     std::vector<int> getVectorRepresentation(size_t rows, size_t cols)
     {
         std::vector<int> dense(rows * cols, 0);
 
-        const size_t stored_cols = col_start_pos.size() - 1; // sentinel
+        const size_t stored_cols = col_start_pos.size() - 1;
         if (stored_cols != cols)
             throw std::invalid_argument("cols does not match stored matrix");
 
         for (size_t n = 0; n < cols; ++n)
         {
-            // 1. Interleaved part (always pairs: + then −).
             size_t inter_start = col_start_interleaved[n];
             size_t inter_end = col_start_interleaved[n + 1];
             for (size_t idx = inter_start; idx < inter_end; idx += 2)
@@ -117,13 +106,11 @@ public:
                 dense[row_index_interleaved[idx + 1] * cols + n] = -1;
             }
 
-            // 2. Remaining positive entries.
             size_t pos_start = col_start_pos[n];
             size_t pos_end = col_start_pos[n + 1];
             for (size_t idx = pos_start; idx < pos_end; ++idx)
                 dense[row_index_pos[idx] * cols + n] = 1;
 
-            // 3. Remaining negative entries.
             size_t neg_start = col_start_neg[n];
             size_t neg_end = col_start_neg[n + 1];
             for (size_t idx = neg_start; idx < neg_end; ++idx)

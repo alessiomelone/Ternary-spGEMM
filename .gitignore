@@ -36,7 +36,7 @@ ipch/
 
 # macOS specific
 .DS_Store
-.AppleDouble
+.Applefloat
 .LSOverride
 ._*
 

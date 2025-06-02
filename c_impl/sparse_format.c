@@ -51,7 +51,7 @@ float *initX(int LEN, int Range) {
 ternarySparseFormat *convertTernaryToSparseFormat(int *matrix, int K, int N, int nonZero)
 {
     // TODO: Verify sizes of each sub array
-    int nonZeroVals = (K * N) / (double)(nonZero) + 1;
+    int nonZeroVals = (K * N) / (float)(nonZero) + 1;
     ternarySparseFormat *tsf = malloc(sizeof(ternarySparseFormat));
     tsf->size = N + 1;
     tsf->col_start_pos = malloc(tsf->size * sizeof(int));

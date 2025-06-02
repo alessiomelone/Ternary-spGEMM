@@ -40,7 +40,7 @@
  * Timing function based on the TimeStep Counter of the CPU.
  */
 #ifdef __x86_64__
-double rdtsc(float *X, ternarySparseFormat *sparse_W, float *B, float *Y, int M, int N, int K)
+float rdtsc(float *X, ternarySparseFormat *sparse_W, float *B, float *Y, int M, int N, int K)
 {
 
     int i, num_runs;
@@ -78,12 +78,12 @@ double rdtsc(float *X, ternarySparseFormat *sparse_W, float *B, float *Y, int M,
     }
 
     cycles = stop_tsc(start) / num_runs;
-    return (double)cycles;
+    return (float)cycles;
 }
 #endif
 
 #ifdef __aarch64__
-double rdvct(float *X, ternarySparseFormat *sparse_W, float *B, float *Y, int M, int N, int K, int nonZero)
+float rdvct(float *X, ternarySparseFormat *sparse_W, float *B, float *Y, int M, int N, int K, int nonZero)
 {
     int i, num_runs;
     TIMESTAMP cycles;
@@ -120,7 +120,7 @@ double rdvct(float *X, ternarySparseFormat *sparse_W, float *B, float *Y, int M,
     }
 
     cycles = stop_vct(start) / num_runs;
-    return (double)cycles;
+    return (float)cycles;
 }
 
 #ifdef PMU
@@ -146,7 +146,7 @@ struct performance_counters rdpmu(float *X, ternarySparseFormat *sparse_W, float
             sparseGEMM(X, sparse_W, B, Y, M, N, K);
         }
         endperf = kperf_get_counters();
-        double cycles = endperf.cycles - startperf.cycles;
+        float cycles = endperf.cycles - startperf.cycles;
         if (cycles >= CYCLES_REQUIRED)
             break;
 
@@ -172,10 +172,10 @@ struct performance_counters rdpmu(float *X, ternarySparseFormat *sparse_W, float
 
 #endif
 
-double c_clock(float *X, ternarySparseFormat *sparse_W, float *B, float *Y, int M, int N, int K, int nonZero)
+float c_clock(float *X, ternarySparseFormat *sparse_W, float *B, float *Y, int M, int N, int K, int nonZero)
 {
     int i, num_runs;
-    double cycles;
+    float cycles;
     clock_t start, end;
 
     num_runs = NUM_RUNS;
@@ -189,7 +189,7 @@ double c_clock(float *X, ternarySparseFormat *sparse_W, float *B, float *Y, int 
         }
         end = clock();
 
-        cycles = (double)(end - start);
+        cycles = (float)(end - start);
 
         // Same as in c_clock: CYCLES_REQUIRED should be expressed accordingly to the order of magnitude of CLOCKS_PER_SEC
         if (cycles >= CYCLES_REQUIRED / (FREQUENCY / CLOCKS_PER_SEC))
@@ -206,14 +206,14 @@ double c_clock(float *X, ternarySparseFormat *sparse_W, float *B, float *Y, int 
     }
     end = clock();
 
-    return (double)(end - start) / num_runs;
+    return (float)(end - start) / num_runs;
 }
 
 #ifndef WIN32
-double timeofday(float *X, ternarySparseFormat *sparse_W, float *B, float *Y, int M, int N, int K, int nonZero)
+float timeofday(float *X, ternarySparseFormat *sparse_W, float *B, float *Y, int M, int N, int K, int nonZero)
 {
     int i, num_runs;
-    double cycles;
+    float cycles;
     struct timeval start, end;
 
     num_runs = NUM_RUNS;
@@ -227,7 +227,7 @@ double timeofday(float *X, ternarySparseFormat *sparse_W, float *B, float *Y, in
         }
         gettimeofday(&end, NULL);
 
-        cycles = (double)((end.tv_sec - start.tv_sec) + (end.tv_usec - start.tv_usec) / 1e6) * FREQUENCY;
+        cycles = (float)((end.tv_sec - start.tv_sec) + (end.tv_usec - start.tv_usec) / 1e6) * FREQUENCY;
 
         if (cycles >= CYCLES_REQUIRED)
             break;
@@ -243,26 +243,26 @@ double timeofday(float *X, ternarySparseFormat *sparse_W, float *B, float *Y, in
     }
     gettimeofday(&end, NULL);
 
-    return (double)((end.tv_sec - start.tv_sec) + (end.tv_usec - start.tv_usec) / 1e6) / num_runs;
+    return (float)((end.tv_sec - start.tv_sec) + (end.tv_usec - start.tv_usec) / 1e6) / num_runs;
 }
 
 #else
 
-double gettickcount(float *X, ternarySparseFormat *sparse_W, float *B, float *Y, int M, int N, int K, int nonZero)
+float gettickcount(float *X, ternarySparseFormat *sparse_W, float *B, float *Y, int M, int N, int K, int nonZero)
 {
     int i, num_runs;
-    double cycles, start, end;
+    float cycles, start, end;
 
     num_runs = NUM_RUNS;
 #ifdef CALIBRATE
     while (num_runs < (1 << 14))
     {
-        start = (double)GetTickCount();
+        start = (float)GetTickCount();
         for (i = 0; i < num_runs; ++i)
         {
             sparseGEMM(X, sparse_W, B, Y, M, N, K);
         }
-        end = (double)GetTickCount();
+        end = (float)GetTickCount();
 
         cycles = (end - start) * FREQUENCY / 1e3; // end-start provides a measurement in the order of milliseconds
 
@@ -273,20 +273,20 @@ double gettickcount(float *X, ternarySparseFormat *sparse_W, float *B, float *Y,
     }
 #endif
 
-    start = (double)GetTickCount();
+    start = (float)GetTickCount();
     for (i = 0; i < num_runs; ++i)
     {
         sparseGEMM(X, sparse_W, B, Y, M, N, K);
     }
-    end = (double)GetTickCount();
+    end = (float)GetTickCount();
 
     return (end - start) / num_runs;
 }
 
-double queryperfcounter(float *X, ternarySparseFormat *sparse_W, float *B, float *Y, int M, int N, int K, int nonZero, LARGE_INTEGER f)
+float queryperfcounter(float *X, ternarySparseFormat *sparse_W, float *B, float *Y, int M, int N, int K, int nonZero, LARGE_INTEGER f)
 {
     int i, num_runs;
-    double cycles;
+    float cycles;
     LARGE_INTEGER start, end;
 
     num_runs = NUM_RUNS;
@@ -300,7 +300,7 @@ double queryperfcounter(float *X, ternarySparseFormat *sparse_W, float *B, float
         }
         QueryPerformanceCounter(&end);
 
-        cycles = (double)(end.QuadPart - start.QuadPart);
+        cycles = (float)(end.QuadPart - start.QuadPart);
 
         // Same as in c_clock: CYCLES_REQUIRED should be expressed accordingly to the order of magnitude of f
         if (cycles >= CYCLES_REQUIRED / (FREQUENCY / f.QuadPart))
@@ -317,7 +317,7 @@ double queryperfcounter(float *X, ternarySparseFormat *sparse_W, float *B, float
     }
     QueryPerformanceCounter(&end);
 
-    return (double)(end.QuadPart - start.QuadPart) / num_runs;
+    return (float)(end.QuadPart - start.QuadPart) / num_runs;
 }
 
 #endif
@@ -381,38 +381,38 @@ int main(int argc, char **argv)
 #endif
 
 #ifdef __x86_64__
-    double r = rdtsc(X, sparse_W, B, Y, M, N, K);
+    float r = rdtsc(X, sparse_W, B, Y, M, N, K);
     printf("# RDTSC instruction\n");
     printf("rdtsc_cycles=%.0lf\n", r);
     printf("rdtsc_seconds=%.8lf\n", r / (FREQUENCY));
     printf("rdtsc_freq_mhz=%.2lf\n", (FREQUENCY) / 1e6);
 #endif
 
-    double c = c_clock(X, sparse_W, B, Y, M, N, K, nonZero);
+    float c = c_clock(X, sparse_W, B, Y, M, N, K, nonZero);
     printf("\n# C clock() function\n");
     printf("clock_cycles=%.0lf\n", c);
-    printf("clock_freq_mhz=%.2lf\n", (double)CLOCKS_PER_SEC / 1e6);
+    printf("clock_freq_mhz=%.2lf\n", (float)CLOCKS_PER_SEC / 1e6);
     printf("clock_seconds=%.8lf\n", c / CLOCKS_PER_SEC);
 
 #ifndef WIN32
-    double t = timeofday(X, sparse_W, B, Y, M, N, K, nonZero);
+    float t = timeofday(X, sparse_W, B, Y, M, N, K, nonZero);
     printf("\n# C gettimeofday() function\n");
     printf("timeofday_seconds=%.8lf\n", t);
 #else
     LARGE_INTEGER f;
-    double t = gettickcount(X, sparse_W, B, Y, M, N, K, nonZero);
+    float t = gettickcount(X, sparse_W, B, Y, M, N, K, nonZero);
     printf("# Windows getTickCount() function\n");
     printf("gettickcount_milliseconds=%.3lf\n", t);
     QueryPerformanceFrequency(&f);
-    double p = queryperfcounter(X, sparse_W, B, Y, M, N, K, nonZero, f);
+    float p = queryperfcounter(X, sparse_W, B, Y, M, N, K, nonZero, f);
     printf("\n# Windows QueryPerformanceCounter() function\n");
     printf("queryperfcounter_cycles=%.0lf\n", p);
-    printf("queryperfcounter_seconds=%.8lf\n", p / (double)f.QuadPart);
-    printf("queryperfcounter_freq_mhz=%.2lf\n", (double)f.QuadPart / 1000);
+    printf("queryperfcounter_seconds=%.8lf\n", p / (float)f.QuadPart);
+    printf("queryperfcounter_freq_mhz=%.2lf\n", (float)f.QuadPart / 1000);
 #endif
 
 #ifdef __aarch64__
-    double v = rdvct(X, sparse_W, B, Y, M, N, K, nonZero);
+    float v = rdvct(X, sparse_W, B, Y, M, N, K, nonZero);
     printf("\n# VCT instruction\n");
     printf("vct_cycles=%.0lf\n", v);
     printf("vct_seconds=%.8lf\n", v / (get_vct_freq()));

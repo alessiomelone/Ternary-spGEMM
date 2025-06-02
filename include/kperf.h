@@ -1045,14 +1045,14 @@ static bool kperf_init(void)
 
 struct performance_counters
 {
-    double cycles;
-    double instructions;
-    double branches;
-    double branch_misses;
-    double retired_uops;
-    double int_uops;
-    double simdfp_uops;
-    double loadstore_uops;
+    float cycles;
+    float instructions;
+    float branches;
+    float branch_misses;
+    float retired_uops;
+    float int_uops;
+    float simdfp_uops;
+    float loadstore_uops;
 };
 
 static struct performance_counters kperf_get_counters()
@@ -1069,14 +1069,14 @@ static struct performance_counters kperf_get_counters()
         }
     }
     struct performance_counters counters = {
-        (double)events.counters_0[events.counter_map[0]],
-        (double)events.counters_0[events.counter_map[1]],
-        (double)events.counters_0[events.counter_map[2]],
-        (double)events.counters_0[events.counter_map[3]],
-        (double)events.counters_0[events.counter_map[4]],
-        (double)events.counters_0[events.counter_map[5]],
-        (double)events.counters_0[events.counter_map[6]],
-        (double)events.counters_0[events.counter_map[7]]
+        (float)events.counters_0[events.counter_map[0]],
+        (float)events.counters_0[events.counter_map[1]],
+        (float)events.counters_0[events.counter_map[2]],
+        (float)events.counters_0[events.counter_map[3]],
+        (float)events.counters_0[events.counter_map[4]],
+        (float)events.counters_0[events.counter_map[5]],
+        (float)events.counters_0[events.counter_map[6]],
+        (float)events.counters_0[events.counter_map[7]]
         };
 
     return counters;

@@ -35,7 +35,7 @@ using namespace std;
  * Timing function based on the TimeStep Counter of the CPU.
  */
 #ifdef __x86_64__
-double rdtsc(comp_func func_to_test, double *X_buf, double *B_buf, double *Y_buf, int M_arg, int N_arg, int K_arg)
+float rdtsc(comp_func func_to_test, float *X_buf, float *B_buf, float *Y_buf, int M_arg, int N_arg, int K_arg)
 {
     int i, num_runs_actual;
     myInt64 cycles_val;
@@ -66,12 +66,12 @@ double rdtsc(comp_func func_to_test, double *X_buf, double *B_buf, double *Y_buf
     }
 
     cycles_val = stop_tsc(start_val) / num_runs_actual;
-    return (double)cycles_val;
+    return (float)cycles_val;
 }
 #endif
 
 #ifdef __aarch64__
-double rdvct(comp_func func_to_test, double *X_buf, double *B_buf, double *Y_buf, int M_arg, int N_arg, int K_arg)
+float rdvct(comp_func func_to_test, float *X_buf, float *B_buf, float *Y_buf, int M_arg, int N_arg, int K_arg)
 {
     int i, num_runs_actual;
     TIMESTAMP cycles_val;
@@ -103,11 +103,11 @@ double rdvct(comp_func func_to_test, double *X_buf, double *B_buf, double *Y_buf
     }
 
     cycles_val = stop_vct(start_val) / num_runs_actual;
-    return (double)cycles_val;
+    return (float)cycles_val;
 }
 
 #ifdef PMU
-struct performance_counters rdpmu(comp_func func_to_test, double *X_buf, double *B_buf, double *Y_buf, int M_arg, int N_arg, int K_arg)
+struct performance_counters rdpmu(comp_func func_to_test, float *X_buf, float *B_buf, float *Y_buf, int M_arg, int N_arg, int K_arg)
 {
     kperf_init();
     int i, num_runs_actual;
@@ -123,7 +123,7 @@ struct performance_counters rdpmu(comp_func func_to_test, double *X_buf, double 
             func_to_test(X_buf, B_buf, Y_buf, M_arg, N_arg, K_arg);
         }
         endperf = kperf_get_counters();
-        double cycles_pmu = endperf.cycles - startperf.cycles;
+        float cycles_pmu = endperf.cycles - startperf.cycles;
         if (cycles_pmu >= CYCLES_REQUIRED)
             break;
 
@@ -151,10 +151,10 @@ struct performance_counters rdpmu(comp_func func_to_test, double *X_buf, double 
 #endif // PMU
 #endif // __aarch64__
 
-double c_clock(comp_func func_to_test, double *X_buf, double *B_buf, double *Y_buf, int M_arg, int N_arg, int K_arg)
+float c_clock(comp_func func_to_test, float *X_buf, float *B_buf, float *Y_buf, int M_arg, int N_arg, int K_arg)
 {
     int i, num_runs_actual;
-    double cycles_val;
+    float cycles_val;
     clock_t start_clk, end_clk;
 
     num_runs_actual = NUM_RUNS;
@@ -168,7 +168,7 @@ double c_clock(comp_func func_to_test, double *X_buf, double *B_buf, double *Y_b
         }
         end_clk = clock();
 
-        cycles_val = (double)(end_clk - start_clk);
+        cycles_val = (float)(end_clk - start_clk);
         if (cycles_val >= CYCLES_REQUIRED / (FREQUENCY / CLOCKS_PER_SEC))
             break;
 
@@ -183,14 +183,14 @@ double c_clock(comp_func func_to_test, double *X_buf, double *B_buf, double *Y_b
     }
     end_clk = clock();
 
-    return (double)(end_clk - start_clk) / num_runs_actual;
+    return (float)(end_clk - start_clk) / num_runs_actual;
 }
 
 #ifndef WIN32
-double timeofday(comp_func func_to_test, double *X_buf, double *B_buf, double *Y_buf, int M_arg, int N_arg, int K_arg)
+float timeofday(comp_func func_to_test, float *X_buf, float *B_buf, float *Y_buf, int M_arg, int N_arg, int K_arg)
 {
     int i, num_runs_actual;
-    double cycles_val;
+    float cycles_val;
     struct timeval start_tv, end_tv;
 
     num_runs_actual = NUM_RUNS;
@@ -204,7 +204,7 @@ double timeofday(comp_func func_to_test, double *X_buf, double *B_buf, double *Y
         }
         gettimeofday(&end_tv, NULL);
 
-        cycles_val = (double)((end_tv.tv_sec - start_tv.tv_sec) + (end_tv.tv_usec - start_tv.tv_usec) / 1e6) * FREQUENCY;
+        cycles_val = (float)((end_tv.tv_sec - start_tv.tv_sec) + (end_tv.tv_usec - start_tv.tv_usec) / 1e6) * FREQUENCY;
         if (cycles_val >= CYCLES_REQUIRED)
             break;
 
@@ -219,26 +219,26 @@ double timeofday(comp_func func_to_test, double *X_buf, double *B_buf, double *Y
     }
     gettimeofday(&end_tv, NULL);
 
-    return (double)((end_tv.tv_sec - start_tv.tv_sec) + (end_tv.tv_usec - start_tv.tv_usec) / 1e6) / num_runs_actual;
+    return (float)((end_tv.tv_sec - start_tv.tv_sec) + (end_tv.tv_usec - start_tv.tv_usec) / 1e6) / num_runs_actual;
 }
 
 #else // For WIN32
 
-double gettickcount(comp_func func_to_test, double *X_buf, double *B_buf, double *Y_buf, int M_arg, int N_arg, int K_arg)
+float gettickcount(comp_func func_to_test, float *X_buf, float *B_buf, float *Y_buf, int M_arg, int N_arg, int K_arg)
 {
     int i, num_runs_actual;
-    double cycles_val, start_tc, end_tc;
+    float cycles_val, start_tc, end_tc;
 
     num_runs_actual = NUM_RUNS;
 #ifdef CALIBRATE
     while (num_runs_actual < (1 << 14))
     {
-        start_tc = (double)GetTickCount();
+        start_tc = (float)GetTickCount();
         for (i = 0; i < num_runs_actual; ++i)
         {
             func_to_test(X_buf, B_buf, Y_buf, M_arg, N_arg, K_arg);
         }
-        end_tc = (double)GetTickCount();
+        end_tc = (float)GetTickCount();
 
         cycles_val = (end_tc - start_tc) * FREQUENCY / 1e3;
         if (cycles_val >= CYCLES_REQUIRED)
@@ -248,20 +248,20 @@ double gettickcount(comp_func func_to_test, double *X_buf, double *B_buf, double
     }
 #endif
 
-    start_tc = (double)GetTickCount();
+    start_tc = (float)GetTickCount();
     for (i = 0; i < num_runs_actual; ++i)
     {
         func_to_test(X_buf, B_buf, Y_buf, M_arg, N_arg, K_arg);
     }
-    end_tc = (double)GetTickCount();
+    end_tc = (float)GetTickCount();
 
     return (end_tc - start_tc) / num_runs_actual;
 }
 
-double queryperfcounter(comp_func func_to_test, double *X_buf, double *B_buf, double *Y_buf, int M_arg, int N_arg, int K_arg, LARGE_INTEGER f)
+float queryperfcounter(comp_func func_to_test, float *X_buf, float *B_buf, float *Y_buf, int M_arg, int N_arg, int K_arg, LARGE_INTEGER f)
 {
     int i, num_runs_actual;
-    double cycles_val;
+    float cycles_val;
     LARGE_INTEGER start_pc, end_pc;
 
     num_runs_actual = NUM_RUNS;
@@ -275,7 +275,7 @@ double queryperfcounter(comp_func func_to_test, double *X_buf, double *B_buf, do
         }
         QueryPerformanceCounter(&end_pc);
 
-        cycles_val = (double)(end_pc.QuadPart - start_pc.QuadPart);
+        cycles_val = (float)(end_pc.QuadPart - start_pc.QuadPart);
         if (cycles_val >= CYCLES_REQUIRED / (FREQUENCY / f.QuadPart))
             break;
 
@@ -290,19 +290,19 @@ double queryperfcounter(comp_func func_to_test, double *X_buf, double *B_buf, do
     }
     QueryPerformanceCounter(&end_pc);
 
-    return (double)(end_pc.QuadPart - start_pc.QuadPart) / num_runs_actual;
+    return (float)(end_pc.QuadPart - start_pc.QuadPart) / num_runs_actual;
 }
 
 #endif // WIN32
 
-double perf_test(comp_func f, int M_param, int K_param, int N_param, int nonZero)
+float perf_test(comp_func f, int M_param, int K_param, int N_param, int nonZero)
 {
 
     srand((unsigned)time(NULL));
 
-    vector<double> X_perf = initX<double>(M_param * K_param, 512);
-    vector<double> Y_perf(M_param * N_param, 0);
-    vector<double> B_perf(N_param, 2);
+    vector<float> X_perf = initX<float>(M_param * K_param, 512);
+    vector<float> Y_perf(M_param * N_param, 0);
+    vector<float> B_perf(N_param, 2);
 
     Y_perf.insert(Y_perf.end(), 10, 0);
     X_perf.insert(X_perf.end(), 10, 0);
@@ -332,7 +332,7 @@ double perf_test(comp_func f, int M_param, int K_param, int N_param, int nonZero
 #elif defined(_WIN32) || defined(WIN32)
     LARGE_INTEGER freq;
     QueryPerformanceFrequency(&freq);
-    return queryperfcounter(f, X_perf.data(), B_perf.data(), Y_perf.data(), M_param, N_param, K_param, freq) * (FREQUENCY / (double)freq.QuadPart);
+    return queryperfcounter(f, X_perf.data(), B_perf.data(), Y_perf.data(), M_param, N_param, K_param, freq) * (FREQUENCY / (float)freq.QuadPart);
 #else // Generic Unix
     return timeofday(f, X_perf.data(), B_perf.data(), Y_perf.data(), M_param, N_param, K_param) * FREQUENCY;
 #endif
