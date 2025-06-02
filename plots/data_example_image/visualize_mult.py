@@ -196,9 +196,15 @@ def animate(frame_idx):
     return [fig] # Return a list of artists to be redrawn if blit=True
 
 # --- Create and Save Animation ---
-total_frames = rows_A * cols_B * cols_A
-# Set blit=False because ax.clear() is used, which is simpler than managing individual artists.
-ani = animation.FuncAnimation(fig, animate, frames=total_frames, interval=700, blit=False)
+# --- Create and Save Animation ---
+# Generate list of frame indices where corresponding W (B_matrix) value is not zero
+valid_frames = []
+for idx in range(rows_A * cols_B * cols_A):
+    current_j = (idx % (cols_B * cols_A)) // cols_A
+    current_k = (idx % (cols_B * cols_A)) % cols_A
+    if B_matrix[current_k][current_j] != 0:
+        valid_frames.append(idx)
+ani = animation.FuncAnimation(fig, animate, frames=valid_frames, interval=700, blit=False)
 
 # Save the animation
 script_dir = os.path.dirname(__file__) if "__file__" in locals() else os.getcwd()
