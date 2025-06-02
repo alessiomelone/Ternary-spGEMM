@@ -108,6 +108,35 @@ void GEMM(T *X, T *W, T *b, T *Y, int M, int N, int K)
 }
 
 template <typename T>
+void GEMM_PreLU(T *X, T *W, T *b, T *alpha, T *Y, int M, int N, int K)
+{
+#pragma omp parallel for
+    for (int m = 0; m < M; m++)
+    {
+        for (int n = 0; n < N; n++)
+        {
+            T y = 0;
+            for (int k = 0; k < K; k++)
+            {
+                y += X[m * K + k] * W[k * N + n];
+            }
+            T pre_activation = y + b[n];
+
+            // Apply PReLU
+            if (pre_activation >= 0)
+            {
+                Y[m * N + n] = pre_activation;
+            }
+            else
+            {
+                // Each output neuron 'n' has its own alpha value
+                Y[m * N + n] = alpha[n] * pre_activation;
+            }
+        }
+    }
+}
+
+template <typename T>
 bool compare_results(T *result, T *groundTruth, int H, int W)
 {
     for (int h = 0; h < H; h++)
