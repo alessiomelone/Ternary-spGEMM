@@ -218,7 +218,7 @@ def plot_roofline_for_prefix(
     dt = datetime.now()
     ts = datetime.timestamp(dt) * 100
     ts = int(ts)
-    output_dir = os.path.join("plots", "plot_images")
+    output_dir = os.path.join("plots", "plot_images", "roofline")
     os.makedirs(output_dir, exist_ok=True)
     plot_filename = os.path.join(output_dir, f"roofline_plot_{plot_title.split(' ')[-1]}_{ts}.png")
     try:
