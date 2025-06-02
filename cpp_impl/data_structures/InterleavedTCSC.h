@@ -41,13 +41,17 @@ public:
       size_t n_idx = 0;
 
       // change group size here by chaning the + 1 to + 3 for grourps of 4
-      while (p_idx + 1 < temp_pos_indices.size() && n_idx + 1 < temp_neg_indices.size())
+      while (p_idx + 3 < temp_pos_indices.size() && n_idx + 4 < temp_neg_indices.size())
       {
         // copy and add extra lines for larger or fewer groups
         all_indices.push_back(temp_pos_indices[p_idx++]);
         all_indices.push_back(temp_pos_indices[p_idx++]);
+        all_indices.push_back(temp_pos_indices[p_idx++]);
+        all_indices.push_back(temp_pos_indices[p_idx++]);
 
         // copy and add extra lines for larger or fewer groups
+        all_indices.push_back(temp_neg_indices[n_idx++]);
+        all_indices.push_back(temp_neg_indices[n_idx++]);
         all_indices.push_back(temp_neg_indices[n_idx++]);
         all_indices.push_back(temp_neg_indices[n_idx++]);
       }

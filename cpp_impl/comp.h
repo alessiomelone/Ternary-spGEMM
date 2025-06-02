@@ -289,18 +289,22 @@ void BaseInterleavedTCSC(T *X, const InterleavedTCSC &W_csc, T *b, T *Y, int M, 
             int next_col_start_idx = segment_ptr_data[3 * n + 3];
 
             // change +4 to +8 for groups of 4 or + 2 for groups of 1
-            for (int k_ptr = pn_start_idx; k_ptr < rem_pos_start_idx; k_ptr += 4)
+            for (int k_ptr = pn_start_idx; k_ptr < rem_pos_start_idx; k_ptr += 8)
             {
                 y_val += X_row_m[indices_data[k_ptr]];
                 y_val += X_row_m[indices_data[k_ptr + 1]];
+                y_val += X_row_m[indices_data[k_ptr + 2]];
+                y_val += X_row_m[indices_data[k_ptr + 3]];
 
                 // copy and increment index
-                y_val -= X_row_m[indices_data[k_ptr + 2]];
-                y_val -= X_row_m[indices_data[k_ptr + 3]];
+                y_val -= X_row_m[indices_data[k_ptr + 4]];
+                y_val -= X_row_m[indices_data[k_ptr + 5]];
+                y_val -= X_row_m[indices_data[k_ptr + 6]];
+                y_val -= X_row_m[indices_data[k_ptr + 7]];
 
                 // make sure to change the flops
 #ifdef INSTRUMENTATION_RUN
-                flops += 4;
+                flops += 8;
 #endif
             }
 
@@ -328,9 +332,10 @@ void BaseInterleavedTCSC(T *X, const InterleavedTCSC &W_csc, T *b, T *Y, int M, 
     }
 }
 
-template <typename T>
+template <typename T, int UNROLL_FACTOR>
 void UnrolledInterleavedTCSC(T *X, const InterleavedTCSC &W_csc, T *b, T *Y, int M, int N, int K)
 {
+
 #ifdef INSTRUMENTATION_RUN
     flops = 0;
     ds_size = W_csc.getDataStructureSize();
@@ -338,6 +343,8 @@ void UnrolledInterleavedTCSC(T *X, const InterleavedTCSC &W_csc, T *b, T *Y, int
 
     const int *indices_data = W_csc.all_indices.data();
     const int *segment_ptr_data = W_csc.col_segment_ptr.data();
+
+    const int BLOCK_SIZE = 8;
 
     for (int m = 0; m < M; ++m)
     {
@@ -351,36 +358,111 @@ void UnrolledInterleavedTCSC(T *X, const InterleavedTCSC &W_csc, T *b, T *Y, int
             int rem_neg_start_idx = segment_ptr_data[3 * n + 2];
             int next_col_start_idx = segment_ptr_data[3 * n + 3];
 
-            // change +4 to +8 for groups of 4 or + 2 for groups of 1
-            for (int k_ptr = pn_start_idx; k_ptr < rem_pos_start_idx; k_ptr += 4)
+            int k_ptr;
+
+            // Main unrolled loop
+            if (pn_start_idx < rem_pos_start_idx)
             {
-                y_val += X_row_m[indices_data[k_ptr]];
-                y_val += X_row_m[indices_data[k_ptr + 1]];
+                T y_val_accumulators[UNROLL_FACTOR];
+                for (int i = 0; i < UNROLL_FACTOR; ++i)
+                {
+                    y_val_accumulators[i] = 0;
+                }
 
-                // copy and increment index
-                y_val -= X_row_m[indices_data[k_ptr + 2]];
-                y_val -= X_row_m[indices_data[k_ptr + 3]];
+                int num_elements_in_segment1 = rem_pos_start_idx - pn_start_idx;
+                int num_blocks = num_elements_in_segment1 / BLOCK_SIZE;
+                int num_unrolled_iterations = num_blocks / UNROLL_FACTOR;
 
-                // make sure to change the flops
+                int unrolled_part_limit_loop1 = pn_start_idx + num_unrolled_iterations * UNROLL_FACTOR * BLOCK_SIZE;
+
+                for (k_ptr = pn_start_idx; k_ptr < unrolled_part_limit_loop1; k_ptr += UNROLL_FACTOR * BLOCK_SIZE)
+                {
+                    for (int u = 0; u < UNROLL_FACTOR; ++u)
+                    {
+                        int current_block_start_idx = k_ptr + u * BLOCK_SIZE;
+
+                        T val0 = X_row_m[indices_data[current_block_start_idx + 0]];
+                        T val1 = X_row_m[indices_data[current_block_start_idx + 1]];
+                        T val2 = X_row_m[indices_data[current_block_start_idx + 2]];
+                        T val3 = X_row_m[indices_data[current_block_start_idx + 3]];
+                        T val4 = X_row_m[indices_data[current_block_start_idx + 4]];
+                        T val5 = X_row_m[indices_data[current_block_start_idx + 5]];
+                        T val6 = X_row_m[indices_data[current_block_start_idx + 6]];
+                        T val7 = X_row_m[indices_data[current_block_start_idx + 7]];
+
+                        T p_sum1 = val0 + val1;
+                        T p_sum2 = val2 + val3;
+                        T n_sum1 = val4 + val5;
+                        T n_sum2 = val6 + val7;
+
+                        T total_pos = p_sum1 + p_sum2;
+                        T total_neg = n_sum1 + n_sum2;
+
+                        y_val_accumulators[u] += total_pos - total_neg;
+
 #ifdef INSTRUMENTATION_RUN
-                flops += 4;
+                        flops += BLOCK_SIZE;
 #endif
+                    }
+                }
+
+                for (int u = 0; u < UNROLL_FACTOR; ++u)
+                {
+                    y_val += y_val_accumulators[u];
+#ifdef INSTRUMENTATION_RUN
+                    flops++;
+#endif
+                }
+
+                for (; k_ptr < rem_pos_start_idx; k_ptr += BLOCK_SIZE)
+                {
+                    // for cleanup
+                    T val0 = X_row_m[indices_data[k_ptr + 0]];
+                    T val1 = X_row_m[indices_data[k_ptr + 1]];
+                    T val2 = X_row_m[indices_data[k_ptr + 2]];
+                    T val3 = X_row_m[indices_data[k_ptr + 3]];
+                    T val4 = X_row_m[indices_data[k_ptr + 4]];
+                    T val5 = X_row_m[indices_data[k_ptr + 5]];
+                    T val6 = X_row_m[indices_data[k_ptr + 6]];
+                    T val7 = X_row_m[indices_data[k_ptr + 7]];
+
+                    T p_sum1 = val0 + val1;
+                    T p_sum2 = val2 + val3;
+                    T n_sum1 = val4 + val5;
+                    T n_sum2 = val6 + val7;
+
+                    T total_pos = p_sum1 + p_sum2;
+                    T total_neg = n_sum1 + n_sum2;
+
+                    y_val += total_pos - total_neg;
+#ifdef INSTRUMENTATION_RUN
+                    flops += BLOCK_SIZE;
+#endif
+                }
             }
 
-            for (int k_ptr = rem_pos_start_idx; k_ptr < rem_neg_start_idx; ++k_ptr)
+            // Remaining positive
+            if (rem_pos_start_idx < rem_neg_start_idx)
             {
-                y_val += X_row_m[indices_data[k_ptr]];
+                for (k_ptr = rem_pos_start_idx; k_ptr < rem_neg_start_idx; ++k_ptr)
+                {
+                    y_val += X_row_m[indices_data[k_ptr]];
 #ifdef INSTRUMENTATION_RUN
-                flops++;
+                    flops++;
 #endif
+                }
             }
 
-            for (int k_ptr = rem_neg_start_idx; k_ptr < next_col_start_idx; ++k_ptr)
+            // Remaining negative
+            if (rem_neg_start_idx < next_col_start_idx)
             {
-                y_val -= X_row_m[indices_data[k_ptr]];
+                for (k_ptr = rem_neg_start_idx; k_ptr < next_col_start_idx; ++k_ptr)
+                {
+                    y_val -= X_row_m[indices_data[k_ptr]];
 #ifdef INSTRUMENTATION_RUN
-                flops++;
+                    flops++;
 #endif
+                }
             }
 
             Y[m * N + n] = y_val + b[n];
@@ -390,7 +472,6 @@ void UnrolledInterleavedTCSC(T *X, const InterleavedTCSC &W_csc, T *b, T *Y, int
         }
     }
 }
-
 // TCSR
 
 template <typename T>

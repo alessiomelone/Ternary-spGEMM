@@ -6,6 +6,7 @@ CXXFLAGS_BASE = -O3 -fno-vectorize -fno-slp-vectorize -fstrict-aliasing -DPMU -D
 
 # Initialize CXXFLAGS with the base flags
 CXXFLAGS = $(CXXFLAGS_BASE)
+CXXFLAGS += -std=c++17
 
 # Add CALIBRATE by default unless NO_CALIBRATE is specified
 ifndef NO_CALIBRATE
