@@ -1,0 +1,1155 @@
+Running benchmark with executable: ./sparseGEMM.out
+Testing with non_zero_s values: [2, 4, 8, 16]
+
+--- Running test case: M=1, K=512, N=2048, s=2 ---
+  BaseTCSC: 1.0000x speedup
+  UnrolledTCSC_12: 2.2333x speedup
+  UnrolledTCSC_8: 2.2831x speedup
+  UnrolledModifiedTCSC_12: 2.7360x speedup
+  UnrolledModifiedTCSC_8: 2.5467x speedup
+  UnrolledBlockedTCSC_12: 2.6024x speedup
+  UnrolledBlockedTCSC_8: 2.5028x speedup
+  UnrolledInterleavedBlockedTCSC_12: 2.6725x speedup
+  UnrolledInterleavedBlockedTCSC_8: 2.5366x speedup
+--------------------------------------------------
+
+--- Running test case: M=1, K=512, N=2048, s=4 ---
+  BaseTCSC: 1.0000x speedup
+  UnrolledTCSC_12: 2.0293x speedup
+  UnrolledTCSC_8: 1.9962x speedup
+  UnrolledModifiedTCSC_12: 2.1606x speedup
+  UnrolledModifiedTCSC_8: 2.5501x speedup
+  UnrolledBlockedTCSC_12: 2.6237x speedup
+  UnrolledBlockedTCSC_8: 2.5536x speedup
+  UnrolledInterleavedBlockedTCSC_12: 2.4572x speedup
+  UnrolledInterleavedBlockedTCSC_8: 2.2677x speedup
+--------------------------------------------------
+
+--- Running test case: M=1, K=512, N=2048, s=8 ---
+  BaseTCSC: 1.0000x speedup
+  UnrolledTCSC_12: 2.0905x speedup
+  UnrolledTCSC_8: 2.0941x speedup
+  UnrolledModifiedTCSC_12: 2.6314x speedup
+  UnrolledModifiedTCSC_8: 2.8503x speedup
+  UnrolledBlockedTCSC_12: 2.7360x speedup
+  UnrolledBlockedTCSC_8: 2.7445x speedup
+  UnrolledInterleavedBlockedTCSC_12: 2.8746x speedup
+  UnrolledInterleavedBlockedTCSC_8: 2.8780x speedup
+--------------------------------------------------
+
+--- Running test case: M=1, K=512, N=2048, s=16 ---
+  BaseTCSC: 1.0000x speedup
+  UnrolledTCSC_12: 1.5546x speedup
+  UnrolledTCSC_8: 1.5558x speedup
+  UnrolledModifiedTCSC_12: 1.9496x speedup
+  UnrolledModifiedTCSC_8: 2.2174x speedup
+  UnrolledBlockedTCSC_12: 1.9527x speedup
+  UnrolledBlockedTCSC_8: 2.0878x speedup
+  UnrolledInterleavedBlockedTCSC_12: 2.1616x speedup
+  UnrolledInterleavedBlockedTCSC_8: 2.2986x speedup
+---------------------------------------------------
+
+--- Running test case: M=1, K=1024, N=4096, s=2 ---
+  BaseTCSC: 1.0000x speedup
+  UnrolledTCSC_12: 2.5434x speedup
+  UnrolledTCSC_8: 2.5976x speedup
+  UnrolledModifiedTCSC_12: 2.8289x speedup
+  UnrolledModifiedTCSC_8: 2.6927x speedup
+  UnrolledBlockedTCSC_12: 2.5421x speedup
+  UnrolledBlockedTCSC_8: 2.4557x speedup
+  UnrolledInterleavedBlockedTCSC_12: 2.6418x speedup
+  UnrolledInterleavedBlockedTCSC_8: 2.3866x speedup
+---------------------------------------------------
+
+--- Running test case: M=1, K=1024, N=4096, s=4 ---
+  BaseTCSC: 1.0000x speedup
+  UnrolledTCSC_12: 1.7264x speedup
+  UnrolledTCSC_8: 2.1242x speedup
+  UnrolledModifiedTCSC_12: 2.4590x speedup
+  UnrolledModifiedTCSC_8: 2.3723x speedup
+  UnrolledBlockedTCSC_12: 2.0262x speedup
+  UnrolledBlockedTCSC_8: 1.9247x speedup
+  UnrolledInterleavedBlockedTCSC_12: 1.8490x speedup
+  UnrolledInterleavedBlockedTCSC_8: 2.0532x speedup
+---------------------------------------------------
+
+--- Running test case: M=1, K=1024, N=4096, s=8 ---
+  BaseTCSC: 1.0000x speedup
+  UnrolledTCSC_12: 29.7361x speedup
+  UnrolledTCSC_8: 29.7884x speedup
+  UnrolledModifiedTCSC_12: 35.2288x speedup
+  UnrolledModifiedTCSC_8: 34.8505x speedup
+  UnrolledBlockedTCSC_12: 27.3178x speedup
+  UnrolledBlockedTCSC_8: 25.5846x speedup
+  UnrolledInterleavedBlockedTCSC_12: 29.5439x speedup
+  UnrolledInterleavedBlockedTCSC_8: 28.2238x speedup
+---------------------------------------------------
+
+--- Running test case: M=1, K=1024, N=4096, s=16 ---
+  BaseTCSC: 1.0000x speedup
+  UnrolledTCSC_12: 1.7483x speedup
+  UnrolledTCSC_8: 1.7597x speedup
+  UnrolledModifiedTCSC_12: 1.9035x speedup
+  UnrolledModifiedTCSC_8: 2.3911x speedup
+  UnrolledBlockedTCSC_12: 1.2692x speedup
+  UnrolledBlockedTCSC_8: 1.0823x speedup
+  UnrolledInterleavedBlockedTCSC_12: 1.2483x speedup
+  UnrolledInterleavedBlockedTCSC_8: 1.1896x speedup
+----------------------------------------------------
+
+--- Running test case: M=1, K=2048, N=8192, s=2 ---
+  BaseTCSC: 1.0000x speedup
+  UnrolledTCSC_12: 2.5410x speedup
+  UnrolledTCSC_8: 2.5248x speedup
+  UnrolledModifiedTCSC_12: 2.7733x speedup
+  UnrolledModifiedTCSC_8: 2.7616x speedup
+  UnrolledBlockedTCSC_12: 2.3838x speedup
+  UnrolledBlockedTCSC_8: 2.3660x speedup
+  UnrolledInterleavedBlockedTCSC_12: 2.2393x speedup
+  UnrolledInterleavedBlockedTCSC_8: 2.1872x speedup
+---------------------------------------------------
+
+--- Running test case: M=1, K=2048, N=8192, s=4 ---
+  BaseTCSC: 1.0000x speedup
+  UnrolledTCSC_12: 2.4711x speedup
+  UnrolledTCSC_8: 2.4771x speedup
+  UnrolledModifiedTCSC_12: 2.6451x speedup
+  UnrolledModifiedTCSC_8: 2.6614x speedup
+  UnrolledBlockedTCSC_12: 2.0156x speedup
+  UnrolledBlockedTCSC_8: 1.9715x speedup
+  UnrolledInterleavedBlockedTCSC_12: 2.0842x speedup
+  UnrolledInterleavedBlockedTCSC_8: 2.0816x speedup
+---------------------------------------------------
+
+--- Running test case: M=1, K=2048, N=8192, s=8 ---
+  BaseTCSC: 1.0000x speedup
+  UnrolledTCSC_12: 2.1278x speedup
+  UnrolledTCSC_8: 2.1249x speedup
+  UnrolledModifiedTCSC_12: 2.3992x speedup
+  UnrolledModifiedTCSC_8: 2.3460x speedup
+  UnrolledBlockedTCSC_12: 1.5436x speedup
+  UnrolledBlockedTCSC_8: 1.4448x speedup
+  UnrolledInterleavedBlockedTCSC_12: 1.6910x speedup
+  UnrolledInterleavedBlockedTCSC_8: 1.6323x speedup
+---------------------------------------------------
+
+--- Running test case: M=1, K=2048, N=8192, s=16 ---
+  BaseTCSC: 1.0000x speedup
+  UnrolledTCSC_12: 1.7005x speedup
+  UnrolledTCSC_8: 1.6387x speedup
+  UnrolledModifiedTCSC_12: 1.9485x speedup
+  UnrolledModifiedTCSC_8: 1.8775x speedup
+  UnrolledBlockedTCSC_12: 1.0522x speedup
+  UnrolledBlockedTCSC_8: 0.9239x speedup
+  UnrolledInterleavedBlockedTCSC_12: 1.1514x speedup
+  UnrolledInterleavedBlockedTCSC_8: 1.1427x speedup
+----------------------------------------------------
+
+--- Running test case: M=1, K=4096, N=16384, s=2 ---
+  BaseTCSC: 1.0000x speedup
+  UnrolledTCSC_12: 2.3617x speedup
+  UnrolledTCSC_8: 2.3601x speedup
+  UnrolledModifiedTCSC_12: 2.8077x speedup
+  UnrolledModifiedTCSC_8: 2.7289x speedup
+  UnrolledBlockedTCSC_12: 2.3985x speedup
+  UnrolledBlockedTCSC_8: 2.3998x speedup
+  UnrolledInterleavedBlockedTCSC_12: 2.3676x speedup
+  UnrolledInterleavedBlockedTCSC_8: 2.2892x speedup
+----------------------------------------------------
+
+--- Running test case: M=1, K=4096, N=16384, s=4 ---
+  BaseTCSC: 1.0000x speedup
+  UnrolledTCSC_12: 2.2973x speedup
+  UnrolledTCSC_8: 2.2732x speedup
+  UnrolledModifiedTCSC_12: 2.6558x speedup
+  UnrolledModifiedTCSC_8: 2.6292x speedup
+  UnrolledBlockedTCSC_12: 1.9951x speedup
+  UnrolledBlockedTCSC_8: 1.9638x speedup
+  UnrolledInterleavedBlockedTCSC_12: 2.0029x speedup
+  UnrolledInterleavedBlockedTCSC_8: 1.9720x speedup
+----------------------------------------------------
+
+--- Running test case: M=1, K=4096, N=16384, s=8 ---
+  BaseTCSC: 1.0000x speedup
+  UnrolledTCSC_12: 2.3584x speedup
+  UnrolledTCSC_8: 2.3525x speedup
+  UnrolledModifiedTCSC_12: 2.4835x speedup
+  UnrolledModifiedTCSC_8: 2.4370x speedup
+  UnrolledBlockedTCSC_12: 1.5468x speedup
+  UnrolledBlockedTCSC_8: 1.4692x speedup
+  UnrolledInterleavedBlockedTCSC_12: 1.6736x speedup
+  UnrolledInterleavedBlockedTCSC_8: 1.6329x speedup
+----------------------------------------------------
+
+--- Running test case: M=1, K=4096, N=16384, s=16 ---
+  BaseTCSC: 1.0000x speedup
+  UnrolledTCSC_12: 2.0562x speedup
+  UnrolledTCSC_8: 2.0709x speedup
+  UnrolledModifiedTCSC_12: 2.2893x speedup
+  UnrolledModifiedTCSC_8: 2.2493x speedup
+  UnrolledBlockedTCSC_12: 1.0654x speedup
+  UnrolledBlockedTCSC_8: 0.9281x speedup
+  UnrolledInterleavedBlockedTCSC_12: 1.1475x speedup
+  UnrolledInterleavedBlockedTCSC_8: 1.1338x speedup
+-----------------------------------------------------
+
+--- Running test case: M=1, K=2048, N=512, s=2 ---
+  BaseTCSC: 1.0000x speedup
+  UnrolledTCSC_12: 2.8859x speedup
+  UnrolledTCSC_8: 2.8841x speedup
+  UnrolledModifiedTCSC_12: 3.1296x speedup
+  UnrolledModifiedTCSC_8: 3.0413x speedup
+  UnrolledBlockedTCSC_12: 2.7574x speedup
+  UnrolledBlockedTCSC_8: 2.6758x speedup
+  UnrolledInterleavedBlockedTCSC_12: 2.8109x speedup
+  UnrolledInterleavedBlockedTCSC_8: 2.6770x speedup
+--------------------------------------------------
+
+--- Running test case: M=1, K=2048, N=512, s=4 ---
+  BaseTCSC: 1.0000x speedup
+  UnrolledTCSC_12: 2.7302x speedup
+  UnrolledTCSC_8: 2.5204x speedup
+  UnrolledModifiedTCSC_12: 2.9389x speedup
+  UnrolledModifiedTCSC_8: 2.8366x speedup
+  UnrolledBlockedTCSC_12: 2.7676x speedup
+  UnrolledBlockedTCSC_8: 2.8899x speedup
+  UnrolledInterleavedBlockedTCSC_12: 2.7940x speedup
+  UnrolledInterleavedBlockedTCSC_8: 2.5464x speedup
+--------------------------------------------------
+
+--- Running test case: M=1, K=2048, N=512, s=8 ---
+  BaseTCSC: 1.0000x speedup
+  UnrolledTCSC_12: 2.3863x speedup
+  UnrolledTCSC_8: 2.4232x speedup
+  UnrolledModifiedTCSC_12: 2.8820x speedup
+  UnrolledModifiedTCSC_8: 2.9028x speedup
+  UnrolledBlockedTCSC_12: 2.4901x speedup
+  UnrolledBlockedTCSC_8: 2.5153x speedup
+  UnrolledInterleavedBlockedTCSC_12: 2.5562x speedup
+  UnrolledInterleavedBlockedTCSC_8: 2.6018x speedup
+--------------------------------------------------
+
+--- Running test case: M=1, K=2048, N=512, s=16 ---
+  BaseTCSC: 1.0000x speedup
+  UnrolledTCSC_12: 1.9831x speedup
+  UnrolledTCSC_8: 1.9942x speedup
+  UnrolledModifiedTCSC_12: 2.5651x speedup
+  UnrolledModifiedTCSC_8: 2.5792x speedup
+  UnrolledBlockedTCSC_12: 1.9040x speedup
+  UnrolledBlockedTCSC_8: 2.0687x speedup
+  UnrolledInterleavedBlockedTCSC_12: 2.0852x speedup
+  UnrolledInterleavedBlockedTCSC_8: 2.1869x speedup
+---------------------------------------------------
+
+--- Running test case: M=1, K=4096, N=1024, s=2 ---
+  BaseTCSC: 1.0000x speedup
+  UnrolledTCSC_12: 2.8403x speedup
+  UnrolledTCSC_8: 2.8736x speedup
+  UnrolledModifiedTCSC_12: 3.1097x speedup
+  UnrolledModifiedTCSC_8: 3.1035x speedup
+  UnrolledBlockedTCSC_12: 2.5891x speedup
+  UnrolledBlockedTCSC_8: 2.5499x speedup
+  UnrolledInterleavedBlockedTCSC_12: 2.7376x speedup
+  UnrolledInterleavedBlockedTCSC_8: 2.6582x speedup
+---------------------------------------------------
+
+--- Running test case: M=1, K=4096, N=1024, s=4 ---
+  BaseTCSC: 1.0000x speedup
+  UnrolledTCSC_12: 2.6717x speedup
+  UnrolledTCSC_8: 2.7412x speedup
+  UnrolledModifiedTCSC_12: 3.0104x speedup
+  UnrolledModifiedTCSC_8: 2.9707x speedup
+  UnrolledBlockedTCSC_12: 2.1311x speedup
+  UnrolledBlockedTCSC_8: 2.0925x speedup
+  UnrolledInterleavedBlockedTCSC_12: 2.3251x speedup
+  UnrolledInterleavedBlockedTCSC_8: 2.2496x speedup
+---------------------------------------------------
+
+--- Running test case: M=1, K=4096, N=1024, s=8 ---
+  BaseTCSC: 1.0000x speedup
+  UnrolledTCSC_12: 2.6480x speedup
+  UnrolledTCSC_8: 2.6445x speedup
+  UnrolledModifiedTCSC_12: 3.0026x speedup
+  UnrolledModifiedTCSC_8: 2.8712x speedup
+  UnrolledBlockedTCSC_12: 1.7153x speedup
+  UnrolledBlockedTCSC_8: 1.6106x speedup
+  UnrolledInterleavedBlockedTCSC_12: 1.8515x speedup
+  UnrolledInterleavedBlockedTCSC_8: 1.7723x speedup
+---------------------------------------------------
+
+--- Running test case: M=1, K=4096, N=1024, s=16 ---
+  BaseTCSC: 1.0000x speedup
+  UnrolledTCSC_12: 2.4536x speedup
+  UnrolledTCSC_8: 2.4519x speedup
+  UnrolledModifiedTCSC_12: 2.9123x speedup
+  UnrolledModifiedTCSC_8: 2.8916x speedup
+  UnrolledBlockedTCSC_12: 1.3757x speedup
+  UnrolledBlockedTCSC_8: 1.1902x speedup
+  UnrolledInterleavedBlockedTCSC_12: 1.3735x speedup
+  UnrolledInterleavedBlockedTCSC_8: 1.3000x speedup
+----------------------------------------------------
+
+--- Running test case: M=1, K=8192, N=2048, s=2 ---
+  BaseTCSC: 1.0000x speedup
+  UnrolledTCSC_12: 2.3791x speedup
+  UnrolledTCSC_8: 2.3721x speedup
+  UnrolledModifiedTCSC_12: 2.8693x speedup
+  UnrolledModifiedTCSC_8: 2.8931x speedup
+  UnrolledBlockedTCSC_12: 2.4223x speedup
+  UnrolledBlockedTCSC_8: 2.3670x speedup
+  UnrolledInterleavedBlockedTCSC_12: 2.3360x speedup
+  UnrolledInterleavedBlockedTCSC_8: 2.2614x speedup
+---------------------------------------------------
+
+--- Running test case: M=1, K=8192, N=2048, s=4 ---
+  BaseTCSC: 1.0000x speedup
+  UnrolledTCSC_12: 2.1911x speedup
+  UnrolledTCSC_8: 2.2085x speedup
+  UnrolledModifiedTCSC_12: 2.6255x speedup
+  UnrolledModifiedTCSC_8: 2.6506x speedup
+  UnrolledBlockedTCSC_12: 2.0610x speedup
+  UnrolledBlockedTCSC_8: 2.0236x speedup
+  UnrolledInterleavedBlockedTCSC_12: 2.1787x speedup
+  UnrolledInterleavedBlockedTCSC_8: 2.1360x speedup
+---------------------------------------------------
+
+--- Running test case: M=1, K=8192, N=2048, s=8 ---
+  BaseTCSC: 1.0000x speedup
+  UnrolledTCSC_12: 2.4329x speedup
+  UnrolledTCSC_8: 2.4312x speedup
+  UnrolledModifiedTCSC_12: 2.5967x speedup
+  UnrolledModifiedTCSC_8: 2.5939x speedup
+  UnrolledBlockedTCSC_12: 1.6320x speedup
+  UnrolledBlockedTCSC_8: 1.5488x speedup
+  UnrolledInterleavedBlockedTCSC_12: 1.8068x speedup
+  UnrolledInterleavedBlockedTCSC_8: 1.7519x speedup
+---------------------------------------------------
+
+--- Running test case: M=1, K=8192, N=2048, s=16 ---
+  BaseTCSC: 1.0000x speedup
+  UnrolledTCSC_12: 2.3916x speedup
+  UnrolledTCSC_8: 2.4045x speedup
+  UnrolledModifiedTCSC_12: 2.5612x speedup
+  UnrolledModifiedTCSC_8: 2.5416x speedup
+  UnrolledBlockedTCSC_12: 1.1441x speedup
+  UnrolledBlockedTCSC_8: 1.0089x speedup
+  UnrolledInterleavedBlockedTCSC_12: 1.2495x speedup
+  UnrolledInterleavedBlockedTCSC_8: 1.2463x speedup
+----------------------------------------------------
+
+--- Running test case: M=1, K=16384, N=4096, s=2 ---
+  BaseTCSC: 1.0000x speedup
+  UnrolledTCSC_12: 2.4834x speedup
+  UnrolledTCSC_8: 2.4662x speedup
+  UnrolledModifiedTCSC_12: 2.8484x speedup
+  UnrolledModifiedTCSC_8: 2.7983x speedup
+  UnrolledBlockedTCSC_12: 2.4213x speedup
+  UnrolledBlockedTCSC_8: 2.3897x speedup
+  UnrolledInterleavedBlockedTCSC_12: 2.3965x speedup
+  UnrolledInterleavedBlockedTCSC_8: 2.2948x speedup
+----------------------------------------------------
+
+--- Running test case: M=1, K=16384, N=4096, s=4 ---
+  BaseTCSC: 1.0000x speedup
+  UnrolledTCSC_12: 1.9321x speedup
+  UnrolledTCSC_8: 1.9248x speedup
+  UnrolledModifiedTCSC_12: 2.5024x speedup
+  UnrolledModifiedTCSC_8: 2.5096x speedup
+  UnrolledBlockedTCSC_12: 2.0597x speedup
+  UnrolledBlockedTCSC_8: 2.0251x speedup
+  UnrolledInterleavedBlockedTCSC_12: 2.0408x speedup
+  UnrolledInterleavedBlockedTCSC_8: 2.0135x speedup
+----------------------------------------------------
+
+--- Running test case: M=1, K=16384, N=4096, s=8 ---
+  BaseTCSC: 1.0000x speedup
+  UnrolledTCSC_12: 1.4759x speedup
+  UnrolledTCSC_8: 1.4877x speedup
+  UnrolledModifiedTCSC_12: 2.2132x speedup
+  UnrolledModifiedTCSC_8: 2.2381x speedup
+  UnrolledBlockedTCSC_12: 1.6325x speedup
+  UnrolledBlockedTCSC_8: 1.5577x speedup
+  UnrolledInterleavedBlockedTCSC_12: 1.7639x speedup
+  UnrolledInterleavedBlockedTCSC_8: 1.7121x speedup
+----------------------------------------------------
+
+--- Running test case: M=1, K=16384, N=4096, s=16 ---
+  BaseTCSC: 1.0000x speedup
+  UnrolledTCSC_12: 1.5741x speedup
+  UnrolledTCSC_8: 1.6235x speedup
+  UnrolledModifiedTCSC_12: 1.6683x speedup
+  UnrolledModifiedTCSC_8: 1.6770x speedup
+  UnrolledBlockedTCSC_12: 1.1586x speedup
+  UnrolledBlockedTCSC_8: 1.0133x speedup
+  UnrolledInterleavedBlockedTCSC_12: 1.2521x speedup
+  UnrolledInterleavedBlockedTCSC_8: 1.2300x speedup
+-----------------------------------------------------
+
+--- Running test case: M=16, K=512, N=2048, s=2 ---
+  BaseTCSC: 1.0000x speedup
+  UnrolledTCSC_12: 2.2605x speedup
+  UnrolledTCSC_8: 2.2788x speedup
+  UnrolledModifiedTCSC_12: 2.6862x speedup
+  UnrolledModifiedTCSC_8: 2.5618x speedup
+  UnrolledBlockedTCSC_12: 2.5858x speedup
+  UnrolledBlockedTCSC_8: 2.2753x speedup
+  UnrolledInterleavedBlockedTCSC_12: 2.6662x speedup
+  UnrolledInterleavedBlockedTCSC_8: 2.5098x speedup
+---------------------------------------------------
+
+--- Running test case: M=16, K=512, N=2048, s=4 ---
+  BaseTCSC: 1.0000x speedup
+  UnrolledTCSC_12: 1.9850x speedup
+  UnrolledTCSC_8: 2.0164x speedup
+  UnrolledModifiedTCSC_12: 2.5958x speedup
+  UnrolledModifiedTCSC_8: 2.6337x speedup
+  UnrolledBlockedTCSC_12: 2.5961x speedup
+  UnrolledBlockedTCSC_8: 2.5937x speedup
+  UnrolledInterleavedBlockedTCSC_12: 2.5123x speedup
+  UnrolledInterleavedBlockedTCSC_8: 2.2602x speedup
+---------------------------------------------------
+
+--- Running test case: M=16, K=512, N=2048, s=8 ---
+  BaseTCSC: 1.0000x speedup
+  UnrolledTCSC_12: 1.7450x speedup
+  UnrolledTCSC_8: 1.7535x speedup
+  UnrolledModifiedTCSC_12: 2.2510x speedup
+  UnrolledModifiedTCSC_8: 2.4206x speedup
+  UnrolledBlockedTCSC_12: 2.3003x speedup
+  UnrolledBlockedTCSC_8: 2.3247x speedup
+  UnrolledInterleavedBlockedTCSC_12: 2.3645x speedup
+  UnrolledInterleavedBlockedTCSC_8: 2.3927x speedup
+---------------------------------------------------
+
+--- Running test case: M=16, K=512, N=2048, s=16 ---
+  BaseTCSC: 1.0000x speedup
+  UnrolledTCSC_12: 1.5373x speedup
+  UnrolledTCSC_8: 1.4928x speedup
+  UnrolledModifiedTCSC_12: 1.9247x speedup
+  UnrolledModifiedTCSC_8: 2.0964x speedup
+  UnrolledBlockedTCSC_12: 1.7902x speedup
+  UnrolledBlockedTCSC_8: 1.9554x speedup
+  UnrolledInterleavedBlockedTCSC_12: 2.1340x speedup
+  UnrolledInterleavedBlockedTCSC_8: 2.2312x speedup
+----------------------------------------------------
+
+--- Running test case: M=16, K=1024, N=4096, s=2 ---
+  BaseTCSC: 1.0000x speedup
+  UnrolledTCSC_12: 2.5579x speedup
+  UnrolledTCSC_8: 2.5521x speedup
+  UnrolledModifiedTCSC_12: 2.7738x speedup
+  UnrolledModifiedTCSC_8: 2.7551x speedup
+  UnrolledBlockedTCSC_12: 2.4407x speedup
+  UnrolledBlockedTCSC_8: 2.4136x speedup
+  UnrolledInterleavedBlockedTCSC_12: 2.6430x speedup
+  UnrolledInterleavedBlockedTCSC_8: 2.5652x speedup
+----------------------------------------------------
+
+--- Running test case: M=16, K=1024, N=4096, s=4 ---
+  BaseTCSC: 1.0000x speedup
+  UnrolledTCSC_12: 2.1724x speedup
+  UnrolledTCSC_8: 2.1780x speedup
+  UnrolledModifiedTCSC_12: 2.4660x speedup
+  UnrolledModifiedTCSC_8: 2.3958x speedup
+  UnrolledBlockedTCSC_12: 2.0247x speedup
+  UnrolledBlockedTCSC_8: 1.9862x speedup
+  UnrolledInterleavedBlockedTCSC_12: 2.0945x speedup
+  UnrolledInterleavedBlockedTCSC_8: 2.1261x speedup
+----------------------------------------------------
+
+--- Running test case: M=16, K=1024, N=4096, s=8 ---
+  BaseTCSC: 1.0000x speedup
+  UnrolledTCSC_12: 1.7246x speedup
+  UnrolledTCSC_8: 1.7217x speedup
+  UnrolledModifiedTCSC_12: 2.0519x speedup
+  UnrolledModifiedTCSC_8: 1.9795x speedup
+  UnrolledBlockedTCSC_12: 1.5191x speedup
+  UnrolledBlockedTCSC_8: 1.4575x speedup
+  UnrolledInterleavedBlockedTCSC_12: 1.6749x speedup
+  UnrolledInterleavedBlockedTCSC_8: 1.6088x speedup
+----------------------------------------------------
+
+--- Running test case: M=16, K=1024, N=4096, s=16 ---
+  BaseTCSC: 1.0000x speedup
+  UnrolledTCSC_12: 1.7600x speedup
+  UnrolledTCSC_8: 1.7585x speedup
+  UnrolledModifiedTCSC_12: 2.2540x speedup
+  UnrolledModifiedTCSC_8: 2.3668x speedup
+  UnrolledBlockedTCSC_12: 1.2925x speedup
+  UnrolledBlockedTCSC_8: 1.0920x speedup
+  UnrolledInterleavedBlockedTCSC_12: 1.2869x speedup
+  UnrolledInterleavedBlockedTCSC_8: 1.2055x speedup
+-----------------------------------------------------
+
+--- Running test case: M=16, K=2048, N=8192, s=2 ---
+  BaseTCSC: 1.0000x speedup
+  UnrolledTCSC_12: 2.4986x speedup
+  UnrolledTCSC_8: 2.4874x speedup
+  UnrolledModifiedTCSC_12: 2.6535x speedup
+  UnrolledModifiedTCSC_8: 2.7010x speedup
+  UnrolledBlockedTCSC_12: 2.3528x speedup
+  UnrolledBlockedTCSC_8: 2.3374x speedup
+  UnrolledInterleavedBlockedTCSC_12: 2.2549x speedup
+  UnrolledInterleavedBlockedTCSC_8: 2.1960x speedup
+----------------------------------------------------
+
+--- Running test case: M=16, K=2048, N=8192, s=4 ---
+  BaseTCSC: 1.0000x speedup
+  UnrolledTCSC_12: 2.4511x speedup
+  UnrolledTCSC_8: 2.4522x speedup
+  UnrolledModifiedTCSC_12: 2.6533x speedup
+  UnrolledModifiedTCSC_8: 2.6359x speedup
+  UnrolledBlockedTCSC_12: 1.9798x speedup
+  UnrolledBlockedTCSC_8: 1.9426x speedup
+  UnrolledInterleavedBlockedTCSC_12: 2.0693x speedup
+  UnrolledInterleavedBlockedTCSC_8: 2.0270x speedup
+----------------------------------------------------
+
+--- Running test case: M=16, K=2048, N=8192, s=8 ---
+  BaseTCSC: 1.0000x speedup
+  UnrolledTCSC_12: 2.1349x speedup
+  UnrolledTCSC_8: 2.1566x speedup
+  UnrolledModifiedTCSC_12: 2.4076x speedup
+  UnrolledModifiedTCSC_8: 2.3669x speedup
+  UnrolledBlockedTCSC_12: 1.5329x speedup
+  UnrolledBlockedTCSC_8: 1.4408x speedup
+  UnrolledInterleavedBlockedTCSC_12: 1.7077x speedup
+  UnrolledInterleavedBlockedTCSC_8: 1.6521x speedup
+----------------------------------------------------
+
+--- Running test case: M=16, K=2048, N=8192, s=16 ---
+  BaseTCSC: 1.0000x speedup
+  UnrolledTCSC_12: 1.6593x speedup
+  UnrolledTCSC_8: 1.6458x speedup
+  UnrolledModifiedTCSC_12: 1.9217x speedup
+  UnrolledModifiedTCSC_8: 1.8556x speedup
+  UnrolledBlockedTCSC_12: 1.0211x speedup
+  UnrolledBlockedTCSC_8: 0.8961x speedup
+  UnrolledInterleavedBlockedTCSC_12: 1.1296x speedup
+  UnrolledInterleavedBlockedTCSC_8: 1.1122x speedup
+-----------------------------------------------------
+
+--- Running test case: M=16, K=4096, N=16384, s=2 ---
+  BaseTCSC: 1.0000x speedup
+  UnrolledTCSC_12: 2.3274x speedup
+  UnrolledTCSC_8: 2.3190x speedup
+  UnrolledModifiedTCSC_12: 2.8246x speedup
+  UnrolledModifiedTCSC_8: 2.7782x speedup
+  UnrolledBlockedTCSC_12: 2.4411x speedup
+  UnrolledBlockedTCSC_8: 2.3989x speedup
+  UnrolledInterleavedBlockedTCSC_12: 2.3683x speedup
+  UnrolledInterleavedBlockedTCSC_8: 2.3230x speedup
+-----------------------------------------------------
+
+--- Running test case: M=16, K=4096, N=16384, s=4 ---
+  BaseTCSC: 1.0000x speedup
+  UnrolledTCSC_12: 2.2863x speedup
+  UnrolledTCSC_8: 2.2920x speedup
+  UnrolledModifiedTCSC_12: 2.6632x speedup
+  UnrolledModifiedTCSC_8: 2.6250x speedup
+  UnrolledBlockedTCSC_12: 1.9468x speedup
+  UnrolledBlockedTCSC_8: 1.9850x speedup
+  UnrolledInterleavedBlockedTCSC_12: 2.0024x speedup
+  UnrolledInterleavedBlockedTCSC_8: 1.9635x speedup
+-----------------------------------------------------
+
+--- Running test case: M=16, K=4096, N=16384, s=8 ---
+  BaseTCSC: 1.0000x speedup
+  UnrolledTCSC_12: 2.2683x speedup
+  UnrolledTCSC_8: 2.2437x speedup
+  UnrolledModifiedTCSC_12: 2.4854x speedup
+  UnrolledModifiedTCSC_8: 2.4301x speedup
+  UnrolledBlockedTCSC_12: 1.5534x speedup
+  UnrolledBlockedTCSC_8: 1.4784x speedup
+  UnrolledInterleavedBlockedTCSC_12: 1.6773x speedup
+  UnrolledInterleavedBlockedTCSC_8: 1.6238x speedup
+-----------------------------------------------------
+
+--- Running test case: M=16, K=4096, N=16384, s=16 ---
+  BaseTCSC: 1.0000x speedup
+  UnrolledTCSC_12: 2.0686x speedup
+  UnrolledTCSC_8: 2.0074x speedup
+  UnrolledModifiedTCSC_12: 2.3075x speedup
+  UnrolledModifiedTCSC_8: 2.2637x speedup
+  UnrolledBlockedTCSC_12: 1.0636x speedup
+  UnrolledBlockedTCSC_8: 0.9301x speedup
+  UnrolledInterleavedBlockedTCSC_12: 1.1421x speedup
+  UnrolledInterleavedBlockedTCSC_8: 1.1424x speedup
+------------------------------------------------------
+
+--- Running test case: M=16, K=2048, N=512, s=2 ---
+  BaseTCSC: 1.0000x speedup
+  UnrolledTCSC_12: 2.8697x speedup
+  UnrolledTCSC_8: 2.8140x speedup
+  UnrolledModifiedTCSC_12: 3.1093x speedup
+  UnrolledModifiedTCSC_8: 3.0414x speedup
+  UnrolledBlockedTCSC_12: 2.7618x speedup
+  UnrolledBlockedTCSC_8: 2.6507x speedup
+  UnrolledInterleavedBlockedTCSC_12: 2.8089x speedup
+  UnrolledInterleavedBlockedTCSC_8: 2.6683x speedup
+---------------------------------------------------
+
+--- Running test case: M=16, K=2048, N=512, s=4 ---
+  BaseTCSC: 1.0000x speedup
+  UnrolledTCSC_12: 2.7020x speedup
+  UnrolledTCSC_8: 2.7093x speedup
+  UnrolledModifiedTCSC_12: 3.0492x speedup
+  UnrolledModifiedTCSC_8: 3.0061x speedup
+  UnrolledBlockedTCSC_12: 2.9056x speedup
+  UnrolledBlockedTCSC_8: 2.9058x speedup
+  UnrolledInterleavedBlockedTCSC_12: 2.7934x speedup
+  UnrolledInterleavedBlockedTCSC_8: 2.4944x speedup
+---------------------------------------------------
+
+--- Running test case: M=16, K=2048, N=512, s=8 ---
+  BaseTCSC: 1.0000x speedup
+  UnrolledTCSC_12: 2.4332x speedup
+  UnrolledTCSC_8: 2.4320x speedup
+  UnrolledModifiedTCSC_12: 2.9636x speedup
+  UnrolledModifiedTCSC_8: 2.9268x speedup
+  UnrolledBlockedTCSC_12: 2.5127x speedup
+  UnrolledBlockedTCSC_8: 2.5379x speedup
+  UnrolledInterleavedBlockedTCSC_12: 2.5669x speedup
+  UnrolledInterleavedBlockedTCSC_8: 2.6084x speedup
+---------------------------------------------------
+
+--- Running test case: M=16, K=2048, N=512, s=16 ---
+  BaseTCSC: 1.0000x speedup
+  UnrolledTCSC_12: 2.0270x speedup
+  UnrolledTCSC_8: 2.0258x speedup
+  UnrolledModifiedTCSC_12: 2.6643x speedup
+  UnrolledModifiedTCSC_8: 2.6568x speedup
+  UnrolledBlockedTCSC_12: 1.9068x speedup
+  UnrolledBlockedTCSC_8: 2.0570x speedup
+  UnrolledInterleavedBlockedTCSC_12: 2.0659x speedup
+  UnrolledInterleavedBlockedTCSC_8: 2.1599x speedup
+----------------------------------------------------
+
+--- Running test case: M=16, K=4096, N=1024, s=2 ---
+  BaseTCSC: 1.0000x speedup
+  UnrolledTCSC_12: 2.8000x speedup
+  UnrolledTCSC_8: 2.8390x speedup
+  UnrolledModifiedTCSC_12: 3.1031x speedup
+  UnrolledModifiedTCSC_8: 3.1183x speedup
+  UnrolledBlockedTCSC_12: 2.6427x speedup
+  UnrolledBlockedTCSC_8: 2.6056x speedup
+  UnrolledInterleavedBlockedTCSC_12: 2.7469x speedup
+  UnrolledInterleavedBlockedTCSC_8: 2.7072x speedup
+----------------------------------------------------
+
+--- Running test case: M=16, K=4096, N=1024, s=4 ---
+  BaseTCSC: 1.0000x speedup
+  UnrolledTCSC_12: 2.6994x speedup
+  UnrolledTCSC_8: 2.7620x speedup
+  UnrolledModifiedTCSC_12: 3.0306x speedup
+  UnrolledModifiedTCSC_8: 3.0033x speedup
+  UnrolledBlockedTCSC_12: 2.1407x speedup
+  UnrolledBlockedTCSC_8: 2.0902x speedup
+  UnrolledInterleavedBlockedTCSC_12: 2.3171x speedup
+  UnrolledInterleavedBlockedTCSC_8: 2.2519x speedup
+----------------------------------------------------
+
+--- Running test case: M=16, K=4096, N=1024, s=8 ---
+  BaseTCSC: 1.0000x speedup
+  UnrolledTCSC_12: 2.6160x speedup
+  UnrolledTCSC_8: 2.6207x speedup
+  UnrolledModifiedTCSC_12: 2.9853x speedup
+  UnrolledModifiedTCSC_8: 2.8701x speedup
+  UnrolledBlockedTCSC_12: 1.7146x speedup
+  UnrolledBlockedTCSC_8: 1.6016x speedup
+  UnrolledInterleavedBlockedTCSC_12: 1.8317x speedup
+  UnrolledInterleavedBlockedTCSC_8: 1.7531x speedup
+----------------------------------------------------
+
+--- Running test case: M=16, K=4096, N=1024, s=16 ---
+  BaseTCSC: 1.0000x speedup
+  UnrolledTCSC_12: 2.4135x speedup
+  UnrolledTCSC_8: 2.4240x speedup
+  UnrolledModifiedTCSC_12: 2.9095x speedup
+  UnrolledModifiedTCSC_8: 2.9073x speedup
+  UnrolledBlockedTCSC_12: 1.3936x speedup
+  UnrolledBlockedTCSC_8: 1.1879x speedup
+  UnrolledInterleavedBlockedTCSC_12: 1.3717x speedup
+  UnrolledInterleavedBlockedTCSC_8: 1.3006x speedup
+-----------------------------------------------------
+
+--- Running test case: M=16, K=8192, N=2048, s=2 ---
+  BaseTCSC: 1.0000x speedup
+  UnrolledTCSC_12: 2.3015x speedup
+  UnrolledTCSC_8: 2.3048x speedup
+  UnrolledModifiedTCSC_12: 2.8690x speedup
+  UnrolledModifiedTCSC_8: 2.8346x speedup
+  UnrolledBlockedTCSC_12: 2.4675x speedup
+  UnrolledBlockedTCSC_8: 2.4519x speedup
+  UnrolledInterleavedBlockedTCSC_12: 2.3275x speedup
+  UnrolledInterleavedBlockedTCSC_8: 2.2592x speedup
+----------------------------------------------------
+
+--- Running test case: M=16, K=8192, N=2048, s=4 ---
+  BaseTCSC: 1.0000x speedup
+  UnrolledTCSC_12: 2.1875x speedup
+  UnrolledTCSC_8: 2.2176x speedup
+  UnrolledModifiedTCSC_12: 2.6859x speedup
+  UnrolledModifiedTCSC_8: 2.6761x speedup
+  UnrolledBlockedTCSC_12: 2.1037x speedup
+  UnrolledBlockedTCSC_8: 2.0610x speedup
+  UnrolledInterleavedBlockedTCSC_12: 2.1796x speedup
+  UnrolledInterleavedBlockedTCSC_8: 2.1325x speedup
+----------------------------------------------------
+
+--- Running test case: M=16, K=8192, N=2048, s=8 ---
+  BaseTCSC: 1.0000x speedup
+  UnrolledTCSC_12: 2.3827x speedup
+  UnrolledTCSC_8: 2.4416x speedup
+  UnrolledModifiedTCSC_12: 2.6053x speedup
+  UnrolledModifiedTCSC_8: 2.6108x speedup
+  UnrolledBlockedTCSC_12: 1.6356x speedup
+  UnrolledBlockedTCSC_8: 1.5409x speedup
+  UnrolledInterleavedBlockedTCSC_12: 1.7871x speedup
+  UnrolledInterleavedBlockedTCSC_8: 1.7548x speedup
+----------------------------------------------------
+
+--- Running test case: M=16, K=8192, N=2048, s=16 ---
+  BaseTCSC: 1.0000x speedup
+  UnrolledTCSC_12: 2.4020x speedup
+  UnrolledTCSC_8: 2.4044x speedup
+  UnrolledModifiedTCSC_12: 2.5253x speedup
+  UnrolledModifiedTCSC_8: 2.5437x speedup
+  UnrolledBlockedTCSC_12: 1.1471x speedup
+  UnrolledBlockedTCSC_8: 1.0013x speedup
+  UnrolledInterleavedBlockedTCSC_12: 1.2589x speedup
+  UnrolledInterleavedBlockedTCSC_8: 1.2405x speedup
+-----------------------------------------------------
+
+--- Running test case: M=16, K=16384, N=4096, s=2 ---
+  BaseTCSC: 1.0000x speedup
+  UnrolledTCSC_12: 2.4674x speedup
+  UnrolledTCSC_8: 2.4234x speedup
+  UnrolledModifiedTCSC_12: 2.8924x speedup
+  UnrolledModifiedTCSC_8: 2.8456x speedup
+  UnrolledBlockedTCSC_12: 2.4576x speedup
+  UnrolledBlockedTCSC_8: 2.4498x speedup
+  UnrolledInterleavedBlockedTCSC_12: 2.3813x speedup
+  UnrolledInterleavedBlockedTCSC_8: 2.3487x speedup
+-----------------------------------------------------
+
+--- Running test case: M=16, K=16384, N=4096, s=4 ---
+  BaseTCSC: 1.0000x speedup
+  UnrolledTCSC_12: 1.9946x speedup
+  UnrolledTCSC_8: 2.0024x speedup
+  UnrolledModifiedTCSC_12: 2.5719x speedup
+  UnrolledModifiedTCSC_8: 2.5596x speedup
+  UnrolledBlockedTCSC_12: 2.0823x speedup
+  UnrolledBlockedTCSC_8: 2.0425x speedup
+  UnrolledInterleavedBlockedTCSC_12: 2.0771x speedup
+  UnrolledInterleavedBlockedTCSC_8: 2.0357x speedup
+-----------------------------------------------------
+
+--- Running test case: M=16, K=16384, N=4096, s=8 ---
+  BaseTCSC: 1.0000x speedup
+  UnrolledTCSC_12: 1.5043x speedup
+  UnrolledTCSC_8: 1.4817x speedup
+  UnrolledModifiedTCSC_12: 2.2142x speedup
+  UnrolledModifiedTCSC_8: 2.2377x speedup
+  UnrolledBlockedTCSC_12: 1.6164x speedup
+  UnrolledBlockedTCSC_8: 1.5411x speedup
+  UnrolledInterleavedBlockedTCSC_12: 1.7073x speedup
+  UnrolledInterleavedBlockedTCSC_8: 1.6708x speedup
+-----------------------------------------------------
+
+--- Running test case: M=16, K=16384, N=4096, s=16 ---
+  BaseTCSC: 1.0000x speedup
+  UnrolledTCSC_12: 1.5977x speedup
+  UnrolledTCSC_8: 1.5909x speedup
+  UnrolledModifiedTCSC_12: 1.6839x speedup
+  UnrolledModifiedTCSC_8: 1.6787x speedup
+  UnrolledBlockedTCSC_12: 1.1615x speedup
+  UnrolledBlockedTCSC_8: 1.0203x speedup
+  UnrolledInterleavedBlockedTCSC_12: 1.2544x speedup
+  UnrolledInterleavedBlockedTCSC_8: 1.2449x speedup
+------------------------------------------------------
+
+--- Running test case: M=32, K=512, N=2048, s=2 ---
+  BaseTCSC: 1.0000x speedup
+  UnrolledTCSC_12: 2.2818x speedup
+  UnrolledTCSC_8: 2.2828x speedup
+  UnrolledModifiedTCSC_12: 2.7171x speedup
+  UnrolledModifiedTCSC_8: 2.5305x speedup
+  UnrolledBlockedTCSC_12: 2.5953x speedup
+  UnrolledBlockedTCSC_8: 2.4951x speedup
+  UnrolledInterleavedBlockedTCSC_12: 2.6605x speedup
+  UnrolledInterleavedBlockedTCSC_8: 2.5288x speedup
+---------------------------------------------------
+
+--- Running test case: M=32, K=512, N=2048, s=4 ---
+  BaseTCSC: 1.0000x speedup
+  UnrolledTCSC_12: 2.0002x speedup
+  UnrolledTCSC_8: 1.9964x speedup
+  UnrolledModifiedTCSC_12: 2.6216x speedup
+  UnrolledModifiedTCSC_8: 2.6276x speedup
+  UnrolledBlockedTCSC_12: 2.5975x speedup
+  UnrolledBlockedTCSC_8: 2.5880x speedup
+  UnrolledInterleavedBlockedTCSC_12: 2.5086x speedup
+  UnrolledInterleavedBlockedTCSC_8: 2.2680x speedup
+---------------------------------------------------
+
+--- Running test case: M=32, K=512, N=2048, s=8 ---
+  BaseTCSC: 1.0000x speedup
+  UnrolledTCSC_12: 1.7407x speedup
+  UnrolledTCSC_8: 1.7410x speedup
+  UnrolledModifiedTCSC_12: 2.2414x speedup
+  UnrolledModifiedTCSC_8: 2.3603x speedup
+  UnrolledBlockedTCSC_12: 2.3061x speedup
+  UnrolledBlockedTCSC_8: 2.3391x speedup
+  UnrolledInterleavedBlockedTCSC_12: 2.3781x speedup
+  UnrolledInterleavedBlockedTCSC_8: 2.4177x speedup
+---------------------------------------------------
+
+--- Running test case: M=32, K=512, N=2048, s=16 ---
+  BaseTCSC: 1.0000x speedup
+  UnrolledTCSC_12: 1.5415x speedup
+  UnrolledTCSC_8: 1.5388x speedup
+  UnrolledModifiedTCSC_12: 1.9680x speedup
+  UnrolledModifiedTCSC_8: 2.1410x speedup
+  UnrolledBlockedTCSC_12: 1.9454x speedup
+  UnrolledBlockedTCSC_8: 2.1048x speedup
+  UnrolledInterleavedBlockedTCSC_12: 2.1449x speedup
+  UnrolledInterleavedBlockedTCSC_8: 2.2477x speedup
+----------------------------------------------------
+
+--- Running test case: M=32, K=1024, N=4096, s=2 ---
+  BaseTCSC: 1.0000x speedup
+  UnrolledTCSC_12: 2.5184x speedup
+  UnrolledTCSC_8: 2.5454x speedup
+  UnrolledModifiedTCSC_12: 2.7560x speedup
+  UnrolledModifiedTCSC_8: 2.7344x speedup
+  UnrolledBlockedTCSC_12: 2.4460x speedup
+  UnrolledBlockedTCSC_8: 2.4039x speedup
+  UnrolledInterleavedBlockedTCSC_12: 2.5957x speedup
+  UnrolledInterleavedBlockedTCSC_8: 2.5232x speedup
+----------------------------------------------------
+
+--- Running test case: M=32, K=1024, N=4096, s=4 ---
+  BaseTCSC: 1.0000x speedup
+  UnrolledTCSC_12: 2.1643x speedup
+  UnrolledTCSC_8: 0.1231x speedup
+  UnrolledModifiedTCSC_12: 2.5155x speedup
+  UnrolledModifiedTCSC_8: 2.3281x speedup
+  UnrolledBlockedTCSC_12: 2.0833x speedup
+  UnrolledBlockedTCSC_8: 2.0273x speedup
+  UnrolledInterleavedBlockedTCSC_12: 2.2632x speedup
+  UnrolledInterleavedBlockedTCSC_8: 2.1492x speedup
+----------------------------------------------------
+
+--- Running test case: M=32, K=1024, N=4096, s=8 ---
+  BaseTCSC: 1.0000x speedup
+  UnrolledTCSC_12: 1.7175x speedup
+  UnrolledTCSC_8: 1.7132x speedup
+  UnrolledModifiedTCSC_12: 2.0465x speedup
+  UnrolledModifiedTCSC_8: 1.9450x speedup
+  UnrolledBlockedTCSC_12: 1.5316x speedup
+  UnrolledBlockedTCSC_8: 1.4474x speedup
+  UnrolledInterleavedBlockedTCSC_12: 1.6596x speedup
+  UnrolledInterleavedBlockedTCSC_8: 1.5992x speedup
+----------------------------------------------------
+
+--- Running test case: M=32, K=1024, N=4096, s=16 ---
+  BaseTCSC: 1.0000x speedup
+  UnrolledTCSC_12: 1.7427x speedup
+  UnrolledTCSC_8: 1.7609x speedup
+  UnrolledModifiedTCSC_12: 2.0762x speedup
+  UnrolledModifiedTCSC_8: 2.3265x speedup
+  UnrolledBlockedTCSC_12: 1.2696x speedup
+  UnrolledBlockedTCSC_8: 1.0893x speedup
+  UnrolledInterleavedBlockedTCSC_12: 1.2667x speedup
+  UnrolledInterleavedBlockedTCSC_8: 1.1918x speedup
+-----------------------------------------------------
+
+--- Running test case: M=32, K=2048, N=8192, s=2 ---
+  BaseTCSC: 1.0000x speedup
+  UnrolledTCSC_12: 2.5588x speedup
+  UnrolledTCSC_8: 2.5624x speedup
+  UnrolledModifiedTCSC_12: 2.8014x speedup
+  UnrolledModifiedTCSC_8: 2.8028x speedup
+  UnrolledBlockedTCSC_12: 2.3714x speedup
+  UnrolledBlockedTCSC_8: 2.3715x speedup
+  UnrolledInterleavedBlockedTCSC_12: 2.2612x speedup
+  UnrolledInterleavedBlockedTCSC_8: 2.2034x speedup
+----------------------------------------------------
+
+--- Running test case: M=32, K=2048, N=8192, s=4 ---
+  BaseTCSC: 1.0000x speedup
+  UnrolledTCSC_12: 2.4475x speedup
+  UnrolledTCSC_8: 2.4417x speedup
+  UnrolledModifiedTCSC_12: 2.6507x speedup
+  UnrolledModifiedTCSC_8: 2.5667x speedup
+  UnrolledBlockedTCSC_12: 1.9739x speedup
+  UnrolledBlockedTCSC_8: 1.9400x speedup
+  UnrolledInterleavedBlockedTCSC_12: 2.0674x speedup
+  UnrolledInterleavedBlockedTCSC_8: 2.0161x speedup
+----------------------------------------------------
+
+--- Running test case: M=32, K=2048, N=8192, s=8 ---
+  BaseTCSC: 1.0000x speedup
+  UnrolledTCSC_12: 2.1496x speedup
+  UnrolledTCSC_8: 2.1096x speedup
+  UnrolledModifiedTCSC_12: 2.3948x speedup
+  UnrolledModifiedTCSC_8: 2.3095x speedup
+  UnrolledBlockedTCSC_12: 1.5260x speedup
+  UnrolledBlockedTCSC_8: 1.4471x speedup
+  UnrolledInterleavedBlockedTCSC_12: 1.7139x speedup
+  UnrolledInterleavedBlockedTCSC_8: 1.6551x speedup
+----------------------------------------------------
+
+--- Running test case: M=32, K=2048, N=8192, s=16 ---
+  BaseTCSC: 1.0000x speedup
+  UnrolledTCSC_12: 1.6562x speedup
+  UnrolledTCSC_8: 1.6449x speedup
+  UnrolledModifiedTCSC_12: 1.9287x speedup
+  UnrolledModifiedTCSC_8: 1.8594x speedup
+  UnrolledBlockedTCSC_12: 1.0283x speedup
+  UnrolledBlockedTCSC_8: 0.9021x speedup
+  UnrolledInterleavedBlockedTCSC_12: 1.1278x speedup
+  UnrolledInterleavedBlockedTCSC_8: 1.0987x speedup
+-----------------------------------------------------
+
+--- Running test case: M=32, K=4096, N=16384, s=2 ---
+  BaseTCSC: 1.0000x speedup
+  UnrolledTCSC_12: 2.3557x speedup
+  UnrolledTCSC_8: 2.3559x speedup
+  UnrolledModifiedTCSC_12: 2.8095x speedup
+  UnrolledModifiedTCSC_8: 2.8117x speedup
+  UnrolledBlockedTCSC_12: 2.4546x speedup
+  UnrolledBlockedTCSC_8: 2.4273x speedup
+  UnrolledInterleavedBlockedTCSC_12: 2.3918x speedup
+  UnrolledInterleavedBlockedTCSC_8: 2.3212x speedup
+-----------------------------------------------------
+
+--- Running test case: M=32, K=4096, N=16384, s=4 ---
+  BaseTCSC: 1.0000x speedup
+  UnrolledTCSC_12: 2.1953x speedup
+  UnrolledTCSC_8: 2.3822x speedup
+  UnrolledModifiedTCSC_12: 2.7287x speedup
+  UnrolledModifiedTCSC_8: 2.7422x speedup
+  UnrolledBlockedTCSC_12: 2.0532x speedup
+  UnrolledBlockedTCSC_8: 1.9060x speedup
+  UnrolledInterleavedBlockedTCSC_12: 1.8991x speedup
+  UnrolledInterleavedBlockedTCSC_8: 1.9522x speedup
+-----------------------------------------------------
+
+--- Running test case: M=32, K=4096, N=16384, s=8 ---
+  BaseTCSC: 1.0000x speedup
+  UnrolledTCSC_12: 2.3344x speedup
+  UnrolledTCSC_8: 2.3036x speedup
+  UnrolledModifiedTCSC_12: 2.4867x speedup
+  UnrolledModifiedTCSC_8: 2.4538x speedup
+  UnrolledBlockedTCSC_12: 1.5464x speedup
+  UnrolledBlockedTCSC_8: 1.4748x speedup
+  UnrolledInterleavedBlockedTCSC_12: 1.6312x speedup
+  UnrolledInterleavedBlockedTCSC_8: 1.5938x speedup
+-----------------------------------------------------
+
+--- Running test case: M=32, K=4096, N=16384, s=16 ---
+  BaseTCSC: 1.0000x speedup
+  UnrolledTCSC_12: 2.0474x speedup
+  UnrolledTCSC_8: 2.0457x speedup
+  UnrolledModifiedTCSC_12: 2.2519x speedup
+  UnrolledModifiedTCSC_8: 2.2121x speedup
+  UnrolledBlockedTCSC_12: 1.0681x speedup
+  UnrolledBlockedTCSC_8: 0.9298x speedup
+  UnrolledInterleavedBlockedTCSC_12: 1.1543x speedup
+  UnrolledInterleavedBlockedTCSC_8: 1.1478x speedup
+------------------------------------------------------
+
+--- Running test case: M=32, K=2048, N=512, s=2 ---
+  BaseTCSC: 1.0000x speedup
+  UnrolledTCSC_12: 2.8592x speedup
+  UnrolledTCSC_8: 2.8405x speedup
+  UnrolledModifiedTCSC_12: 3.1156x speedup
+  UnrolledModifiedTCSC_8: 3.0250x speedup
+  UnrolledBlockedTCSC_12: 2.7380x speedup
+  UnrolledBlockedTCSC_8: 2.5565x speedup
+  UnrolledInterleavedBlockedTCSC_12: 2.8144x speedup
+  UnrolledInterleavedBlockedTCSC_8: 2.6044x speedup
+---------------------------------------------------
+
+--- Running test case: M=32, K=2048, N=512, s=4 ---
+  BaseTCSC: 1.0000x speedup
+  UnrolledTCSC_12: 2.7156x speedup
+  UnrolledTCSC_8: 2.7163x speedup
+  UnrolledModifiedTCSC_12: 3.0877x speedup
+  UnrolledModifiedTCSC_8: 3.0259x speedup
+  UnrolledBlockedTCSC_12: 2.9228x speedup
+  UnrolledBlockedTCSC_8: 2.9076x speedup
+  UnrolledInterleavedBlockedTCSC_12: 2.7956x speedup
+  UnrolledInterleavedBlockedTCSC_8: 2.5307x speedup
+---------------------------------------------------
+
+--- Running test case: M=32, K=2048, N=512, s=8 ---
+  BaseTCSC: 1.0000x speedup
+  UnrolledTCSC_12: 2.4540x speedup
+  UnrolledTCSC_8: 2.4552x speedup
+  UnrolledModifiedTCSC_12: 2.9686x speedup
+  UnrolledModifiedTCSC_8: 2.9604x speedup
+  UnrolledBlockedTCSC_12: 2.5105x speedup
+  UnrolledBlockedTCSC_8: 2.5208x speedup
+  UnrolledInterleavedBlockedTCSC_12: 2.5575x speedup
+  UnrolledInterleavedBlockedTCSC_8: 2.5920x speedup
+---------------------------------------------------
+
+--- Running test case: M=32, K=2048, N=512, s=16 ---
+  BaseTCSC: 1.0000x speedup
+  UnrolledTCSC_12: 2.0358x speedup
+  UnrolledTCSC_8: 2.0409x speedup
+  UnrolledModifiedTCSC_12: 2.6426x speedup
+  UnrolledModifiedTCSC_8: 2.6443x speedup
+  UnrolledBlockedTCSC_12: 1.8834x speedup
+  UnrolledBlockedTCSC_8: 2.0319x speedup
+  UnrolledInterleavedBlockedTCSC_12: 2.0669x speedup
+  UnrolledInterleavedBlockedTCSC_8: 2.1751x speedup
+----------------------------------------------------
+
+--- Running test case: M=32, K=4096, N=1024, s=2 ---
+  BaseTCSC: 1.0000x speedup
+  UnrolledTCSC_12: 2.8808x speedup
+  UnrolledTCSC_8: 2.8766x speedup
+  UnrolledModifiedTCSC_12: 3.1168x speedup
+  UnrolledModifiedTCSC_8: 3.1103x speedup
+  UnrolledBlockedTCSC_12: 2.5713x speedup
+  UnrolledBlockedTCSC_8: 2.5033x speedup
+  UnrolledInterleavedBlockedTCSC_12: 2.7291x speedup
+  UnrolledInterleavedBlockedTCSC_8: 2.6474x speedup
+----------------------------------------------------
+
+--- Running test case: M=32, K=4096, N=1024, s=4 ---
+  BaseTCSC: 1.0000x speedup
+  UnrolledTCSC_12: 2.7255x speedup
+  UnrolledTCSC_8: 2.7327x speedup
+  UnrolledModifiedTCSC_12: 3.0101x speedup
+  UnrolledModifiedTCSC_8: 2.9820x speedup
+  UnrolledBlockedTCSC_12: 2.1399x speedup
+  UnrolledBlockedTCSC_8: 2.0862x speedup
+  UnrolledInterleavedBlockedTCSC_12: 2.2933x speedup
+  UnrolledInterleavedBlockedTCSC_8: 2.2357x speedup
+----------------------------------------------------
+
+--- Running test case: M=32, K=4096, N=1024, s=8 ---
+  BaseTCSC: 1.0000x speedup
+  UnrolledTCSC_12: 2.6004x speedup
+  UnrolledTCSC_8: 2.7019x speedup
+  UnrolledModifiedTCSC_12: 3.0830x speedup
+  UnrolledModifiedTCSC_8: 2.9349x speedup
+  UnrolledBlockedTCSC_12: 1.7626x speedup
+  UnrolledBlockedTCSC_8: 1.6415x speedup
+  UnrolledInterleavedBlockedTCSC_12: 1.8896x speedup
+  UnrolledInterleavedBlockedTCSC_8: 1.8225x speedup
+----------------------------------------------------
+
+--- Running test case: M=32, K=4096, N=1024, s=16 ---
+  BaseTCSC: 1.0000x speedup
+  UnrolledTCSC_12: 2.4207x speedup
+  UnrolledTCSC_8: 2.4143x speedup
+  UnrolledModifiedTCSC_12: 2.8956x speedup
+  UnrolledModifiedTCSC_8: 2.9055x speedup
+  UnrolledBlockedTCSC_12: 1.3865x speedup
+  UnrolledBlockedTCSC_8: 1.1698x speedup
+  UnrolledInterleavedBlockedTCSC_12: 1.3724x speedup
+  UnrolledInterleavedBlockedTCSC_8: 1.2953x speedup
+-----------------------------------------------------
+
+--- Running test case: M=32, K=8192, N=2048, s=2 ---
+  BaseTCSC: 1.0000x speedup
+  UnrolledTCSC_12: 2.2728x speedup
+  UnrolledTCSC_8: 2.2560x speedup
+  UnrolledModifiedTCSC_12: 2.8929x speedup
+  UnrolledModifiedTCSC_8: 2.8915x speedup
+  UnrolledBlockedTCSC_12: 2.4624x speedup
+  UnrolledBlockedTCSC_8: 2.4804x speedup
+  UnrolledInterleavedBlockedTCSC_12: 2.3177x speedup
+  UnrolledInterleavedBlockedTCSC_8: 2.2623x speedup
+----------------------------------------------------
+
+--- Running test case: M=32, K=8192, N=2048, s=4 ---
+  BaseTCSC: 1.0000x speedup
+  UnrolledTCSC_12: 2.1868x speedup
+  UnrolledTCSC_8: 2.1634x speedup
+  UnrolledModifiedTCSC_12: 2.6528x speedup
+  UnrolledModifiedTCSC_8: 2.6347x speedup
+  UnrolledBlockedTCSC_12: 2.0805x speedup
+  UnrolledBlockedTCSC_8: 2.0417x speedup
+  UnrolledInterleavedBlockedTCSC_12: 2.1529x speedup
+  UnrolledInterleavedBlockedTCSC_8: 2.1332x speedup
+----------------------------------------------------
+
+--- Running test case: M=32, K=8192, N=2048, s=8 ---
+  BaseTCSC: 1.0000x speedup
+  UnrolledTCSC_12: 2.4247x speedup
+  UnrolledTCSC_8: 2.3771x speedup
+  UnrolledModifiedTCSC_12: 2.5906x speedup
+  UnrolledModifiedTCSC_8: 2.5936x speedup
+  UnrolledBlockedTCSC_12: 1.6401x speedup
+  UnrolledBlockedTCSC_8: 1.5452x speedup
+  UnrolledInterleavedBlockedTCSC_12: 1.7776x speedup
+  UnrolledInterleavedBlockedTCSC_8: 1.7232x speedup
+----------------------------------------------------
+
+--- Running test case: M=32, K=8192, N=2048, s=16 ---
+  BaseTCSC: 1.0000x speedup
+  UnrolledTCSC_12: 2.3932x speedup
+  UnrolledTCSC_8: 2.3717x speedup
+  UnrolledModifiedTCSC_12: 2.5473x speedup
+  UnrolledModifiedTCSC_8: 2.5356x speedup
+  UnrolledBlockedTCSC_12: 1.1393x speedup
+  UnrolledBlockedTCSC_8: 1.0037x speedup
+  UnrolledInterleavedBlockedTCSC_12: 1.2566x speedup
+  UnrolledInterleavedBlockedTCSC_8: 1.2416x speedup
+-----------------------------------------------------
+
+--- Running test case: M=32, K=16384, N=4096, s=2 ---
+  BaseTCSC: 1.0000x speedup
+  UnrolledTCSC_12: 2.4616x speedup
+  UnrolledTCSC_8: 2.4547x speedup
+  UnrolledModifiedTCSC_12: 2.8502x speedup
+  UnrolledModifiedTCSC_8: 2.8614x speedup
+  UnrolledBlockedTCSC_12: 2.4287x speedup
+  UnrolledBlockedTCSC_8: 2.4170x speedup
+  UnrolledInterleavedBlockedTCSC_12: 2.3881x speedup
+  UnrolledInterleavedBlockedTCSC_8: 2.3344x speedup
+-----------------------------------------------------
+
+--- Running test case: M=32, K=16384, N=4096, s=4 ---
+  BaseTCSC: 1.0000x speedup
+  UnrolledTCSC_12: 1.9186x speedup
+  UnrolledTCSC_8: 1.9331x speedup
+  UnrolledModifiedTCSC_12: 2.5043x speedup
+  UnrolledModifiedTCSC_8: 2.4977x speedup
+  UnrolledBlockedTCSC_12: 2.0802x speedup
+  UnrolledBlockedTCSC_8: 2.0451x speedup
+  UnrolledInterleavedBlockedTCSC_12: 2.0256x speedup
+  UnrolledInterleavedBlockedTCSC_8: 2.0122x speedup
+-----------------------------------------------------
+
+--- Running test case: M=32, K=16384, N=4096, s=8 ---
+  BaseTCSC: 1.0000x speedup
+  UnrolledTCSC_12: 1.4802x speedup
+  UnrolledTCSC_8: 1.5069x speedup
+  UnrolledModifiedTCSC_12: 2.2694x speedup
+  UnrolledModifiedTCSC_8: 2.2667x speedup
+  UnrolledBlockedTCSC_12: 1.6204x speedup
+  UnrolledBlockedTCSC_8: 1.5444x speedup
+  UnrolledInterleavedBlockedTCSC_12: 1.7526x speedup
+  UnrolledInterleavedBlockedTCSC_8: 1.7146x speedup
+-----------------------------------------------------
+
+--- Running test case: M=32, K=16384, N=4096, s=16 ---
+  BaseTCSC: 1.0000x speedup
+  UnrolledTCSC_12: 1.5972x speedup
+  UnrolledTCSC_8: 1.5945x speedup
+  UnrolledModifiedTCSC_12: 1.6802x speedup
+  UnrolledModifiedTCSC_8: 1.6610x speedup
+  UnrolledBlockedTCSC_12: 1.1623x speedup
+  UnrolledBlockedTCSC_8: 1.0148x speedup
+  UnrolledInterleavedBlockedTCSC_12: 1.2708x speedup
+  UnrolledInterleavedBlockedTCSC_8: 1.2570x speedup
+------------------------------------------------------
+
