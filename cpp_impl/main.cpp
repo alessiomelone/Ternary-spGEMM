@@ -4,7 +4,6 @@
 #include "comp.h"
 
 #define BLOCK_SIZE 512
-#define UNROLL_FACTOR 12
 
 std::vector<comp_func> userFuncs;
 std::vector<std::string> funcNames;
@@ -61,39 +60,60 @@ int main(int argc, char **argv)
         "BaseTCSC");
 
     add_function(
-        [sf_blocked](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
+        [sf_csc](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
         {
-            BaseBlockedTCSC<float, BLOCK_SIZE>(X_arg, *sf_blocked, B_arg, Y_arg, M_arg, N_arg, K_arg);
+            UnrolledTCSC<float, 12>(X_arg, *sf_csc, B_arg, Y_arg, M_arg, N_arg, K_arg);
         },
-        "BaseBlockedTCSC");
-
-    // add_function(
-    //     [sf_blocked_interleaved](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
-    //     {
-    //         BaseInterleavedBlockedTCSC<float, BLOCK_SIZE>(X_arg, *sf_blocked_interleaved, B_arg, Y_arg, M_arg, N_arg, K_arg);
-    //     },
-    //     "BaseInterleavedBlockedTCSC");
-
-    add_function(
-        [sf_blocked](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
-        {
-            UnrolledBlockedTCSC<float, BLOCK_SIZE, UNROLL_FACTOR>(X_arg, *sf_blocked, B_arg, Y_arg, M_arg, N_arg, K_arg);
-        },
-        "UnrolledBlockedTCSC_" + std::to_string(UNROLL_FACTOR));
-
-    // add_function(
-    //     [sf_csc](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
-    //     {
-    //         UnrolledModifiedTCSC<float, 12>(X_arg, *sf_csc, B_arg, Y_arg, M_arg, N_arg, K_arg);
-    //     },
-    //     "UnrolledModifiedTCSC_12");
+        "UnrolledTCSC_" + std::to_string(12));
 
     add_function(
         [sf_csc](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
         {
-            UnrolledTCSC<float, UNROLL_FACTOR>(X_arg, *sf_csc, B_arg, Y_arg, M_arg, N_arg, K_arg);
+            UnrolledTCSC<float, 12>(X_arg, *sf_csc, B_arg, Y_arg, M_arg, N_arg, K_arg);
         },
-        "UnrolledTCSC_" + std::to_string(UNROLL_FACTOR));
+        "UnrolledTCSC_" + std::to_string(8));
+
+    add_function(
+        [sf_csc](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
+        {
+            UnrolledModifiedTCSC<float, 12>(X_arg, *sf_csc, B_arg, Y_arg, M_arg, N_arg, K_arg);
+        },
+        "UnrolledModifiedTCSC_" + std::to_string(12));
+
+    add_function(
+        [sf_csc](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
+        {
+            UnrolledModifiedTCSC<float, 8>(X_arg, *sf_csc, B_arg, Y_arg, M_arg, N_arg, K_arg);
+        },
+        "UnrolledModifiedTCSC_" + std::to_string(8));
+
+    add_function(
+        [sf_blocked](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
+        {
+            UnrolledBlockedTCSC<float, BLOCK_SIZE, 12>(X_arg, *sf_blocked, B_arg, Y_arg, M_arg, N_arg, K_arg);
+        },
+        "UnrolledBlockedTCSC_" + std::to_string(12));
+
+    add_function(
+        [sf_blocked](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
+        {
+            UnrolledBlockedTCSC<float, BLOCK_SIZE, 8>(X_arg, *sf_blocked, B_arg, Y_arg, M_arg, N_arg, K_arg);
+        },
+        "UnrolledBlockedTCSC_" + std::to_string(8));
+
+    add_function(
+        [sf_blocked_interleaved](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
+        {
+            UnrolledInterleavedBlockedTCSC<float, BLOCK_SIZE, 12>(X_arg, *sf_blocked_interleaved, B_arg, Y_arg, M_arg, N_arg, K_arg);
+        },
+        "UnrolledInterleavedBlockedTCSC_" + std::to_string(12));
+
+    add_function(
+        [sf_blocked_interleaved](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
+        {
+            UnrolledInterleavedBlockedTCSC<float, BLOCK_SIZE, 8>(X_arg, *sf_blocked_interleaved, B_arg, Y_arg, M_arg, N_arg, K_arg);
+        },
+        "UnrolledInterleavedBlockedTCSC_" + std::to_string(8));
 
     if (numFuncs == 0)
     {
