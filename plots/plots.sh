@@ -35,5 +35,8 @@ else
     X_LABEL="Total Input Size (MB)"
     TITLE="Function Performance vs. Total Input Size"
 fi
+
+TITLE="$TITLE on Apple M2, 3.49 GHz"
+
 python plots/plot_perf.py "$OUTPUT_JSON" --xlabel "$X_LABEL" --title "$TITLE"
 python plots/plot_roofline.py "$OUTPUT_JSON" -a
