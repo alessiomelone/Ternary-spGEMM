@@ -6,6 +6,8 @@
 #define BLOCK_SIZE 512
 #define UNROLL_FACTOR 8
 
+#define BENCHMARK_FUNCTION_NAME "UnrolledTCSC_12"
+
 std::vector<comp_func> userFuncs;
 std::vector<std::string> funcNames;
 int numFuncs = 0;
@@ -56,12 +58,12 @@ int main(int argc, char **argv)
 
     auto sf_interleaved = std::make_shared<InterleavedTCSC>(W_raw.data(), K, N);
 
-    add_function(
-        [sf_csc](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
-        {
-            BaseTCSC<float>(X_arg, *sf_csc, B_arg, Y_arg, M_arg, N_arg, K_arg);
-        },
-        "BaseTCSC");
+    // add_function(
+    //     [sf_csc](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
+    //     {
+    //         BaseTCSC<float>(X_arg, *sf_csc, B_arg, Y_arg, M_arg, N_arg, K_arg);
+    //     },
+    //     "BaseTCSC");
 
     add_function(
         [sf_csc](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
@@ -159,7 +161,7 @@ int main(int argc, char **argv)
         perf_val = perf_test(userFuncs[i_loop], M, K, N, nonZero);
         std::cout << "\nRunning: " << "\x1b[31m" << funcNames[i_loop] << "\x1b[0m" << std::endl;
         std::cout << perf_val << " cycles" << std::endl;
-        if (funcNames[i_loop] == "BaseTCSC")
+        if (funcNames[i_loop] == BENCHMARK_FUNCTION_NAME)
         {
             base_cycles = perf_val;
         }
