@@ -62,16 +62,16 @@ sudo python plots/run_benchmark.py -s --output "$OUTPUT_JSON" $VAR_ARG $SPARSE_A
 
 if [ "$VARYONLY" = "M" ]; then
     X_LABEL="M"
-    TITLE="Function Performance vs. M"
+    TITLE="Performance vs. M"
 elif [ "$VARYONLY" = "K" ]; then
     X_LABEL="K"
-    TITLE="Function Performance vs. K"
+    TITLE="Performance vs. K"
 elif [ "$VARYONLY" = "N" ]; then
     X_LABEL="N"
-    TITLE="Function Performance vs. N"
+    TITLE="Performance vs. N"
 else
     X_LABEL="Total Input Size (MB)"
-    TITLE="Function Performance vs. Total Input Size"
+    TITLE="Performance vs. Total Input Size"
 fi
 
 TITLE="$TITLE on Apple M2, 3.49 GHz"

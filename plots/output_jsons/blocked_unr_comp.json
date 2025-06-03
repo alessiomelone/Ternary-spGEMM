@@ -1,0 +1,116 @@
+[
+    {
+        "test_case": {
+            "M": 1024,
+            "K": 512,
+            "N": 1024
+        },
+        "results": {
+            "BaseBlockedTCSC (Sparsity 1/2)": {
+                "total_input_size": 512,
+                "operational_intensity": 36.7955,
+                "performance": 0.411253
+            },
+            "UnrolledBlockedTCSC_12 (Sparsity 1/2)": {
+                "total_input_size": 512,
+                "operational_intensity": 38.5069,
+                "performance": 1.63754
+            }
+        }
+    },
+    {
+        "test_case": {
+            "M": 1024,
+            "K": 1024,
+            "N": 1024
+        },
+        "results": {
+            "BaseBlockedTCSC (Sparsity 1/2)": {
+                "total_input_size": 1024,
+                "operational_intensity": 51.3996,
+                "performance": 0.418119
+            },
+            "UnrolledBlockedTCSC_12 (Sparsity 1/2)": {
+                "total_input_size": 1024,
+                "operational_intensity": 53.7949,
+                "performance": 1.60363
+            }
+        }
+    },
+    {
+        "test_case": {
+            "M": 1024,
+            "K": 2048,
+            "N": 1024
+        },
+        "results": {
+            "BaseBlockedTCSC (Sparsity 1/2)": {
+                "total_input_size": 2048,
+                "operational_intensity": 64.1715,
+                "performance": 0.415357
+            },
+            "UnrolledBlockedTCSC_12 (Sparsity 1/2)": {
+                "total_input_size": 2048,
+                "operational_intensity": 67.1649,
+                "performance": 1.49811
+            }
+        }
+    },
+    {
+        "test_case": {
+            "M": 1024,
+            "K": 4096,
+            "N": 1024
+        },
+        "results": {
+            "BaseBlockedTCSC (Sparsity 1/2)": {
+                "total_input_size": 4096,
+                "operational_intensity": 73.2904,
+                "performance": 0.417598
+            },
+            "UnrolledBlockedTCSC_12 (Sparsity 1/2)": {
+                "total_input_size": 4096,
+                "operational_intensity": 76.7109,
+                "performance": 1.46858
+            }
+        }
+    },
+    {
+        "test_case": {
+            "M": 1024,
+            "K": 8192,
+            "N": 1024
+        },
+        "results": {
+            "BaseBlockedTCSC (Sparsity 1/2)": {
+                "total_input_size": 8192,
+                "operational_intensity": 78.9006,
+                "performance": 0.41743
+            },
+            "UnrolledBlockedTCSC_12 (Sparsity 1/2)": {
+                "total_input_size": 8192,
+                "operational_intensity": 82.5837,
+                "performance": 1.43896
+            }
+        }
+    },
+    {
+        "test_case": {
+            "M": 1024,
+            "K": 16384,
+            "N": 1024
+        },
+        "results": {
+            "BaseBlockedTCSC (Sparsity 1/2)": {
+                "total_input_size": 16384,
+                "operational_intensity": 82.0417,
+                "performance": 0.417409
+            },
+            "UnrolledBlockedTCSC_12 (Sparsity 1/2)": {
+                "total_input_size": 16384,
+                "operational_intensity": 85.872,
+                "performance": 1.4442
+            }
+        }
+    }
+]
