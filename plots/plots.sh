@@ -61,13 +61,13 @@ make INSTRUMENT=1
 sudo python3 plots/run_benchmark.py -s --output "$OUTPUT_JSON" $VAR_ARG $SPARSE_ARG
 
 if [ "$VARYONLY" = "M" ]; then
-    X_LABEL="M"
+    X_LABEL="log_2(M)"
     TITLE="Performance vs. M"
 elif [ "$VARYONLY" = "K" ]; then
-    X_LABEL="K"
+    X_LABEL="log_2(K)"
     TITLE="Performance vs. K"
 elif [ "$VARYONLY" = "N" ]; then
-    X_LABEL="N"
+    X_LABEL="log_2(N)"
     TITLE="Performance vs. N"
 else
     X_LABEL="Total Input Size (MB)"

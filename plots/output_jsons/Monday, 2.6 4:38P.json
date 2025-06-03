@@ -6,22 +6,22 @@
             "N": 1024
         },
         "results": {
-            "BaseTCSC (Sparsity 2)": {
+            "BaseTCSC (Sparsity 1/2)": {
                 "total_input_size": 512,
                 "operational_intensity": 36.6529,
                 "performance": 0.432552
             },
-            "BaseTCSC (Sparsity 4)": {
+            "BaseTCSC (Sparsity 1/4)": {
                 "total_input_size": 512,
                 "operational_intensity": 19.8104,
                 "performance": 0.524321
             },
-            "BaseTCSC (Sparsity 8)": {
+            "BaseTCSC (Sparsity 1/8)": {
                 "total_input_size": 512,
                 "operational_intensity": 10.3805,
                 "performance": 0.598432
             },
-            "BaseTCSC (Sparsity 16)": {
+            "BaseTCSC (Sparsity 1/16)": {
                 "total_input_size": 512,
                 "operational_intensity": 5.37746,
                 "performance": 0.589845
@@ -35,22 +35,22 @@
             "N": 1024
         },
         "results": {
-            "BaseTCSC (Sparsity 2)": {
+            "BaseTCSC (Sparsity 1/2)": {
                 "total_input_size": 1024,
                 "operational_intensity": 51.2399,
                 "performance": 0.377178
             },
-            "BaseTCSC (Sparsity 4)": {
+            "BaseTCSC (Sparsity 1/4)": {
                 "total_input_size": 1024,
                 "operational_intensity": 28.5184,
                 "performance": 0.443333
             },
-            "BaseTCSC (Sparsity 8)": {
+            "BaseTCSC (Sparsity 1/8)": {
                 "total_input_size": 1024,
                 "operational_intensity": 15.1556,
                 "performance": 0.521895
             },
-            "BaseTCSC (Sparsity 16)": {
+            "BaseTCSC (Sparsity 1/16)": {
                 "total_input_size": 1024,
                 "operational_intensity": 7.86761,
                 "performance": 0.597079
@@ -64,22 +64,22 @@
             "N": 1024
         },
         "results": {
-            "BaseTCSC (Sparsity 2)": {
+            "BaseTCSC (Sparsity 1/2)": {
                 "total_input_size": 2048,
                 "operational_intensity": 64.0156,
                 "performance": 0.353866
             },
-            "BaseTCSC (Sparsity 4)": {
+            "BaseTCSC (Sparsity 1/4)": {
                 "total_input_size": 2048,
                 "operational_intensity": 36.6122,
                 "performance": 0.377654
             },
-            "BaseTCSC (Sparsity 8)": {
+            "BaseTCSC (Sparsity 1/8)": {
                 "total_input_size": 2048,
                 "operational_intensity": 19.7514,
                 "performance": 0.443605
             },
-            "BaseTCSC (Sparsity 16)": {
+            "BaseTCSC (Sparsity 1/16)": {
                 "total_input_size": 2048,
                 "operational_intensity": 10.3103,
                 "performance": 0.522428
