@@ -3,7 +3,7 @@ import re
 import json
 import argparse
 
-def run_and_parse_benchmark(save_results=False, outname='', varyonly=None):
+def run_and_parse_benchmark(save_results=False, outname='', varyonly=None, sparsityonly=None):
     # If only one dimension should vary, define dimension lists and defaults
     list_M = [1, 16, 64, 256, 1000, 4000, 16000, 64000]
     list_K = [512, 1024, 2048, 4096, 8192, 16384]
@@ -30,6 +30,8 @@ def run_and_parse_benchmark(save_results=False, outname='', varyonly=None):
         ]
 
     list_s = [2, 4, 8, 16]
+    if sparsityonly is not None:
+        list_s = [sparsityonly]
     executable_path = "./SparseGEMM.out" 
     base_command = ["sudo", executable_path]
 
@@ -97,7 +99,7 @@ def run_and_parse_benchmark(save_results=False, outname='', varyonly=None):
                             else:
                                 size_to_save = total_input_sz
                             size_label = 'total_input_size'
-                            print(f"  {stripped_func_name} (Sparsity {s}): {size_label}={size_to_save}, {fpc_val} flops/cycle, {oi_val} flops/Byte")
+                            print(f"  {stripped_func_name} (Sparsity 1/{s}): {size_label}={size_to_save}, {fpc_val} flops/cycle, {oi_val} flops/Byte")
                             case_result["results"][f"{stripped_func_name} (Sparsity {s})"] = {
                                 size_label: size_to_save,
                                 "operational_intensity": oi_val,
@@ -127,5 +129,6 @@ if __name__ == "__main__":
     parser.add_argument('-s', '--save', action='store_true', help='Save benchmark results to JSON file')
     parser.add_argument('--output', type=str, default='benchmark_results.json', help='Name of JSON file')
     parser.add_argument('--varyonly', type=str, choices=['M','K','N'], help='Only vary one dimension: M, K, or N')
+    parser.add_argument('--sparsityonly', type=int, help='Only run a single sparsity value')
     args = parser.parse_args()
-    run_and_parse_benchmark(args.save, args.output, args.varyonly)
+    run_and_parse_benchmark(args.save, args.output, args.varyonly, args.sparsityonly)
