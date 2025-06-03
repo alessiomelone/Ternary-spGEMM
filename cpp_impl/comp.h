@@ -1224,4 +1224,217 @@ void NeonTCSCHorizontalAdvanced(float *X, const VectorTCSC &W_csc, float *b, flo
     }
 }
 
+template <typename T, int K_UNROLL_FACTOR, int M_UNROLL_FACTOR>
+void DoubleUnrolledTCSC(T *X, const TCSC &W_csc, T *b, T *Y, int M, int N, int K)
+{
+#ifdef INSTRUMENTATION_RUN
+    flops = 0;
+    ds_size = W_csc.getDataStructureSize();
+#endif
+    const int *col_start_pos = W_csc.col_start_pos.data();
+    const int *col_start_neg = W_csc.col_start_neg.data();
+    const int *row_index_pos = W_csc.row_index_pos.data();
+    const int *row_index_neg = W_csc.row_index_neg.data();
+
+    // Main loop with M unrolling
+    int m;
+    for (m = 0; m <= M - M_UNROLL_FACTOR; m += M_UNROLL_FACTOR)
+    {
+        for (int n = 0; n < N; n++)
+        {
+            // Separate accumulators for each unrolled M iteration
+            T y_pos[M_UNROLL_FACTOR][K_UNROLL_FACTOR];
+            T y_neg[M_UNROLL_FACTOR][K_UNROLL_FACTOR];
+
+            // Initialize accumulators
+            for (int v = 0; v < M_UNROLL_FACTOR; v++)
+            {
+                for (int u = 0; u < K_UNROLL_FACTOR; u++)
+                {
+                    y_pos[v][u] = T(0);
+                    y_neg[v][u] = T(0);
+                }
+            }
+
+            // Process positive values with double unrolling
+            int k_pos_loop = col_start_pos[n];
+            const int end_pos = col_start_pos[n + 1];
+
+            for (; k_pos_loop + K_UNROLL_FACTOR <= end_pos; k_pos_loop += K_UNROLL_FACTOR)
+            {
+                for (int u = 0; u < K_UNROLL_FACTOR; u++)
+                {
+                    int row_idx = row_index_pos[k_pos_loop + u];
+                    for (int v = 0; v < M_UNROLL_FACTOR; v++)
+                    {
+                        y_pos[v][u] += X[(m + v) * K + row_idx];
+#ifdef INSTRUMENTATION_RUN
+                        flops++;
+#endif
+                    }
+                }
+            }
+
+            // Reduce positive accumulators for each M iteration
+            T y_pos_final[M_UNROLL_FACTOR];
+            for (int v = 0; v < M_UNROLL_FACTOR; v++)
+            {
+                y_pos_final[v] = T(0);
+                for (int u = 0; u < K_UNROLL_FACTOR; u++)
+                {
+                    y_pos_final[v] += y_pos[v][u];
+#ifdef INSTRUMENTATION_RUN
+                    flops++;
+#endif
+                }
+            }
+
+            // Handle remaining positive values
+            for (; k_pos_loop < end_pos; k_pos_loop++)
+            {
+                int row_idx = row_index_pos[k_pos_loop];
+                for (int v = 0; v < M_UNROLL_FACTOR; v++)
+                {
+                    y_pos_final[v] += X[(m + v) * K + row_idx];
+#ifdef INSTRUMENTATION_RUN
+                    flops++;
+#endif
+                }
+            }
+
+            // Process negative values with double unrolling
+            int k_neg_loop = col_start_neg[n];
+            const int end_neg = col_start_neg[n + 1];
+
+            for (; k_neg_loop + K_UNROLL_FACTOR <= end_neg; k_neg_loop += K_UNROLL_FACTOR)
+            {
+                for (int u = 0; u < K_UNROLL_FACTOR; u++)
+                {
+                    int row_idx = row_index_neg[k_neg_loop + u];
+                    for (int v = 0; v < M_UNROLL_FACTOR; v++)
+                    {
+                        y_neg[v][u] += X[(m + v) * K + row_idx];
+#ifdef INSTRUMENTATION_RUN
+                        flops++;
+#endif
+                    }
+                }
+            }
+
+            // Reduce negative accumulators for each M iteration
+            T y_neg_final[M_UNROLL_FACTOR];
+            for (int v = 0; v < M_UNROLL_FACTOR; v++)
+            {
+                y_neg_final[v] = T(0);
+                for (int u = 0; u < K_UNROLL_FACTOR; u++)
+                {
+                    y_neg_final[v] += y_neg[v][u];
+#ifdef INSTRUMENTATION_RUN
+                    flops++;
+#endif
+                }
+            }
+
+            // Handle remaining negative values
+            for (; k_neg_loop < end_neg; k_neg_loop++)
+            {
+                int row_idx = row_index_neg[k_neg_loop];
+                for (int v = 0; v < M_UNROLL_FACTOR; v++)
+                {
+                    y_neg_final[v] += X[(m + v) * K + row_idx];
+#ifdef INSTRUMENTATION_RUN
+                    flops++;
+#endif
+                }
+            }
+
+            // Final computation and store
+            for (int v = 0; v < M_UNROLL_FACTOR; v++)
+            {
+                Y[(m + v) * N + n] = (y_pos_final[v] - y_neg_final[v]) + b[n];
+#ifdef INSTRUMENTATION_RUN
+                flops += 2;
+#endif
+            }
+        }
+    }
+
+    // Handle remaining M iterations (cleanup loop)
+    for (; m < M; m++)
+    {
+        for (int n = 0; n < N; n++)
+        {
+            T y_pos[K_UNROLL_FACTOR] = {0};
+            T y_neg[K_UNROLL_FACTOR] = {0};
+
+            int k_pos_loop = col_start_pos[n];
+            const int end_pos = col_start_pos[n + 1];
+
+            for (; k_pos_loop + K_UNROLL_FACTOR <= end_pos; k_pos_loop += K_UNROLL_FACTOR)
+            {
+                for (int u = 0; u < K_UNROLL_FACTOR; u++)
+                {
+                    y_pos[u] += X[m * K + row_index_pos[k_pos_loop + u]];
+#ifdef INSTRUMENTATION_RUN
+                    flops++;
+#endif
+                }
+            }
+
+            T y_pos_final = 0;
+            for (int u = 0; u < K_UNROLL_FACTOR; u++)
+            {
+                y_pos_final += y_pos[u];
+#ifdef INSTRUMENTATION_RUN
+                flops++;
+#endif
+            }
+
+            for (; k_pos_loop < end_pos; k_pos_loop++)
+            {
+                y_pos_final += X[m * K + row_index_pos[k_pos_loop]];
+#ifdef INSTRUMENTATION_RUN
+                flops++;
+#endif
+            }
+
+            int k_neg_loop = col_start_neg[n];
+            const int end_neg = col_start_neg[n + 1];
+
+            for (; k_neg_loop + K_UNROLL_FACTOR <= end_neg; k_neg_loop += K_UNROLL_FACTOR)
+            {
+                for (int u = 0; u < K_UNROLL_FACTOR; u++)
+                {
+                    y_neg[u] += X[m * K + row_index_neg[k_neg_loop + u]];
+#ifdef INSTRUMENTATION_RUN
+                    flops++;
+#endif
+                }
+            }
+
+            T y_neg_final = 0;
+            for (int u = 0; u < K_UNROLL_FACTOR; u++)
+            {
+                y_neg_final += y_neg[u];
+#ifdef INSTRUMENTATION_RUN
+                flops++;
+#endif
+            }
+
+            for (; k_neg_loop < end_neg; k_neg_loop++)
+            {
+                y_neg_final += X[m * K + row_index_neg[k_neg_loop]];
+#ifdef INSTRUMENTATION_RUN
+                flops++;
+#endif
+            }
+
+            Y[m * N + n] = (y_pos_final - y_neg_final) + b[n];
+#ifdef INSTRUMENTATION_RUN
+            flops += 2;
+#endif
+        }
+    }
+}
+
 #endif

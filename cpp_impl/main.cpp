@@ -108,12 +108,26 @@ int main(int argc, char **argv)
     //     },
     //     "BaseInterleavedBlockedTCSC");
 
-    // add_function(
-    //     [sf_csc](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
-    //     {
-    //         UnrolledTCSC<float, 12>(X_arg, *sf_csc, B_arg, Y_arg, M_arg, N_arg, K_arg);
-    //     },
-    //     "UnrolledTCSC_" + std::to_string(12));
+    add_function(
+        [sf_csc](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
+        {
+            UnrolledTCSC<float, 12>(X_arg, *sf_csc, B_arg, Y_arg, M_arg, N_arg, K_arg);
+        },
+        "UnrolledTCSC_" + std::to_string(12));
+
+    add_function(
+        [sf_csc](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
+        {
+            DoubleUnrolledTCSC<float, 8, 4>(X_arg, *sf_csc, B_arg, Y_arg, M_arg, N_arg, K_arg);
+        },
+        "DoubleUnrolledTCSC_K8_M4");
+
+    add_function(
+        [sf_csc](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
+        {
+            DoubleUnrolledTCSC<float, 4, 4>(X_arg, *sf_csc, B_arg, Y_arg, M_arg, N_arg, K_arg);
+        },
+        "DoubleUnrolledTCSC_K4_M4");
 
     // add_function(
     //     [sf_blocked_interleaved_unr](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
@@ -157,13 +171,13 @@ int main(int argc, char **argv)
     //     },
     //     "NeonTCSCVertical");
 
-    // Register PReLU function
-    add_prelu_function(
-        [sf_csc](float *X_arg, float *B_arg, float *alpha_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
-        {
-            BaseTCSC_PreLU<float>(X_arg, *sf_csc, B_arg, alpha_arg, Y_arg, M_arg, N_arg, K_arg);
-        },
-        "BaseTCSC_PreLU");
+    // // Register PReLU function
+    // add_prelu_function(
+    //     [sf_csc](float *X_arg, float *B_arg, float *alpha_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
+    //     {
+    //         BaseTCSC_PreLU<float>(X_arg, *sf_csc, B_arg, alpha_arg, Y_arg, M_arg, N_arg, K_arg);
+    //     },
+    //     "BaseTCSC_PreLU");
 
     if (numFuncs == 0 && numFuncs_prelu == 0)
     {
