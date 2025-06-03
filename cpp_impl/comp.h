@@ -506,32 +506,29 @@ void BaseTCSR(T *X, const TCSR &W_csr, T *b, T *Y, int M, int N, int K)
         for (int k = 0; k < K; ++k)
         {
             T x_val = X_row[k];
-            if (x_val != static_cast<T>(0))
+            // Process positive values
+            for (int j = row_start_pos[k]; j < row_start_pos[k + 1]; ++j)
             {
-                // Process positive values
-                for (int j = row_start_pos[k]; j < row_start_pos[k + 1]; ++j)
-                {
-                    Y_row[col_index_pos[j]] += x_val;
+                Y_row[col_index_pos[j]] += x_val;
 #ifdef INSTRUMENTATION_RUN
-                    flops++;
+                flops++;
 #endif
-                }
+            }
 
-                // Process negative values
-                for (int j = row_start_neg[k]; j < row_start_neg[k + 1]; ++j)
-                {
-                    Y_row[col_index_neg[j]] -= x_val;
+            // Process negative values
+            for (int j = row_start_neg[k]; j < row_start_neg[k + 1]; ++j)
+            {
+                Y_row[col_index_neg[j]] -= x_val;
 #ifdef INSTRUMENTATION_RUN
-                    flops++;
+                flops++;
 #endif
-                }
             }
         }
     }
 }
 
 template <typename T, int UNROLL_FACTOR>
-void UnrolledBaseTCSR(T *X, const TCSR &W_csr, T *b, T *Y, int M, int N, int K)
+void UnrolledTCSR(T *X, const TCSR &W_csr, T *b, T *Y, int M, int N, int K)
 {
 #ifdef INSTRUMENTATION_RUN
     flops = 0;
@@ -555,8 +552,6 @@ void UnrolledBaseTCSR(T *X, const TCSR &W_csr, T *b, T *Y, int M, int N, int K)
         for (int k = 0; k < K; ++k)
         {
             T x_val = X[m * K + k];
-            if (x_val == static_cast<T>(0))
-                continue;
 
             int j_pos = row_start_pos[k];
             const int end_pos = row_start_pos[k + 1];
@@ -946,7 +941,7 @@ void NeonTCSC(float *X, const TCSC &W_csc, float *b, float *Y, int M, int N, int
 
     for (int m = 0; m < M; m++)
     {
-        const float* X_row_m = X + m * K;
+        const float *X_row_m = X + m * K;
 
         for (int n = 0; n < N; n += 4)
         {
@@ -962,23 +957,27 @@ void NeonTCSC(float *X, const TCSC &W_csc, float *b, float *Y, int M, int N, int
             int k3 = col_start_pos[n + 3];
 
             int k0_end = col_start_pos[n + 1];
-            for (; k0 + 3 < k0_end; k0 += 4) {
-                float32x4_t x_vals = { X_row_m[row_index_pos[k0]], X_row_m[row_index_pos[k0+1]], X_row_m[row_index_pos[k0+2]], X_row_m[row_index_pos[k0+3]] };
+            for (; k0 + 3 < k0_end; k0 += 4)
+            {
+                float32x4_t x_vals = {X_row_m[row_index_pos[k0]], X_row_m[row_index_pos[k0 + 1]], X_row_m[row_index_pos[k0 + 2]], X_row_m[row_index_pos[k0 + 3]]};
                 y_vec0 = vaddq_f32(y_vec0, x_vals);
             }
             int k1_end = col_start_pos[n + 2];
-            for (; k1 + 3 < k1_end; k1 += 4) {
-                float32x4_t x_vals = { X_row_m[row_index_pos[k1]], X_row_m[row_index_pos[k1+1]], X_row_m[row_index_pos[k1+2]], X_row_m[row_index_pos[k1+3]] };
+            for (; k1 + 3 < k1_end; k1 += 4)
+            {
+                float32x4_t x_vals = {X_row_m[row_index_pos[k1]], X_row_m[row_index_pos[k1 + 1]], X_row_m[row_index_pos[k1 + 2]], X_row_m[row_index_pos[k1 + 3]]};
                 y_vec1 = vaddq_f32(y_vec1, x_vals);
             }
             int k2_end = col_start_pos[n + 3];
-            for (; k2 + 3 < k2_end; k2 += 4) {
-                float32x4_t x_vals = { X_row_m[row_index_pos[k2]], X_row_m[row_index_pos[k2+1]], X_row_m[row_index_pos[k2+2]], X_row_m[row_index_pos[k2+3]] };
+            for (; k2 + 3 < k2_end; k2 += 4)
+            {
+                float32x4_t x_vals = {X_row_m[row_index_pos[k2]], X_row_m[row_index_pos[k2 + 1]], X_row_m[row_index_pos[k2 + 2]], X_row_m[row_index_pos[k2 + 3]]};
                 y_vec2 = vaddq_f32(y_vec2, x_vals);
             }
             int k3_end = col_start_pos[n + 4];
-            for (; k3 + 3 < k3_end; k3 += 4) {
-                float32x4_t x_vals = { X_row_m[row_index_pos[k3]], X_row_m[row_index_pos[k3+1]], X_row_m[row_index_pos[k3+2]], X_row_m[row_index_pos[k3+3]] };
+            for (; k3 + 3 < k3_end; k3 += 4)
+            {
+                float32x4_t x_vals = {X_row_m[row_index_pos[k3]], X_row_m[row_index_pos[k3 + 1]], X_row_m[row_index_pos[k3 + 2]], X_row_m[row_index_pos[k3 + 3]]};
                 y_vec3 = vaddq_f32(y_vec3, x_vals);
             }
 
@@ -989,23 +988,27 @@ void NeonTCSC(float *X, const TCSC &W_csc, float *b, float *Y, int M, int N, int
             int l3 = col_start_neg[n + 3];
 
             int l0_end = col_start_neg[n + 1];
-            for (; l0 + 3 < l0_end; l0 += 4) {
-                float32x4_t x_vals = { X_row_m[row_index_neg[l0]], X_row_m[row_index_neg[l0+1]], X_row_m[row_index_neg[l0+2]], X_row_m[row_index_neg[l0+3]] };
+            for (; l0 + 3 < l0_end; l0 += 4)
+            {
+                float32x4_t x_vals = {X_row_m[row_index_neg[l0]], X_row_m[row_index_neg[l0 + 1]], X_row_m[row_index_neg[l0 + 2]], X_row_m[row_index_neg[l0 + 3]]};
                 y_vec0 = vsubq_f32(y_vec0, x_vals);
             }
             int l1_end = col_start_neg[n + 2];
-            for (; l1 + 3 < l1_end; l1 += 4) {
-                float32x4_t x_vals = { X_row_m[row_index_neg[l1]], X_row_m[row_index_neg[l1+1]], X_row_m[row_index_neg[l1+2]], X_row_m[row_index_neg[l1+3]] };
+            for (; l1 + 3 < l1_end; l1 += 4)
+            {
+                float32x4_t x_vals = {X_row_m[row_index_neg[l1]], X_row_m[row_index_neg[l1 + 1]], X_row_m[row_index_neg[l1 + 2]], X_row_m[row_index_neg[l1 + 3]]};
                 y_vec1 = vsubq_f32(y_vec1, x_vals);
             }
             int l2_end = col_start_neg[n + 3];
-            for (; l2 + 3 < l2_end; l2 += 4) {
-                float32x4_t x_vals = { X_row_m[row_index_neg[l2]], X_row_m[row_index_neg[l2+1]], X_row_m[row_index_neg[l2+2]], X_row_m[row_index_neg[l2+3]] };
+            for (; l2 + 3 < l2_end; l2 += 4)
+            {
+                float32x4_t x_vals = {X_row_m[row_index_neg[l2]], X_row_m[row_index_neg[l2 + 1]], X_row_m[row_index_neg[l2 + 2]], X_row_m[row_index_neg[l2 + 3]]};
                 y_vec2 = vsubq_f32(y_vec2, x_vals);
             }
             int l3_end = col_start_neg[n + 4];
-            for (; l3 + 3 < l3_end; l3 += 4) {
-                float32x4_t x_vals = { X_row_m[row_index_neg[l3]], X_row_m[row_index_neg[l3+1]], X_row_m[row_index_neg[l3+2]], X_row_m[row_index_neg[l3+3]] };
+            for (; l3 + 3 < l3_end; l3 += 4)
+            {
+                float32x4_t x_vals = {X_row_m[row_index_neg[l3]], X_row_m[row_index_neg[l3 + 1]], X_row_m[row_index_neg[l3 + 2]], X_row_m[row_index_neg[l3 + 3]]};
                 y_vec3 = vsubq_f32(y_vec3, x_vals);
             }
 
@@ -1014,19 +1017,43 @@ void NeonTCSC(float *X, const TCSC &W_csc, float *b, float *Y, int M, int N, int
             float y1 = vaddvq_f32(y_vec1);
             float y2 = vaddvq_f32(y_vec2);
             float y3 = vaddvq_f32(y_vec3);
-            
+
             // Remainder Loops
-            for (; k0 < k0_end; k0++) { y0 += X_row_m[row_index_pos[k0]]; }
-            for (; l0 < l0_end; l0++) { y0 -= X_row_m[row_index_neg[l0]]; }
-            for (; k1 < k1_end; k1++) { y1 += X_row_m[row_index_pos[k1]]; }
-            for (; l1 < l1_end; l1++) { y1 -= X_row_m[row_index_neg[l1]]; }
-            for (; k2 < k2_end; k2++) { y2 += X_row_m[row_index_pos[k2]]; }
-            for (; l2 < l2_end; l2++) { y2 -= X_row_m[row_index_neg[l2]]; }
-            for (; k3 < k3_end; k3++) { y3 += X_row_m[row_index_pos[k3]]; }
-            for (; l3 < l3_end; l3++) { y3 -= X_row_m[row_index_neg[l3]]; }
+            for (; k0 < k0_end; k0++)
+            {
+                y0 += X_row_m[row_index_pos[k0]];
+            }
+            for (; l0 < l0_end; l0++)
+            {
+                y0 -= X_row_m[row_index_neg[l0]];
+            }
+            for (; k1 < k1_end; k1++)
+            {
+                y1 += X_row_m[row_index_pos[k1]];
+            }
+            for (; l1 < l1_end; l1++)
+            {
+                y1 -= X_row_m[row_index_neg[l1]];
+            }
+            for (; k2 < k2_end; k2++)
+            {
+                y2 += X_row_m[row_index_pos[k2]];
+            }
+            for (; l2 < l2_end; l2++)
+            {
+                y2 -= X_row_m[row_index_neg[l2]];
+            }
+            for (; k3 < k3_end; k3++)
+            {
+                y3 += X_row_m[row_index_pos[k3]];
+            }
+            for (; l3 < l3_end; l3++)
+            {
+                y3 -= X_row_m[row_index_neg[l3]];
+            }
 
             // Store final results
-            Y[m * N + n]     = y0 + b[n];
+            Y[m * N + n] = y0 + b[n];
             Y[m * N + n + 1] = y1 + b[n + 1];
             Y[m * N + n + 2] = y2 + b[n + 2];
             Y[m * N + n + 3] = y3 + b[n + 3];
@@ -1034,7 +1061,6 @@ void NeonTCSC(float *X, const TCSC &W_csc, float *b, float *Y, int M, int N, int
             // float32x4_t b_vals = vld1q_f32(b + n);
             // float32x4_t store_in_y = vaddq_f32(y_res, b_vals);
             // vst1q_f32(Y + m * N + n, store_in_y);
-
         }
     }
 }
@@ -1048,7 +1074,7 @@ void NeonTCSC2(float *X, const VectorTCSC &W_csc, float *b, float *Y, int M, int
 
     for (int m = 0; m < M; m++)
     {
-        float* X_row_m = X + m * K;
+        float *X_row_m = X + m * K;
         X_row_m[-1] = 0;
 
         int cap_idx = 0;
@@ -1066,39 +1092,40 @@ void NeonTCSC2(float *X, const VectorTCSC &W_csc, float *b, float *Y, int M, int
             int k3 = k2 + cap;
             k3_end = k3 + cap;
 
-            for (int i = 0; i < cap; i+=4) {
-                float32x4_t x_vals000 = { X_row_m[row_index_pos[k0]], 
-                                       X_row_m[row_index_pos[k1]], 
-                                       X_row_m[row_index_pos[k2]], 
-                                       X_row_m[row_index_pos[k3]] };
-                float32x4_t x_vals001 = { X_row_m[row_index_neg[k0]], 
-                                       X_row_m[row_index_neg[k1]], 
-                                       X_row_m[row_index_neg[k2]], 
-                                       X_row_m[row_index_neg[k3]] };
-                float32x4_t x_vals010 = { X_row_m[row_index_pos[k0+1]], 
-                                       X_row_m[row_index_pos[k1+1]], 
-                                       X_row_m[row_index_pos[k2+1]], 
-                                       X_row_m[row_index_pos[k3+1]] };
-                float32x4_t x_vals011 = { X_row_m[row_index_neg[k0+1]], 
-                                       X_row_m[row_index_neg[k1+1]], 
-                                       X_row_m[row_index_neg[k2+1]], 
-                                       X_row_m[row_index_neg[k3+1]] };
-                float32x4_t x_vals100 = { X_row_m[row_index_pos[k0+2]], 
-                                       X_row_m[row_index_pos[k1+2]], 
-                                       X_row_m[row_index_pos[k2+2]], 
-                                       X_row_m[row_index_pos[k3+2]] };
-                float32x4_t x_vals101 = { X_row_m[row_index_neg[k0+2]], 
-                                       X_row_m[row_index_neg[k1+2]], 
-                                       X_row_m[row_index_neg[k2+2]], 
-                                       X_row_m[row_index_neg[k3+2]] };
-                float32x4_t x_vals110 = { X_row_m[row_index_pos[k0+3]], 
-                                       X_row_m[row_index_pos[k1+3]], 
-                                       X_row_m[row_index_pos[k2+3]], 
-                                       X_row_m[row_index_pos[k3+3]] };
-                float32x4_t x_vals111 = { X_row_m[row_index_neg[k0+3]], 
-                                       X_row_m[row_index_neg[k1+3]], 
-                                       X_row_m[row_index_neg[k2+3]], 
-                                       X_row_m[row_index_neg[k3+3]] };
+            for (int i = 0; i < cap; i += 4)
+            {
+                float32x4_t x_vals000 = {X_row_m[row_index_pos[k0]],
+                                         X_row_m[row_index_pos[k1]],
+                                         X_row_m[row_index_pos[k2]],
+                                         X_row_m[row_index_pos[k3]]};
+                float32x4_t x_vals001 = {X_row_m[row_index_neg[k0]],
+                                         X_row_m[row_index_neg[k1]],
+                                         X_row_m[row_index_neg[k2]],
+                                         X_row_m[row_index_neg[k3]]};
+                float32x4_t x_vals010 = {X_row_m[row_index_pos[k0 + 1]],
+                                         X_row_m[row_index_pos[k1 + 1]],
+                                         X_row_m[row_index_pos[k2 + 1]],
+                                         X_row_m[row_index_pos[k3 + 1]]};
+                float32x4_t x_vals011 = {X_row_m[row_index_neg[k0 + 1]],
+                                         X_row_m[row_index_neg[k1 + 1]],
+                                         X_row_m[row_index_neg[k2 + 1]],
+                                         X_row_m[row_index_neg[k3 + 1]]};
+                float32x4_t x_vals100 = {X_row_m[row_index_pos[k0 + 2]],
+                                         X_row_m[row_index_pos[k1 + 2]],
+                                         X_row_m[row_index_pos[k2 + 2]],
+                                         X_row_m[row_index_pos[k3 + 2]]};
+                float32x4_t x_vals101 = {X_row_m[row_index_neg[k0 + 2]],
+                                         X_row_m[row_index_neg[k1 + 2]],
+                                         X_row_m[row_index_neg[k2 + 2]],
+                                         X_row_m[row_index_neg[k3 + 2]]};
+                float32x4_t x_vals110 = {X_row_m[row_index_pos[k0 + 3]],
+                                         X_row_m[row_index_pos[k1 + 3]],
+                                         X_row_m[row_index_pos[k2 + 3]],
+                                         X_row_m[row_index_pos[k3 + 3]]};
+                float32x4_t x_vals111 = {X_row_m[row_index_neg[k0 + 3]],
+                                         X_row_m[row_index_neg[k1 + 3]],
+                                         X_row_m[row_index_neg[k2 + 3]],
+                                         X_row_m[row_index_neg[k3 + 3]]};
                 k0 += 4;
                 k1 += 4;
                 k2 += 4;
@@ -1112,12 +1139,11 @@ void NeonTCSC2(float *X, const VectorTCSC &W_csc, float *b, float *Y, int M, int
                 y_vec0 = vaddq_f32(y_vec0, vec_tmp4);
                 y_vec1 = vaddq_f32(y_vec1, vec_tmp5);
             }
-      
+
             float32x4_t b_vals = vld1q_f32(b + n);
             float32x4_t y_vec_res = vaddq_f32(y_vec0, y_vec1);
             float32x4_t store_in_y = vaddq_f32(y_vec_res, b_vals);
             vst1q_f32(Y + m * N + n, store_in_y);
-
         }
     }
 }

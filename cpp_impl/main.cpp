@@ -6,7 +6,7 @@
 #define BLOCK_SIZE 512
 #define UNROLL_FACTOR 8
 
-#define BENCHMARK_FUNCTION_NAME "UnrolledTCSC_12"
+#define BENCHMARK_FUNCTION_NAME "BaseTCSC"
 
 std::vector<comp_func> userFuncs;
 std::vector<std::string> funcNames;
@@ -50,7 +50,6 @@ int main(int argc, char **argv)
     auto sf_csc = std::make_shared<TCSC>(W_raw.data(), K, N);
     auto sf_csr = std::make_shared<TCSR>(W_raw.data(), K, N);
 
-
     auto sf_vec_csc = std::make_shared<VectorTCSC>(W_raw.data(), K, N);
 
     auto sf_blocked = std::make_shared<BlockedTCSC<BLOCK_SIZE>>(W_raw.data(), K, N);
@@ -58,12 +57,19 @@ int main(int argc, char **argv)
 
     auto sf_interleaved = std::make_shared<InterleavedTCSC>(W_raw.data(), K, N);
 
+    add_function(
+        [sf_csc](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
+        {
+            BaseTCSC<float>(X_arg, *sf_csc, B_arg, Y_arg, M_arg, N_arg, K_arg);
+        },
+        "BaseTCSC");
+
     // add_function(
-    //     [sf_csc](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
+    //     [sf_csr](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
     //     {
-    //         BaseTCSC<float>(X_arg, *sf_csc, B_arg, Y_arg, M_arg, N_arg, K_arg);
+    //         BaseTCSR<float>(X_arg, *sf_csr, B_arg, Y_arg, M_arg, N_arg, K_arg);
     //     },
-    //     "BaseTCSC");
+    //     "BaseTCSR");
 
     add_function(
         [sf_csc](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
@@ -72,48 +78,47 @@ int main(int argc, char **argv)
         },
         "UnrolledTCSC_" + std::to_string(12));
 
-    add_function(
-        [sf_blocked_interleaved](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
-        {
-            UnrolledInterleavedBlockedTCSC<float, BLOCK_SIZE, UNROLL_FACTOR>(X_arg, *sf_blocked_interleaved, B_arg, Y_arg, M_arg, N_arg, K_arg);
-        },
-        "UnrolledInterleavedBlockedTCSC");
+    // add_function(
+    //     [sf_csr](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
+    //     {
+    //         UnrolledTCSR<float, 12>(X_arg, *sf_csr, B_arg, Y_arg, M_arg, N_arg, K_arg);
+    //     },
+    //     "UnrolledTCSR_" + std::to_string(12));
 
-    add_function(
-        [sf_blocked](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
-        {
-            UnrolledBlockedTCSC<float, BLOCK_SIZE, 12>(X_arg, *sf_blocked, B_arg, Y_arg, M_arg, N_arg, K_arg);
-        },
-        "UnrolledBlockedTCSC_" + std::to_string(UNROLL_FACTOR));
+    // add_function(
+    //     [sf_blocked_interleaved](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
+    //     {
+    //         UnrolledInterleavedBlockedTCSC<float, BLOCK_SIZE, UNROLL_FACTOR>(X_arg, *sf_blocked_interleaved, B_arg, Y_arg, M_arg, N_arg, K_arg);
+    //     },
+    //     "UnrolledInterleavedBlockedTCSC");
+
+    // add_function(
+    //     [sf_blocked](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
+    //     {
+    //         UnrolledBlockedTCSC<float, BLOCK_SIZE, 12>(X_arg, *sf_blocked, B_arg, Y_arg, M_arg, N_arg, K_arg);
+    //     },
+    //     "UnrolledBlockedTCSC_" + std::to_string(UNROLL_FACTOR));
 
     // add_function(
     //     [sf_csc](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
     //     {
     //         UnrolledModifiedTCSC<float, 12>(X_arg, *sf_csc, B_arg, Y_arg, M_arg, N_arg, K_arg);
+    // //     },
+    // //     "UnrolledModifiedTCSC_12");
+
+    // add_function(
+    //     [sf_csc](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
+    //     {
+    //         NeonTCSC<float>(X_arg, *sf_csc, B_arg, Y_arg, M_arg, N_arg, K_arg);
     //     },
-    //     "UnrolledModifiedTCSC_12");
+    //     "NeonTCSC");
 
-    add_function(
-        [sf_csc](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
-        {
-            UnrolledTCSC<float, UNROLL_FACTOR>(X_arg, *sf_csc, B_arg, Y_arg, M_arg, N_arg, K_arg);
-        },
-        "UnrolledTCSC_" + std::to_string(UNROLL_FACTOR));
-
-    add_function(
-        [sf_csc](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
-        {
-            NeonTCSC<float>(X_arg, *sf_csc, B_arg, Y_arg, M_arg, N_arg, K_arg);
-        },
-        "NeonTCSC");
-
-    add_function(
-        [sf_vec_csc](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
-        {
-            NeonTCSC2<float>(X_arg, *sf_vec_csc, B_arg, Y_arg, M_arg, N_arg, K_arg);
-        },
-        "NeonTCSC2");
-
+    // add_function(
+    //     [sf_vec_csc](float *X_arg, float *B_arg, float *Y_arg, int M_arg, int N_arg, int K_arg)
+    //     {
+    //         NeonTCSC2<float>(X_arg, *sf_vec_csc, B_arg, Y_arg, M_arg, N_arg, K_arg);
+    //     },
+    //     "NeonTCSC2");
 
     if (numFuncs == 0)
     {
