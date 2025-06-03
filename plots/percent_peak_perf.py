@@ -16,8 +16,8 @@ def compute_peak_percentages(data, peak):
 
 def main():
     parser = argparse.ArgumentParser(description='Compute peak performance percentages.')
-    parser.add_argument('json_file', help='Path to JSON file with performance data.')
-    parser.add_argument('--peak', type=float, default=4.0, help='Peak flops per cycle (default: 4).')
+    parser.add_argument('json_file')
+    parser.add_argument('--peak', type=float, default=4.0)
     args = parser.parse_args()
 
     with open(args.json_file, 'r') as f:

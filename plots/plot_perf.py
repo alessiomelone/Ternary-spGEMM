@@ -94,7 +94,7 @@ def create_performance_plot(json_filepath, title, outname, xlabel, inline_labels
 
     df = pd.DataFrame(plot_data)
 
-    plt.figure(figsize=(14, 8))
+    plt.figure(figsize=(18, 8))
     ax = plt.gca()
     ax.set_facecolor('#dddddd')
     ax.set_axisbelow(True)
@@ -107,7 +107,7 @@ def create_performance_plot(json_filepath, title, outname, xlabel, inline_labels
     raw_function_names = df['Function Name'].unique()
     avg_perfs = {func: df[df['Function Name'] == func]['Performance (Flops/Cycle)'].mean() for func in raw_function_names}
     function_names = sorted(raw_function_names, key=lambda f: avg_perfs[f], reverse=True)
-    palette = ['red', 'blue', 'gray', 'lightgray']
+    palette = ['red', 'orange', 'purple', 'green', 'gray', 'blue']
     for idx, func_name in enumerate(function_names):
         func_df = df[df['Function Name'] == func_name].sort_values(by='Input Size')
         if func_df.empty:
@@ -139,7 +139,7 @@ def create_performance_plot(json_filepath, title, outname, xlabel, inline_labels
                 zorder=10
             )
     if not inline_labels:
-        ax.legend(fontsize=functionnamesize, bbox_to_anchor=(1, 0.5))
+        ax.legend(fontsize=functionnamesize, loc='center left', bbox_to_anchor=(1, 0.5))
 
     ax.set_xlabel(xlabel, fontsize=Xaxis_fontsize)
     ax.yaxis.set_label_coords(0, 1.02)
@@ -166,7 +166,7 @@ def create_performance_plot(json_filepath, title, outname, xlabel, inline_labels
     else:
         print("Info: No unique input sizes found to set as X-axis ticks.")
 
-    plt.tight_layout(rect=[0, 0, 0.85, 1])
+    plt.tight_layout(rect=[0, 0, 0.8, 1])
 
     dt = datetime.now()
     ts = datetime.timestamp(dt) * 100
@@ -175,7 +175,7 @@ def create_performance_plot(json_filepath, title, outname, xlabel, inline_labels
     os.makedirs(output_dir, exist_ok=True)
     plot_filename = os.path.join(output_dir, f"{outname}.png")
     try:
-        plt.savefig(plot_filename, dpi=300)
+        plt.savefig(plot_filename, dpi=300, bbox_inches='tight')
         print(f"Plot saved as {plot_filename}")
     except Exception as e:
         print(f"Error saving plot: {e}")
