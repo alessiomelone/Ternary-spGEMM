@@ -61,20 +61,20 @@ make INSTRUMENT=1
 sudo python3 plots/run_benchmark.py -s --output "$OUTPUT_JSON" $VAR_ARG $SPARSE_ARG
 
 if [ "$VARYONLY" = "M" ]; then
-    X_LABEL="log_2(M)"
+    X_LABEL="M"
     TITLE="Performance vs. M"
 elif [ "$VARYONLY" = "K" ]; then
-    X_LABEL="log_2(K)"
+    X_LABEL="K"
     TITLE="Performance vs. K"
 elif [ "$VARYONLY" = "N" ]; then
-    X_LABEL="log_2(N)"
+    X_LABEL="N"
     TITLE="Performance vs. N"
 else
     X_LABEL="Total Input Size (MB)"
     TITLE="Performance vs. Total Input Size"
 fi
 
-TITLE="$TITLE on AMD Ryzen 7 7730U, 2.00 GHz"
+TITLE="$TITLE on Apple M2, 3.49 GHz"
 
 python plots/plot_perf.py "$OUTPUT_JSON" --xlabel "$X_LABEL" --title "$TITLE"
 python plots/plot_roofline.py "$OUTPUT_JSON" -a
