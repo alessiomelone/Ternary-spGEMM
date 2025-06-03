@@ -145,7 +145,7 @@ def create_performance_plot(json_filepath, title, outname, xlabel, inline_labels
     ax.yaxis.set_label_coords(0, 1.02)
     escaped_title = title.replace(" ", r"\ ")
     ax.set_title(r"$\bf{" + escaped_title + r"}$" + "\n" + "(flops/cycle)", loc='left')
-    ax.grid(True)
+    ax.grid(axis='y', color='white')
     ax.set_xscale('log')
 
     unique_input_sizes = sorted(df['Input Size'].unique())
@@ -167,7 +167,8 @@ def create_performance_plot(json_filepath, title, outname, xlabel, inline_labels
         print("Info: No unique input sizes found to set as X-axis ticks.")
 
     plt.tight_layout(rect=[0, 0, 0.8, 1])
-
+    
+    ax.set_ylim(bottom=0)
     dt = datetime.now()
     ts = datetime.timestamp(dt) * 100
     ts = int(ts)
