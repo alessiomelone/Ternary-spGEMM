@@ -1,13 +1,30 @@
 DATESTRING=$(date +"%A, %-d.%-m %-I:%M%P")
 OUTPUT_JSON="plots/output_jsons/$DATESTRING.json"
 
-if [ "$1" = "--varyonly" ]; then
-    shift
-    VARYONLY=$1
-else
-    VARYONLY=$1
-fi
+# Parse command-line flags
+VARYONLY=""
+SPARSITYONLY=""
 
+while [[ $# -gt 0 ]]; do
+    key="$1"
+    case $key in
+        --varyonly)
+            VARYONLY="$2"
+            shift
+            shift
+            ;;
+        --sparsityonly)
+            SPARSITYONLY="$2"
+            shift
+            shift
+            ;;
+        *)
+            shift
+            ;;
+    esac
+done
+
+# Validate VARYONLY
 if [[ "$VARYONLY" != "M" && "$VARYONLY" != "K" && "$VARYONLY" != "N" ]]; then
     VARYONLY=""
 fi
@@ -18,9 +35,16 @@ else
     VAR_ARG=""
 fi
 
+# Build sparsity argument
+if [ -n "$SPARSITYONLY" ]; then
+    SPARSE_ARG="--sparsityonly $SPARSITYONLY"
+else
+    SPARSE_ARG=""
+fi
+
 make clean
 make INSTRUMENT=1
-sudo python plots/run_benchmark.py -s --output "$OUTPUT_JSON" $VAR_ARG
+sudo python plots/run_benchmark.py -s --output "$OUTPUT_JSON" $VAR_ARG $SPARSE_ARG
 
 if [ "$VARYONLY" = "M" ]; then
     X_LABEL="M"
