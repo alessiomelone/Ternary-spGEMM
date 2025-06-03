@@ -5,7 +5,7 @@ import argparse
 def subtract_files_line_by_line(results_filepath, base_filepath, visible_fields=None, excl=None):
     """
     Reads two cache simulation files line by line, subtracts numerical data
-    from the base file from the results file, and prints the modified results.
+    from the base file from the results file, and prints the Simultaneous results.
     Percentage fields are taken directly from the results file.
     Only specified 'visible_fields' are printed if the option is used.
     Assumes both files have the same number of lines and structure for subtraction.

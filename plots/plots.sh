@@ -74,7 +74,7 @@ else
     TITLE="Performance vs. Total Input Size"
 fi
 
-TITLE="$TITLE on Apple M2, 3.49 GHz"
+TITLE="$TITLE on AMD Ryzen 7 7730U, 2.00 GHz"
 
-python3 plots/plot_perf.py "$OUTPUT_JSON" --xlabel "$X_LABEL" --title "$TITLE"
-python3 plots/plot_roofline.py "$OUTPUT_JSON" -a
+python plots/plot_perf.py "$OUTPUT_JSON" --xlabel "$X_LABEL" --title "$TITLE"
+python plots/plot_roofline.py "$OUTPUT_JSON" -a

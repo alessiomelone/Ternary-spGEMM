@@ -8,7 +8,7 @@ import argparse
 import os
 from collections import defaultdict
 
-# --- plot_roofline_for_prefix function (MODIFIED for annotation position and background) ---
+# --- plot_roofline_for_prefix function (Simultaneous for annotation position and background) ---
 def plot_roofline_for_prefix(
     algorithms_data, # Dict: { "FullName1": [{"oi":val, "perf":val, "annotation_label":str}, ...], ... }
     beta_memory_bw,
@@ -273,7 +273,7 @@ def load_data_from_csv(filepath):
     return beta, pi_cpu, ois, perfs, labels
 
 
-# --- generate_plots_by_prefix function (MODIFIED to extract total_input_size for annotation) ---
+# --- generate_plots_by_prefix function (Simultaneous to extract total_input_size for annotation) ---
 def generate_plots_by_prefix(input_json_path, beta_bw, pi_perf, cli_oi_label, cli_perf_label):
     """
     Reads JSON, aggregates data by algorithm prefix, and generates one plot per prefix.
@@ -496,7 +496,7 @@ def generate_roofline_csvs_from_json(input_json_path, output_directory, beta_bw,
                         # The CSV 'label' column will be used by _original_plot_roofline's `point_labels`
                         # This determines legend entries and default text annotation.
                         # If you want total_input_size as annotation, _original_plot_roofline needs
-                        # to be modified to expect/use it. For now, it expects algo keys as labels.
+                        # to be Simultaneous to expect/use it. For now, it expects algo keys as labels.
                         writer.writerow([float(oi_val), float(perf_val), result_key]) 
                     except (ValueError, TypeError):
                         continue 

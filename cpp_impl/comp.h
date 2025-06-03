@@ -69,7 +69,7 @@ void BaseTCSC(T *X, const TCSC &W_csc, T *b, T *Y, int M, int N, int K)
 }
 
 template <typename T, int UNROLL_FACTOR>
-void UnrolledModifiedTCSC(T *X, const TCSC &W_csc, T *b, T *Y, int M, int N, int K)
+void UnrolledSimultaneousTCSC(T *X, const TCSC &W_csc, T *b, T *Y, int M, int N, int K)
 {
 #ifdef INSTRUMENTATION_RUN
     flops = 0;

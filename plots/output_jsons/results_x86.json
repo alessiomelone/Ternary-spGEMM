@@ -26,7 +26,7 @@
                 "operational_intensity": 21.8068,
                 "performance": 2.24239
             },
-            "UnrolledModifiedTCSC_12 (Sparsity 1/4)": {
+            "UnrolledSimultaneousTCSC_12 (Sparsity 1/4)": {
                 "total_input_size": 512,
                 "operational_intensity": 21.6532,
                 "performance": 2.36325
@@ -65,7 +65,7 @@
                 "operational_intensity": 31.3763,
                 "performance": 2.29826
             },
-            "UnrolledModifiedTCSC_12 (Sparsity 1/4)": {
+            "UnrolledSimultaneousTCSC_12 (Sparsity 1/4)": {
                 "total_input_size": 1024,
                 "operational_intensity": 29.85,
                 "performance": 2.4123
@@ -104,7 +104,7 @@
                 "operational_intensity": 40.256,
                 "performance": 1.79763
             },
-            "UnrolledModifiedTCSC_12 (Sparsity 1/4)": {
+            "UnrolledSimultaneousTCSC_12 (Sparsity 1/4)": {
                 "total_input_size": 2048,
                 "operational_intensity": 37.4686,
                 "performance": 2.31778
@@ -143,7 +143,7 @@
                 "operational_intensity": 46.9118,
                 "performance": 1.72001
             },
-            "UnrolledModifiedTCSC_12 (Sparsity 1/4)": {
+            "UnrolledSimultaneousTCSC_12 (Sparsity 1/4)": {
                 "total_input_size": 4096,
                 "operational_intensity": 43.1872,
                 "performance": 2.22507
@@ -182,7 +182,7 @@
                 "operational_intensity": 51.1456,
                 "performance": 1.69433
             },
-            "UnrolledModifiedTCSC_12 (Sparsity 1/4)": {
+            "UnrolledSimultaneousTCSC_12 (Sparsity 1/4)": {
                 "total_input_size": 8192,
                 "operational_intensity": 46.8284,
                 "performance": 2.06993
@@ -221,7 +221,7 @@
                 "operational_intensity": 53.5643,
                 "performance": 1.64101
             },
-            "UnrolledModifiedTCSC_12 (Sparsity 1/4)": {
+            "UnrolledSimultaneousTCSC_12 (Sparsity 1/4)": {
                 "total_input_size": 16384,
                 "operational_intensity": 48.9098,
                 "performance": 1.9257
