@@ -1157,7 +1157,7 @@ void NeonTCSCHorizontalAdvanced(float *X, const VectorTCSC &W_csc, float *b, flo
 
     for (int m = 0; m < M; m++)
     {
-        float* X_row_m = X + m * K;
+        float *X_row_m = X + m * K;
         X_row_m[-1] = 0;
 
         int cap_idx = 0;
@@ -1177,15 +1177,16 @@ void NeonTCSCHorizontalAdvanced(float *X, const VectorTCSC &W_csc, float *b, flo
             int k3 = k2 + cap;
             k3_end = k3 + cap;
 
-            for (int i = k0; i < k0_end; i += 4) {
-                float32x4_t x_vals000 = { X_row_m[row_index_pos[k0]], X_row_m[row_index_pos[k0+1]], X_row_m[row_index_pos[k0+2]], X_row_m[row_index_pos[k0+3]] };
-                float32x4_t x_vals001 = { X_row_m[row_index_neg[k0]], X_row_m[row_index_neg[k0+1]], X_row_m[row_index_neg[k0+2]], X_row_m[row_index_neg[k0+3]] };
-                float32x4_t x_vals010 = { X_row_m[row_index_pos[k1]], X_row_m[row_index_pos[k1+1]], X_row_m[row_index_pos[k1+2]], X_row_m[row_index_pos[k1+3]] };
-                float32x4_t x_vals011 = { X_row_m[row_index_neg[k1]], X_row_m[row_index_neg[k1+1]], X_row_m[row_index_neg[k1+2]], X_row_m[row_index_neg[k1+3]] };
-                float32x4_t x_vals100 = { X_row_m[row_index_pos[k2]], X_row_m[row_index_pos[k2+1]], X_row_m[row_index_pos[k2+2]], X_row_m[row_index_pos[k2+3]] };
-                float32x4_t x_vals101 = { X_row_m[row_index_neg[k2]], X_row_m[row_index_neg[k2+1]], X_row_m[row_index_neg[k2+2]], X_row_m[row_index_neg[k2+3]] };
-                float32x4_t x_vals110 = { X_row_m[row_index_pos[k3]], X_row_m[row_index_pos[k3+1]], X_row_m[row_index_pos[k3+2]], X_row_m[row_index_pos[k3+3]] };
-                float32x4_t x_vals111 = { X_row_m[row_index_neg[k3]], X_row_m[row_index_neg[k3+1]], X_row_m[row_index_neg[k3+2]], X_row_m[row_index_neg[k3+3]] };
+            for (int i = k0; i < k0_end; i += 4)
+            {
+                float32x4_t x_vals000 = {X_row_m[row_index_pos[k0]], X_row_m[row_index_pos[k0 + 1]], X_row_m[row_index_pos[k0 + 2]], X_row_m[row_index_pos[k0 + 3]]};
+                float32x4_t x_vals001 = {X_row_m[row_index_neg[k0]], X_row_m[row_index_neg[k0 + 1]], X_row_m[row_index_neg[k0 + 2]], X_row_m[row_index_neg[k0 + 3]]};
+                float32x4_t x_vals010 = {X_row_m[row_index_pos[k1]], X_row_m[row_index_pos[k1 + 1]], X_row_m[row_index_pos[k1 + 2]], X_row_m[row_index_pos[k1 + 3]]};
+                float32x4_t x_vals011 = {X_row_m[row_index_neg[k1]], X_row_m[row_index_neg[k1 + 1]], X_row_m[row_index_neg[k1 + 2]], X_row_m[row_index_neg[k1 + 3]]};
+                float32x4_t x_vals100 = {X_row_m[row_index_pos[k2]], X_row_m[row_index_pos[k2 + 1]], X_row_m[row_index_pos[k2 + 2]], X_row_m[row_index_pos[k2 + 3]]};
+                float32x4_t x_vals101 = {X_row_m[row_index_neg[k2]], X_row_m[row_index_neg[k2 + 1]], X_row_m[row_index_neg[k2 + 2]], X_row_m[row_index_neg[k2 + 3]]};
+                float32x4_t x_vals110 = {X_row_m[row_index_pos[k3]], X_row_m[row_index_pos[k3 + 1]], X_row_m[row_index_pos[k3 + 2]], X_row_m[row_index_pos[k3 + 3]]};
+                float32x4_t x_vals111 = {X_row_m[row_index_neg[k3]], X_row_m[row_index_neg[k3 + 1]], X_row_m[row_index_neg[k3 + 2]], X_row_m[row_index_neg[k3 + 3]]};
 
                 float32x4_t vec_tmp0 = vsubq_f32(x_vals000, x_vals001);
                 float32x4_t vec_tmp1 = vsubq_f32(x_vals010, x_vals011);
@@ -1210,7 +1211,7 @@ void NeonTCSCHorizontalAdvanced(float *X, const VectorTCSC &W_csc, float *b, flo
             float y3 = vaddvq_f32(y_vec3);
 
             // Store final results
-            Y[m * N + n]     = y0 + b[n];
+            Y[m * N + n] = y0 + b[n];
             Y[m * N + n + 1] = y1 + b[n + 1];
             Y[m * N + n + 2] = y2 + b[n + 2];
             Y[m * N + n + 3] = y3 + b[n + 3];
@@ -1219,7 +1220,6 @@ void NeonTCSCHorizontalAdvanced(float *X, const VectorTCSC &W_csc, float *b, flo
             // float32x4_t b_vals = vld1q_f32(b + n);
             // float32x4_t store_in_y = vaddq_f32(y_res, b_vals);
             // vst1q_f32(Y + m * N + n, store_in_y);
-
         }
     }
 }
