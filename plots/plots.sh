@@ -1,5 +1,19 @@
-DATESTRING=$(date +"%A, %-d.%-m %-I:%M%P")
-OUTPUT_JSON="plots/output_jsons/$DATESTRING.json"
+
+# Determine output JSON filename from first argument, default to timestamp if not provided
+if [[ -n "$1" ]]; then
+    FILE_NAME="$1"
+    shift
+    # Remove .json extension if provided
+    if [[ "$FILE_NAME" == *.json ]]; then
+        BASENAME="${FILE_NAME%.json}"
+    else
+        BASENAME="$FILE_NAME"
+    fi
+    OUTPUT_JSON="plots/output_jsons/${BASENAME}.json"
+else
+    DATESTRING=$(date +"%A, %-d.%-m %-I:%M%P")
+    OUTPUT_JSON="plots/output_jsons/$DATESTRING.json"
+fi
 
 # Parse command-line flags
 VARYONLY=""

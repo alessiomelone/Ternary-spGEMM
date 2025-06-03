@@ -107,7 +107,7 @@ def create_performance_plot(json_filepath, title, outname, xlabel, inline_labels
     raw_function_names = df['Function Name'].unique()
     avg_perfs = {func: df[df['Function Name'] == func]['Performance (Flops/Cycle)'].mean() for func in raw_function_names}
     function_names = sorted(raw_function_names, key=lambda f: avg_perfs[f], reverse=True)
-    palette = ['red', 'blue', 'purple', 'green']
+    palette = ['red', 'blue', 'gray', 'lightgray']
     for idx, func_name in enumerate(function_names):
         func_df = df[df['Function Name'] == func_name].sort_values(by='Input Size')
         if func_df.empty:
@@ -139,7 +139,7 @@ def create_performance_plot(json_filepath, title, outname, xlabel, inline_labels
                 zorder=10
             )
     if not inline_labels:
-        ax.legend(fontsize=functionnamesize)
+        ax.legend(fontsize=functionnamesize, bbox_to_anchor=(1, 0.5))
 
     ax.set_xlabel(xlabel, fontsize=Xaxis_fontsize)
     ax.yaxis.set_label_coords(0, 1.02)
@@ -173,7 +173,7 @@ def create_performance_plot(json_filepath, title, outname, xlabel, inline_labels
     ts = int(ts)
     output_dir = os.path.join("plots", "plot_images", "performance")
     os.makedirs(output_dir, exist_ok=True)
-    plot_filename = os.path.join(output_dir, f"performance_plot.png")
+    plot_filename = os.path.join(output_dir, f"{outname}.png")
     try:
         plt.savefig(plot_filename, dpi=300)
         print(f"Plot saved as {plot_filename}")

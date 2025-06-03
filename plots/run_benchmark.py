@@ -100,7 +100,7 @@ def run_and_parse_benchmark(save_results=False, outname='', varyonly=None, spars
                                 size_to_save = total_input_sz
                             size_label = 'total_input_size'
                             print(f"  {stripped_func_name} (Sparsity 1/{s}): {size_label}={size_to_save}, {fpc_val} flops/cycle, {oi_val} flops/Byte")
-                            case_result["results"][f"{stripped_func_name} (Sparsity {s})"] = {
+                            case_result["results"][f"{stripped_func_name} (Sparsity 1/{s})"] = {
                                 size_label: size_to_save,
                                 "operational_intensity": oi_val,
                                 "performance": fpc_val
@@ -108,9 +108,9 @@ def run_and_parse_benchmark(save_results=False, outname='', varyonly=None, spars
                             if correctness_status.get(stripped_func_name) == "failed":
                                 print(f"    WARNING: {stripped_func_name} failed correctness check!")
                         except ValueError:
-                            print(f"  Could not parse results for {stripped_func_name} at sparsity {s}")
+                            print(f"  Could not parse results for {stripped_func_name} at sparsity 1/{s}")
                 else:
-                    print(f"  No performance results found for sparsity {s}.")
+                    print(f"  No performance results found for sparsity 1/{s}.")
             except subprocess.TimeoutExpired:
                 print(f"  ERROR: Benchmark run timed out for M={m_val}, K={k_val}, N={n_val}, s={s}")
             except Exception as e:
@@ -129,6 +129,6 @@ if __name__ == "__main__":
     parser.add_argument('-s', '--save', action='store_true', help='Save benchmark results to JSON file')
     parser.add_argument('--output', type=str, default='benchmark_results.json', help='Name of JSON file')
     parser.add_argument('--varyonly', type=str, choices=['M','K','N'], help='Only vary one dimension: M, K, or N')
-    parser.add_argument('--sparsityonly', type=int, help='Only run a single sparsity value')
+    parser.add_argument('--sparsityonly', type=int)
     args = parser.parse_args()
     run_and_parse_benchmark(args.save, args.output, args.varyonly, args.sparsityonly)
