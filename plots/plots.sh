@@ -58,7 +58,7 @@ fi
 
 make clean
 make INSTRUMENT=1
-sudo python plots/run_benchmark.py -s --output "$OUTPUT_JSON" $VAR_ARG $SPARSE_ARG
+sudo python3 plots/run_benchmark.py -s --output "$OUTPUT_JSON" $VAR_ARG $SPARSE_ARG
 
 if [ "$VARYONLY" = "M" ]; then
     X_LABEL="M"
@@ -76,5 +76,5 @@ fi
 
 TITLE="$TITLE on Apple M2, 3.49 GHz"
 
-python plots/plot_perf.py "$OUTPUT_JSON" --xlabel "$X_LABEL" --title "$TITLE"
-python plots/plot_roofline.py "$OUTPUT_JSON" -a
+python3 plots/plot_perf.py "$OUTPUT_JSON" --xlabel "$X_LABEL" --title "$TITLE"
+python3 plots/plot_roofline.py "$OUTPUT_JSON" -a
