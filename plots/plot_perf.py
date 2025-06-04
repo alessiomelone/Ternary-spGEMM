@@ -36,7 +36,7 @@ def format_size_to_human_readable_M(value_in_units):
     millions = value_in_units / 1_000_000.0
     return f"{millions:.1f}"
 
-def create_performance_plot(json_filepath, title, outname, xlabel, inline_labels=False):
+def create_performance_plot(json_filepath, title, outname, xlabel, inline_labels=False, match_sparsity_colors=False):
     try:
         with open(json_filepath, 'r') as f:
             data = json.load(f)
@@ -105,39 +105,94 @@ def create_performance_plot(json_filepath, title, outname, xlabel, inline_labels
     ax.tick_params(axis='y', length=0)
 
     raw_function_names = df['Function Name'].unique()
-    avg_perfs = {func: df[df['Function Name'] == func]['Performance (Flops/Cycle)'].mean() for func in raw_function_names}
-    function_names = sorted(raw_function_names, key=lambda f: avg_perfs[f], reverse=True)
-    palette = ['red', 'orange', 'purple', 'green', 'gray', 'blue']
-    for idx, func_name in enumerate(function_names):
-        func_df = df[df['Function Name'] == func_name].sort_values(by='Input Size')
-        if func_df.empty:
-            continue
-        color = palette[idx % len(palette)]
-        lw = 3 if idx == 0 else 1.8
-        line, = ax.plot(func_df['Input Size'],
-                        func_df['Performance (Flops/Cycle)'],
-                        marker='o',
-                        linestyle='-',
-                        linewidth=lw,
+
+    if match_sparsity_colors:
+        # Extract base function names by removing the " (Sparsity ...)" suffix
+        base_names = list({name.split(' (Sparsity')[0] for name in raw_function_names})
+        # Compute average performance per base across all sparsities
+        avg_base_perfs = {}
+        for base in base_names:
+            perf_values = []
+            for name in raw_function_names:
+                if name.startswith(base):
+                    perf_values.extend(df[df['Function Name'] == name]['Performance (Flops/Cycle)'].tolist())
+            avg_base_perfs[base] = sum(perf_values) / len(perf_values) if perf_values else 0
+        # Sort bases by descending average performance
+        sorted_bases = sorted(base_names, key=lambda b: avg_base_perfs[b], reverse=True)
+
+        palette = ['red', 'orange', 'purple', 'green', 'gray', 'blue']
+        for idx, base in enumerate(sorted_bases):
+            color = palette[idx % len(palette)]
+            # Plot each sparsity variant of this base with the same color
+            variants = sorted([n for n in raw_function_names if n.startswith(base)])
+            for name in variants:
+                func_df = df[df['Function Name'] == name].sort_values(by='Input Size')
+                if func_df.empty:
+                    continue
+                lw = 3 if idx == 0 else 1.8
+                line, = ax.plot(
+                    func_df['Input Size'],
+                    func_df['Performance (Flops/Cycle)'],
+                    marker='o',
+                    linestyle='-',
+                    linewidth=lw,
+                    color=color,
+                    label=name
+                )
+                if inline_labels:
+                    mid_index = len(func_df) // 2
+                    mid_x = func_df['Input Size'].iloc[mid_index]
+                    mid_y = func_df['Performance (Flops/Cycle)'].iloc[mid_index]
+                    ax.annotate(
+                        name,
+                        xy=(mid_x, mid_y),
+                        xytext=(5, 5),
+                        textcoords='offset points',
+                        va='bottom',
+                        ha='left',
+                        fontsize=functionnamesize,
+                        fontweight='bold',
                         color=color,
-                        label=func_name)
-        if inline_labels:
-            # Annotate in the middle of the line
-            mid_index = len(func_df) // 2
-            mid_x = func_df['Input Size'].iloc[mid_index]
-            mid_y = func_df['Performance (Flops/Cycle)'].iloc[mid_index]
-            ax.annotate(
-                func_name,
-                xy=(mid_x, mid_y),
-                xytext=(5, 5),
-                textcoords='offset points',
-                va='bottom',
-                ha='left',
-                fontsize=functionnamesize,
-                fontweight='bold',
+                        zorder=10
+                    )
+    else:
+        avg_perfs = {
+            func: df[df['Function Name'] == func]['Performance (Flops/Cycle)'].mean()
+            for func in raw_function_names
+        }
+        function_names = sorted(raw_function_names, key=lambda f: avg_perfs[f], reverse=True)
+        palette = ['red', 'orange', 'purple', 'green', 'gray', 'blue']
+        for idx, func_name in enumerate(function_names):
+            func_df = df[df['Function Name'] == func_name].sort_values(by='Input Size')
+            if func_df.empty:
+                continue
+            color = palette[idx % len(palette)]
+            lw = 3 if idx == 0 else 1.8
+            line, = ax.plot(
+                func_df['Input Size'],
+                func_df['Performance (Flops/Cycle)'],
+                marker='o',
+                linestyle='-',
+                linewidth=lw,
                 color=color,
-                zorder=10
+                label=func_name
             )
+            if inline_labels:
+                mid_index = len(func_df) // 2
+                mid_x = func_df['Input Size'].iloc[mid_index]
+                mid_y = func_df['Performance (Flops/Cycle)'].iloc[mid_index]
+                ax.annotate(
+                    func_name,
+                    xy=(mid_x, mid_y),
+                    xytext=(5, 5),
+                    textcoords='offset points',
+                    va='bottom',
+                    ha='left',
+                    fontsize=functionnamesize,
+                    fontweight='bold',
+                    color=color,
+                    zorder=10
+                )
     if not inline_labels:
         ax.legend(fontsize=functionnamesize, loc='center left', bbox_to_anchor=(1, 0.5))
 
@@ -184,12 +239,17 @@ def create_performance_plot(json_filepath, title, outname, xlabel, inline_labels
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Generate performance plot with X-axis labels like '44.5 M'.")
     parser.add_argument("json_file")
-    parser.add_argument("--title", default='Performance of DFT 2ⁿ on Apple M2, 3.49 GHz')
+    parser.add_argument("--title", default='no title')
     parser.add_argument("--outname", default='performance_plot')
     parser.add_argument("--xlabel", default='Total Input Size (MB)')
     parser.add_argument(
         "--inline-labels",
         action="store_true",
+    )
+    parser.add_argument(
+        "--matchsparsitycolors",
+        action="store_true",
+        help="Match colors for functions with different sparsities"
     )
     args = parser.parse_args()
     outname = args.outname
@@ -202,5 +262,6 @@ if __name__ == '__main__':
         args.title,
         outname,
         args.xlabel,
-        args.inline_labels
+        args.inline_labels,
+        args.matchsparsitycolors
     )
